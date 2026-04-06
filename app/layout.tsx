@@ -25,20 +25,6 @@ export const metadata: Metadata = {
     "Learn Arabic handwriting through guided tracing and practice.",
 };
 
-function clerkRedirectOriginProps(): {
-  allowedRedirectOrigins?: string[];
-} {
-  const raw = process.env.NEXT_PUBLIC_APP_URL?.trim();
-  if (!raw) {
-    return {};
-  }
-  try {
-    return { allowedRedirectOrigins: [new URL(raw).origin] };
-  } catch {
-    return {};
-  }
-}
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -50,7 +36,6 @@ export default function RootLayout({
       signUpUrl="/sign-up"
       signInFallbackRedirectUrl="/lessons"
       signUpFallbackRedirectUrl="/lessons"
-      {...clerkRedirectOriginProps()}
       appearance={{
         variables: {
           colorPrimary: "hsl(160 84% 32%)",

@@ -1,6 +1,8 @@
 # Clerk — production (Vercel) troubleshooting
 
-If **`/sign-in`** or **`/sign-up`** looks **blank** (header only, no form), Clerk’s browser bundle (`clerk-js`) is usually **not finishing initialization** or **redirects are blocked** for your domain. Fix the dashboard + env first; the app also shows a **loading** state and hints while Clerk loads.
+If **`/sign-in`** or **`/sign-up`** looks **blank** (header only, no form), Clerk’s browser bundle (`clerk-js`) is usually **not finishing initialization** or **redirects are blocked** for your domain. Fix the dashboard + env first.
+
+**This is not caused by Stripe or a subscription paywall.** Subscription code does not protect `/sign-in` or `/sign-up` (only `/dashboard` and `/lessons` use `auth.protect()` in **`proxy.ts`**).
 
 ## 1. Keys must match the Clerk instance (production)
 
@@ -34,7 +36,7 @@ Set the same value in Vercel and locally:
 NEXT_PUBLIC_APP_URL=https://write.arabivo.net
 ```
 
-Use **`https://`**, no trailing slash required. The app passes this origin’s **`allowedRedirectOrigins`** into **`ClerkProvider`** so redirects validated by Clerk match your production site.
+Use **`https://`**, no trailing slash required. Used for Stripe return URLs and other absolute links; **Clerk** still needs correct **keys** and **domain allowlist** in the Clerk dashboard (see above).
 
 ## 4. Browser / network
 
