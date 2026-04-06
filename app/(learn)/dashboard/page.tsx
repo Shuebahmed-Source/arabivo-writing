@@ -1,20 +1,33 @@
 import type { Metadata } from "next";
 
 import { LearningUnitsGrid } from "@/components/dashboard/learning-units-grid";
+import { SubscriptionCard } from "@/components/dashboard/subscription-card";
 import { getDashboardUnits } from "@/lib/progress/dashboard-units";
 import {
   completedLessonIdSet,
   fetchUserProgressForCurrentUser,
 } from "@/lib/progress/queries";
+import { fetchUserSubscriptionForCurrentUser } from "@/lib/subscriptions/queries";
+import { isStripeConfigured } from "@/lib/stripe/server";
 
 export const metadata: Metadata = {
   title: "Dashboard",
 };
 
-export default async function DashboardPage() {
+type PageProps = {
+  searchParams: Promise<{ checkout?: string }>;
+};
+
+export default async function DashboardPage({ searchParams }: PageProps) {
+  const params = await searchParams;
+  const checkout = params.checkout;
+
   const rows = await fetchUserProgressForCurrentUser();
   const completedIds = completedLessonIdSet(rows);
   const units = getDashboardUnits(completedIds);
+
+  const subscription = await fetchUserSubscriptionForCurrentUser();
+  const stripeConfigured = isStripeConfigured();
 
   return (
     <div className="flex flex-1 flex-col gap-8">
@@ -27,6 +40,30 @@ export default async function DashboardPage() {
           stored per signed-in account.
         </p>
       </header>
+
+      {checkout === "success" ? (
+        <p
+          className="rounded-lg border border-primary/30 bg-primary/5 px-4 py-3 text-sm text-foreground"
+          role="status"
+        >
+          Thanks — your subscription is updating. If status does not refresh
+          within a minute, reload this page.
+        </p>
+      ) : null}
+      {checkout === "canceled" ? (
+        <p
+          className="rounded-lg border border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground"
+          role="status"
+        >
+          Checkout was canceled. You can subscribe anytime from below.
+        </p>
+      ) : null}
+
+      <SubscriptionCard
+        stripeConfigured={stripeConfigured}
+        subscription={subscription}
+      />
+
       <LearningUnitsGrid units={units} />
     </div>
   );

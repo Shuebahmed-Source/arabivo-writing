@@ -24,11 +24,32 @@ Stores **per-user, per-lesson completion** for the MVP. Tied to **Clerk** via `c
 
 **Migration file:** `supabase/migrations/20260403120000_user_progress.sql`
 
+**Production setup (run SQL + Vercel env):** see **`Projectdocs/supabase-production.md`**.
+
+### `user_subscriptions`
+
+Snapshot of **Stripe** subscription state per Clerk user, updated from **webhooks** (and the same service-role server pattern as progress). Used for the dashboard **Subscribe** / **Manage billing** flow. Not used to gate lessons yet.
+
+| Column                    | Type         | Notes |
+|---------------------------|--------------|--------|
+| `clerk_user_id`           | `text`       | Primary key; Clerk user id |
+| `stripe_customer_id`      | `text`       | Stripe Customer id |
+| `stripe_subscription_id`  | `text`       | Nullable |
+| `status`                  | `text`       | Stripe subscription status (e.g. `active`, `canceled`) |
+| `current_period_end`      | `timestamptz`| End of current billing period (when known) |
+| `updated_at`              | `timestamptz`| Default `now()` |
+
+- **RLS** enabled; **no** JWT policies — writes happen via **`SUPABASE_SERVICE_ROLE_KEY`** in trusted server code (webhooks + reads on dashboard).
+
+**Migration file:** `supabase/migrations/20260405120000_user_subscriptions.sql`
+
+**Stripe env + webhook:** see **`Projectdocs/stripe.md`**.
+
 ---
 
 ## Not implemented yet (future / original sketch)
 
-These tables were part of an early product sketch. They are **not** created in Supabase today. Lesson payloads live in code.
+These tables were part of an early product sketch or are optional. Lesson payloads live in code unless noted above.
 
 ### `users` (optional later)
 

@@ -51,3 +51,7 @@ The product targets **phones, tablets, iPads, and desktop** with a **mobile-firs
 ## Visual direction
 
 Clean, minimal, **premium** feel with an **emerald-forward** theme (see `Projectdocs/ui.md`).
+
+## Source control (GitHub)
+
+Repository URL, initial push steps, and **GitHub CLI (`gh`)** troubleshooting (including `gh auth login`) are documented in **`Projectdocs/github.md`**.
