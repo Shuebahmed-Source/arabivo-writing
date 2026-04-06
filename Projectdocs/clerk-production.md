@@ -62,6 +62,33 @@ This repo enables Clerk’s automatic CSP in **`proxy.ts`** via `contentSecurity
 
 After deploying that change, hard-refresh `/sign-in` and confirm the Clerk script loads in the **Network** tab.
 
+## 7. Network: “CORS Failed” for `clerk.write.arabivo.net` / `clerk.browser.js`
+
+If **Firefox/Chrome** shows **CORS Failed** (or blocked) for:
+
+`https://clerk.<your-domain>/npm/@clerk/clerk-js@.../clerk.browser.js`
+
+the **Frontend API** subdomain is not serving Clerk correctly for your browser (DNS, SSL, **Cloudflare proxy**, or Clerk DNS not verified). This is **not** fixed by rotating API keys.
+
+**Fix A — DNS (stay on `clerk.` subdomain)**
+
+1. Clerk Dashboard → **Domains** → confirm **DNS** for `clerk.<your-domain>` is **verified**.  
+2. If **Cloudflare**: set the Clerk **CNAME** to **DNS only** (grey cloud), not proxied orange cloud — Clerk [warns](https://clerk.com/docs/deployments/overview) this breaks validation.  
+3. Wait for DNS propagation; try without **VPN**.
+
+**Fix B — Path proxy (recommended if subdomain keeps failing)**
+
+Serve the Frontend API under **your app origin** so `clerk-js` loads from `https://write.arabivo.net/__clerk/...` (same site as the page — no cross-origin request to `clerk.write.arabivo.net`).
+
+1. Deploy this repo’s `proxy.ts` (it enables `frontendApiProxy` when the env below is set).  
+2. In **Clerk Dashboard** → **Domains** → Frontend API → set **proxy URL** to  
+   `https://write.arabivo.net/__clerk/` (with trailing slash; adjust host if yours differs).  
+3. In **Vercel** (Production) set:  
+   `NEXT_PUBLIC_CLERK_PROXY_URL=https://write.arabivo.net/__clerk/`  
+4. **Redeploy**. The SDK reads this env automatically (`NEXT_PUBLIC_CLERK_PROXY_URL`).
+
+Details: [Proxying the Clerk Frontend API](https://clerk.com/docs/guides/dashboard/dns-domains/proxy-fapi).
+
 ## Related env vars
 
 See **`.env.example`** for path-based sign-in/sign-up URLs (`NEXT_PUBLIC_CLERK_SIGN_IN_URL`, etc.). Those routes must match the app (`/sign-in`, `/sign-up`).
