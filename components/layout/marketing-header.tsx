@@ -1,8 +1,30 @@
+"use client";
+
+import { useAuth } from "@clerk/nextjs";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 
-export function MarketingHeader() {
+const SIGN_UP_RETURN = "/sign-up?redirect_url=%2Fsubscribe";
+const SIGN_IN_RETURN = "/sign-in?redirect_url=%2Fsubscribe";
+
+type Props = {
+  trialDays: number;
+};
+
+export function MarketingHeader({ trialDays }: Props) {
+  const { isSignedIn, isLoaded } = useAuth();
+
+  const primarySignedOutLabel =
+    trialDays > 0
+      ? `Start ${trialDays}-day free trial`
+      : "Subscribe";
+
+  const primaryHref =
+    isLoaded && isSignedIn ? "/subscribe" : SIGN_UP_RETURN;
+  const primaryLabel =
+    isLoaded && isSignedIn ? "Continue to checkout" : primarySignedOutLabel;
+
   return (
     <header className="border-b border-border/80 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/70">
       <div className="mx-auto flex min-h-14 w-full max-w-5xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:min-h-16 sm:px-6">
@@ -29,7 +51,7 @@ export function MarketingHeader() {
             variant="ghost"
             size="lg"
             nativeButton={false}
-            render={<Link href="/sign-in" />}
+            render={<Link href={SIGN_IN_RETURN} />}
             className="min-h-11 px-4"
           >
             Sign in
@@ -37,10 +59,10 @@ export function MarketingHeader() {
           <Button
             size="lg"
             nativeButton={false}
-            render={<Link href="/sign-up" />}
+            render={<Link href={primaryHref} />}
             className="min-h-11 px-4"
           >
-            Start learning
+            {primaryLabel}
           </Button>
         </nav>
       </div>

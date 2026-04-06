@@ -3,8 +3,8 @@
 ## Entry
 
 1. User visits **`/`** (landing) — hero, features, and **`#pricing`**.  
-2. **Subscribe / Start free trial** (pricing): signed-out users go to **`/sign-up`** or **`/sign-in`** with **`redirect_url=/subscribe`**, then land on **`/subscribe`**, which redirects into **Stripe Checkout**. Signed-in users open **`/subscribe`** directly.  
-3. **Start learning** / generic sign-in: user may sign up or sign in; Clerk’s default post-auth destination is **`/dashboard`** (see root layout).  
+2. **Primary CTA** (hero, pricing, and marketing header): label is **`Start {n}-day free trial`** when **`STRIPE_TRIAL_PERIOD_DAYS`** is **n > 0**, otherwise **`Subscribe`**. Signed-out users go to **`/sign-up`** or **`/sign-in`** with **`redirect_url=/subscribe`**, then **`/subscribe`** → **Stripe Checkout**. Signed-in users use **`Continue to checkout`** → **`/subscribe`**.  
+3. Generic visits to **`/sign-in`** / **`/sign-up`** without **`redirect_url`** still use Clerk’s fallback **`/dashboard`** (root layout).  
 
 **Note:** The marketing header links to **`#pricing`**; the in-app header (after sign-in) links to **`/dashboard`** and **`/lessons`**.
 

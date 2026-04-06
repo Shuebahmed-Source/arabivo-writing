@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { PenLine, Sparkles, Tablet } from "lucide-react";
 
-import { LandingPricingCTAs } from "@/components/marketing/landing-pricing-ctas";
-import { Button } from "@/components/ui/button";
+import { TrialFunnelCTAs } from "@/components/marketing/trial-funnel-ctas";
+import { getStripeTrialPeriodDays } from "@/lib/stripe/server";
 import {
   Card,
   CardDescription,
@@ -17,6 +17,7 @@ type PageProps = {
 export default async function LandingPage({ searchParams }: PageProps) {
   const params = await searchParams;
   const checkoutCanceled = params.checkout === "canceled";
+  const trialDays = getStripeTrialPeriodDays();
 
   return (
     <>
@@ -50,31 +51,7 @@ export default async function LandingPage({ searchParams }: PageProps) {
             and numerals—so you build muscle memory with clear feedback, not
             guesswork.
           </p>
-          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-            <Button
-              size="lg"
-              nativeButton={false}
-              render={<Link href="/sign-up" />}
-              className="min-h-12 w-full px-6 sm:w-auto"
-            >
-              Start learning
-            </Button>
-            <Button
-              variant="outline"
-              size="lg"
-              nativeButton={false}
-              render={<Link href="/sign-in" />}
-              className="min-h-12 w-full sm:w-auto"
-            >
-              I already have an account
-            </Button>
-            <Link
-              href="/#pricing"
-              className="text-center text-sm font-medium text-primary underline-offset-4 hover:underline sm:text-left"
-            >
-              View pricing
-            </Link>
-          </div>
+          <TrialFunnelCTAs trialDays={trialDays} variant="hero" />
         </div>
       </section>
 
@@ -151,7 +128,7 @@ export default async function LandingPage({ searchParams }: PageProps) {
             <li>Full access to all lessons and saved progress</li>
             <li>Manage payment methods anytime (after you subscribe)</li>
           </ul>
-          <LandingPricingCTAs />
+          <TrialFunnelCTAs trialDays={trialDays} variant="pricing" />
         </div>
       </section>
     </>

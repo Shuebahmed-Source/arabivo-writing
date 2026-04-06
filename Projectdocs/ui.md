@@ -27,7 +27,7 @@ Clean, calm, **minimal**, and **premium**. The learning surface should stay focu
 
 ## Key surfaces
 
-- **Landing:** Hero, dual CTAs + **View pricing**, three short feature cards, **`#pricing`** section (plan copy + checkout CTAs)  
+- **Landing:** Hero + **`#pricing`** share the same trial funnel CTAs (**`TrialFunnelCTAs`**: primary label uses **`STRIPE_TRIAL_PERIOD_DAYS`** when > 0, else **Subscribe**); **View pricing** link only on hero row; three short feature cards between  
 - **Dashboard:** Unit cards with **Available / Locked**, **completed / total**, thin **progress bar**; **Billing** card only when subscribed (portal)  
 - **Lessons (`/lessons`):** Per-unit headings; **section cards** in a responsive grid (title, description, **Progress x/y**, **Done** / **Locked**, chevron when navigable)  
 - **Section hub (`/lessons/sections/[sectionId]`):** Back to all lessons, title + description, **Continue**, optional **Next section**, list of items as cards (link when unlocked)  
