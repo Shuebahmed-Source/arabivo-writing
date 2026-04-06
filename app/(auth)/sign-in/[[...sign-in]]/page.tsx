@@ -7,14 +7,19 @@ export const metadata: Metadata = {
 
 export default function SignInPage() {
   return (
-    <div className="flex flex-1 flex-col gap-6 py-2 sm:items-center">
-      <p className="text-center text-xs text-muted-foreground sm:max-w-md sm:text-left">
-        Sign-in uses Clerk (not Stripe). There is no subscription paywall on this page. If the
-        form area stays empty, check the browser console and Clerk dashboard: production domain
-        allowlist and matching <code className="rounded bg-muted px-1 py-0.5">pk_live_</code> /{" "}
-        <code className="rounded bg-muted px-1 py-0.5">sk_live_</code> keys on Vercel. See{" "}
-        <span className="whitespace-nowrap">Projectdocs/clerk-production.md</span>.
-      </p>
+    <div className="flex flex-1 flex-col gap-4 py-2 sm:items-center">
+      <details className="w-full max-w-md rounded-lg border border-border/60 bg-muted/20 px-3 py-2 text-left text-xs text-muted-foreground sm:mx-auto">
+        <summary className="cursor-pointer list-none font-medium text-foreground [&::-webkit-details-marker]:hidden">
+          Can’t see the sign-in form?
+        </summary>
+        <p className="mt-2 border-t border-border/60 pt-2">
+          That message is not from Clerk checking your keys — it’s help text. If the form below is
+          still empty, open the browser <strong>Console</strong> for errors, and in the Clerk
+          dashboard allow your site URL (e.g. <code className="rounded bg-muted px-1 py-0.5">https://write.arabivo.net</code>
+          ). Ensure Vercel <strong>Production</strong> has the same Clerk keys as your Clerk app and
+          redeploy after changes. Details: <span className="whitespace-nowrap">Projectdocs/clerk-production.md</span>.
+        </p>
+      </details>
       <div className="flex min-h-[22rem] w-full flex-col items-stretch justify-center sm:items-center">
         <SignIn
           appearance={{
