@@ -1,29 +1,55 @@
 # User Flow
 
-1. User visits the landing page.
-2. User clicks "Start Learning".
-3. User signs up or logs in.
-4. User is redirected to the dashboard.
+## Entry
 
-Dashboard:
-5. User sees available learning units.
-6. User selects the first unlocked unit.
+1. User visits **`/`** (landing).  
+2. User chooses **Start learning** (sign up) or **Sign in**.  
+3. After auth, Clerk may return to the requested URL or home.  
 
-Lesson Flow:
-7. User opens a lesson.
-8. The lesson displays the Arabic letter or word.
-9. The writing canvas appears with a faint guide.
-10. User traces the letter using finger, stylus, or mouse.
-11. User presses "Check".
-12. The system evaluates the trace.
-13. Feedback is shown.
+**Note:** The marketing header on **`/`** does not link to lessons. To practice, open **`/lessons`** or **`/dashboard`** manually (or set Clerk’s post-sign-in redirect to one of those paths in the Clerk dashboard).
 
-If successful:
-14. User unlocks the next lesson.
+## Protected app
 
-If unsuccessful:
-15. User retries the lesson.
+4. **`/dashboard`**, **`/lessons`**, **`/lessons/sections/*`**, and **`/lessons/[lessonId]`** require sign-in.  
+5. **Dashboard** — three units, **completed / total** per unit, progress bars, **Locked** until the first lesson of that unit is reachable under **section** rules.  
 
-Completion:
-16. Progress is saved.
-17. The next lesson becomes available.
+## Lessons overview
+
+6. **`/lessons`** — for each unit, a short description and a **grid of section cards** (e.g. Letters I–V, then single sections for letter forms and words).  
+7. Each card shows **progress** (e.g. 3/5), **Locked** until the section is unlocked, or **Done** when every item in the section is completed.  
+8. User taps an unlocked section → **`/lessons/sections/[sectionId]`**.  
+
+## Section hub
+
+9. Section page shows the **section title**, **Continue** (first incomplete lesson that is unlocked), item list with **Done** / **Locked**, and **Next section** when the section is fully complete.  
+10. User can open any **unlocked** item → **`/lessons/[lessonId]`**.  
+
+## Lesson detail (practice)
+
+11. **Back to section** returns to **`/lessons/sections/[sectionId]`**.  
+12. Page shows unit · **section link**, lesson title, type badge, **Completed** if already saved, Arabic, transliteration, meaning.  
+13. **Practice writing** — canvas with faint guide; user traces with finger, stylus, or mouse.  
+14. User taps **Check**.  
+15. Feedback appears: **Excellent**, **Good**, or **Try again** (inline panel).  
+
+### If Good or Excellent
+
+16. Progress is **saved** to Supabase (upsert per `clerk_user_id` + `lesson_id`).  
+17. **Lesson complete** full-screen overlay appears (animated): section title, **x/y** progress bar, short lesson title, result line, faint Arabic watermark, **Practice again** (close overlay, clear canvas) or **Next** (navigate to the next lesson, next section hub, or **`/lessons`** per server rules).  
+18. User can still **Practice again** on the same lesson later; **best_result** does not downgrade (e.g. **excellent** kept over **good**).  
+
+### If Try again
+
+19. No save; user may **Clear** and retry.  
+
+## Locked lesson
+
+20. If the user opens a locked lesson URL, the app **redirects to `/lessons`**.  
+
+## Locked section
+
+21. If the user opens a section whose **first lesson** is not unlocked, the app **redirects to `/lessons`**.  
+
+## Completion (MVP)
+
+22. There is no single global “course complete” finale; progression continues through **sections** and **units**. The last **Next** from the final item returns to **`/lessons`** when there is no further section.  

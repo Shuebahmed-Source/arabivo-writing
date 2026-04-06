@@ -1,36 +1,29 @@
 # Development Roadmap
 
-## Phase 1 – Project Setup
-- Create Next.js project
-- Setup TailwindCSS
-- Install and configure shadcn/ui
-- Setup Clerk authentication
-- Setup Supabase database
-- Create basic layout and routing
+Status is relative to the **current codebase** (not a strict phase gate).
 
-## Phase 2 – Core UI
-- Create landing page
-- Create dashboard
-- Create lesson page
-- Implement responsive layout
+## Done (as implemented)
 
-## Phase 3 – Writing Canvas
-- Implement handwriting canvas
-- Support touch, stylus, and mouse input
-- Implement clear button
-- Implement check button
+- **Phase 1 — Setup:** Next.js App Router, TypeScript, Tailwind, shadcn/ui, Clerk, Supabase client wiring, env templates  
+- **Phase 2 — Core UI:** Landing, auth pages, dashboard, responsive learn shell  
+- **Phase 3 — Canvas:** Pointer-based drawing, clear, faint guide, normalized stroke replay on resize  
+- **Phase 4 — Lesson system:** `lib/lessons.ts` curriculum with **units, sections, and lessons**; static params for lesson and section routes; section hubs and reorganized Arabic letters (Letters I–V + full isolated set)  
+- **Phase 5 — Progress:** `user_progress` table, save on Good/Excellent, **section-based** unlock, dashboard, **`/lessons` section cards**, locked-lesson redirect, **post-save “next” path** (in-section → next section → home list)  
+- **Phase 6:** Emerald-tinted theme, feedback panel polish, mobile-friendly writing section, **lesson complete overlay** (Framer Motion), clearer Supabase error messages and service-role vs anon detection  
+- **Auth routing:** **`proxy.ts`** (Next.js 16 convention) with Clerk — replaces deprecated root `middleware.ts` for protected learn routes  
 
-## Phase 4 – Lesson System
-- Create lesson structure
-- Implement lesson progression
-- Unlock lessons sequentially
+## In progress / optional next
 
-## Phase 5 – Progress Tracking
-- Save lesson completion
-- Display user progress
-- Store attempts and results
+- **Content in Supabase:** Migrate `lessons` (and optionally `units` / `sections`) from `lib/lessons.ts` to tables; keep app reading from API  
+- **Users table:** Optional `users` row synced from Clerk webhooks for FK cleanliness  
+- **Attempts / analytics:** `user_attempts` or event logging if product needs history  
+- **Clerk + Supabase RLS:** JWT bridge so policies can use `auth.uid()`-style claims instead of service role only  
+- **Home UX:** Signed-in shortcut to `/lessons` or `/dashboard` from `/`  
+- **Numbers / extra units:** Add rows and units when curriculum expands  
+- **Production hardening:** Stricter error handling, rate limits, monitoring  
 
-## Phase 6 – UI Polish
-- Apply emerald theme
-- Improve spacing and typography
-- Optimize tablet experience
+## Explicitly deferred
+
+- Full gamification, streaks, leaderboards  
+- AI or external handwriting recognition  
+- Offline-first sync  

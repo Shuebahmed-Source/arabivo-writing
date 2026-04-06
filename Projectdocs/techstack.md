@@ -1,27 +1,61 @@
 # Tech Stack
 
-Frontend
-- Next.js (App Router)
-- TypeScript
-- TailwindCSS
-- shadcn/ui
+## Frontend
 
-Backend
-- Supabase (PostgreSQL database)
+- **Next.js 16** (App Router)  
+- **React 19**, **TypeScript**  
+- **Tailwind CSS v4**  
+- **shadcn/ui** (Base UI–backed components in current preset)  
+- **lucide-react** icons  
+- **Framer Motion** — lesson complete overlay (staggered layout, progress bar animation)  
 
-Authentication
-- Clerk
+## Routing and layouts
 
-Deployment
-- Vercel
+- **Route groups:** `(marketing)` — landing; `(auth)` — Clerk sign-in/up; `(learn)` — dashboard + lessons + section hubs + shared **SiteHeader**  
+- **`proxy.ts`** (project root) — Clerk `auth.protect()` for **`/dashboard`** and **`/lessons`** (including nested lesson and section paths). Next.js 16 uses the **proxy** file convention; older **`middleware.ts`** is not used.  
+- Learn layout uses **`dynamic = "force-dynamic"`** so progress reads stay fresh  
 
-Writing Canvas
-- HTML Canvas API for handwriting input
+## Backend and data
 
-Fonts
-- Noto Sans Arabic for Arabic text
-- Inter for UI text
+- **Supabase** (PostgreSQL)  
+- **`user_progress` table** — see `Projectdocs/database.md`  
+- **Server-only Supabase client** with **`SUPABASE_SERVICE_ROLE_KEY`** for reads/writes (RLS enabled; no anon policies; app verifies **Clerk** `userId` before writing). Optional guard treats JWT **`anon`** keys as misconfiguration for the service-role slot.  
+- **Public env:** `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` (anon unused for progress MVP; reserved for future client patterns)  
 
-Design Approach
-- Mobile-first responsive design
-- Optimized for tablets and touch devices
+## Authentication
+
+- **Clerk** (`@clerk/nextjs`) — `ClerkProvider` (with **`signInUrl` / `signUpUrl`** and fallback redirects), `SignIn` / `SignUp`, `UserButton`, control component **`Show`** for signed-in/out UI  
+
+## Lesson content
+
+- **In-repo TypeScript** — **`lib/lessons.ts`**: `UNITS`, **`SECTION_META`**, **`lessons`** with **`sectionId`**; helpers **`getSectionsOrdered`**, **`getSectionById`**, **`getLessonsInSection`**, **`getLessonShortTitle`**, etc. Single source of truth until content moves to Supabase.  
+
+## Progress logic (app code)
+
+- **`lib/progress/unlock.ts`** — section-scoped unlock, section entry, section fully complete  
+- **`lib/progress/post-completion.ts`** — URL after successful save (next item / next section / lessons list)  
+- **`lib/progress/dashboard-units.ts`** — dashboard unit aggregates  
+- **`lib/progress/queries.ts`** — fetch `user_progress` for the signed-in user  
+
+## Writing canvas
+
+- **HTML Canvas 2D**  
+- Offscreen **guide** and **user ink** masks for scoring **`getImageData`** comparison  
+- Stroke history stored in **normalized coordinates** for resize replay  
+
+## Deployment
+
+- **Vercel** (intended)  
+
+## Fonts
+
+- **Inter** — UI (via `next/font/google`)  
+- **Noto Sans Arabic** — Arabic script and canvas guide probing  
+
+## Design
+
+- Mobile-first, emerald-oriented tokens in **`app/globals.css`** (shadcn-compatible CSS variables)  
+
+## Environment variables (reference)
+
+See **`.env.example`**: Clerk publishable + secret; optional **`NEXT_PUBLIC_CLERK_SIGN_IN_URL`**, **`NEXT_PUBLIC_CLERK_SIGN_UP_URL`**, fallback redirect URLs; Supabase URL, anon key, **service role** (server only). Local overrides in **`.env.local`** (gitignored).  

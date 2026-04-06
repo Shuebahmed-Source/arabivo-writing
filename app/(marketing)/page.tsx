@@ -1,0 +1,111 @@
+import Link from "next/link";
+import { PenLine, Sparkles, Tablet } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+
+export default function LandingPage() {
+  return (
+    <>
+      <section className="relative overflow-hidden border-b border-primary/10 bg-gradient-to-b from-primary/8 via-background to-background px-4 pb-16 pt-12 sm:px-6 sm:pb-20 sm:pt-16">
+        <div
+          className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-[radial-gradient(ellipse_at_top,hsl(160_84%_38%/0.12),transparent_65%)]"
+          aria-hidden
+        />
+        <div className="relative mx-auto flex max-w-5xl flex-col gap-6">
+          <p className="text-sm font-medium text-primary">
+            Arabic handwriting practice
+          </p>
+          <h1 className="max-w-2xl text-balance font-heading text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+            Learn to write Arabic with calm, guided tracing.
+          </h1>
+          <p className="max-w-xl text-pretty text-base leading-relaxed text-muted-foreground sm:text-lg">
+            ArabivoWrite focuses on letter shapes, positions, connections, words,
+            and numerals—so you build muscle memory with clear feedback, not
+            guesswork.
+          </p>
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+            <Button
+              size="lg"
+              nativeButton={false}
+              render={<Link href="/sign-up" />}
+              className="min-h-12 w-full px-6 sm:w-auto"
+            >
+              Start learning
+            </Button>
+            <Button
+              variant="outline"
+              size="lg"
+              nativeButton={false}
+              render={<Link href="/sign-in" />}
+              className="min-h-12 w-full sm:w-auto"
+            >
+              I already have an account
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      <section className="mx-auto w-full max-w-5xl flex-1 px-4 py-12 sm:px-6 sm:py-16">
+        <h2 className="font-heading text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
+          Built for steady progress
+        </h2>
+        <p className="mt-2 max-w-2xl text-sm text-muted-foreground sm:text-base">
+          Every lesson follows the same rhythm: see the script, trace with
+          guides, then check your work. Later phases will add scoring and saved
+          progress.
+        </p>
+        <ul className="mt-8 grid list-none gap-4 sm:grid-cols-3 sm:gap-5">
+          <li>
+            <Card size="sm" className="h-full ring-1 ring-primary/10">
+              <CardHeader>
+                <PenLine
+                  className="mb-2 size-8 text-primary"
+                  aria-hidden
+                />
+                <CardTitle className="text-base">Tracing canvas</CardTitle>
+                <CardDescription>
+                  Finger, stylus, and mouse—practice the same stroke everywhere.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          </li>
+          <li>
+            <Card size="sm" className="h-full ring-1 ring-primary/10">
+              <CardHeader>
+                <Sparkles
+                  className="mb-2 size-8 text-primary"
+                  aria-hidden
+                />
+                <CardTitle className="text-base">Simple feedback</CardTitle>
+                <CardDescription>
+                  Short evaluations after each trace so you know when to move on
+                  or retry.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          </li>
+          <li>
+            <Card size="sm" className="h-full ring-1 ring-primary/10 sm:col-span-1">
+              <CardHeader>
+                <Tablet
+                  className="mb-2 size-8 text-primary"
+                  aria-hidden
+                />
+                <CardTitle className="text-base">Mobile first</CardTitle>
+                <CardDescription>
+                  Large touch targets and layouts tuned for phones and tablets.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          </li>
+        </ul>
+      </section>
+    </>
+  );
+}

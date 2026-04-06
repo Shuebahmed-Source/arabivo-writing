@@ -1,40 +1,56 @@
 # UI Design
 
-## Design Direction
-The design should be clean, calm, and minimal.
+## Design direction
 
-The learning environment should feel focused and premium, avoiding clutter.
+Clean, calm, **minimal**, and **premium**. The learning surface should stay focused: script reference, canvas, and clear actions. Celebration UI after a pass should feel **rewarding** without breaking the emerald system.
 
 ## Theme
 
-Primary Color:
-Emerald green
-
-Secondary Colors:
-Soft sage greens and neutral backgrounds
-
-Background:
-Warm off-white
-
-Text:
-Dark charcoal or zinc tones
+- **Primary:** Emerald / green accent (`oklch`-based tokens in `app/globals.css`, aligned with shadcn variables)  
+- **Neutrals:** Soft backgrounds, subtle borders, light rings on cards  
+- **Feedback states:** Stronger emerald emphasis for **Excellent** / **Good**; muted card for **Try again**  
+- **Lesson complete overlay:** Full-screen **`background/92` + backdrop blur**; primary-colored **progress bar**; badge circle uses **primary / emerald / teal / lime / cyan** tints chosen deterministically from `lessonId`  
 
 ## Typography
 
-Arabic text:
-Noto Sans Arabic
+- **UI:** Inter (`next/font`)  
+- **Arabic:** Noto Sans Arabic; large display size on lesson detail; `font-arabic` utility for RTL text  
+- Lesson feedback uses a clear **title + supporting sentence** hierarchy  
+- Complete screen: small-caps **“Lesson complete”**, large **short lesson title** (from `getLessonShortTitle`)  
 
-UI text:
-Inter
+## Layout patterns
 
-Arabic letters should appear large and clearly visible during lessons.
+- **Mobile-first** spacing and tap targets (`min-h-11` / `min-h-12` on primary actions where needed)  
+- **Marketing** (`/`): **MarketingHeader** — logo, Sign in, Start learning  
+- **Learn** (`/dashboard`, `/lessons`, section hubs, lesson detail): **SiteHeader** — logo → dashboard, Dashboard + Lessons nav, **UserButton** / sign-in  
+- **Auth** (`/sign-in`, `/sign-up`): slim header, centered Clerk card  
 
-## Layout
+## Key surfaces
 
-Mobile-first design.
+- **Landing:** Hero, dual CTAs, three short feature cards  
+- **Dashboard:** Unit cards with **Available / Locked**, **completed / total**, thin **progress bar**  
+- **Lessons (`/lessons`):** Per-unit headings; **section cards** in a responsive grid (title, description, **Progress x/y**, **Done** / **Locked**, chevron when navigable)  
+- **Section hub (`/lessons/sections/[sectionId]`):** Back to all lessons, title + description, **Continue**, optional **Next section**, list of items as cards (link when unlocked)  
+- **Lesson detail:** **Back to section**, unit · **section** link, title, type + completed badges, script card (`rounded-2xl`), **LessonWritingSection** below  
+- **Writing section:** Rounded card, instructions, canvas (rounded, subtle border/inner shadow), **WritingFeedbackPanel** after Check, **Clear** / **Check** (disabled while complete overlay is open)  
+- **Lesson complete overlay (`LessonCompleteOverlay`):** Top bar — back to section, centered section title, **position/total**; animated progress bar; **icon in tinted circle** (Lucide icon from `lessonId` hash); **LESSON COMPLETE** + headline; **Result** card with **Excellent!** / **Good effort!** and faint Arabic watermark; **Practice again** (outline) + **Next** (primary)  
 
-Writing canvas should be centered and large enough for comfortable tracing.
+## Motion (Framer Motion)
 
-Buttons should be large and easy to tap.
+- Overlay: **fade** of full-screen shell  
+- **Staggered** spring entrance for icon (scale + slight rotate), text blocks, result card, buttons  
+- Progress fill: **width** animation from 0 → target ratio  
+- **`AnimatePresence`** for mount/unmount of overlay  
+- **`useEffect`** locks **body scroll** while overlay is open  
 
-Tablet layouts should provide additional writing space.
+## Accessibility
+
+- Inline feedback uses **`role="status"`** and **`aria-live="polite"`**; panel remount key increments on repeat Check for screen reader updates  
+- Complete overlay: **`role="dialog"`**, **`aria-modal="true"`**, labelled heading and result line  
+- Canvas has an **`aria-label`** describing practice purpose  
+
+## Components (reference)
+
+- shadcn: **Button**, **Card**, **Badge**, **Separator**  
+- Custom: **WritingCanvas**, **LessonWritingSection**, **WritingFeedbackPanel**, **LessonCompleteOverlay**  
+- **lib/writing/lesson-complete-visual.ts** — icon + tint selection per `lessonId`  

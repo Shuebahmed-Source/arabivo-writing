@@ -2,23 +2,52 @@
 
 ArabivoWrite is a web app that helps users learn to write Arabic script through guided tracing and handwriting practice.
 
-The app focuses specifically on learning Arabic letter formation and writing, rather than general Arabic language learning.
+The app focuses on **Arabic letter formation and writing**, not general Arabic language learning.
 
-Users progress through structured lessons that teach:
-- Arabic letters
-- Letter positions (initial, medial, final)
-- Letter connections
-- Words
-- Numbers
+## Curriculum scope (MVP)
 
-Each lesson includes a writing canvas where users trace Arabic letters or words. The system evaluates the trace and gives simple feedback such as "Excellent", "Good", or "Try again".
+Lesson content is defined in **`lib/lessons.ts`** (local source of truth). The MVP uses a **three-level structure**:
 
-The product is designed to work smoothly across devices including:
-- Phones
-- Tablets
-- iPads
-- Desktop
+1. **Units (categories)** — high-level groupings on the dashboard and lessons overview.  
+2. **Sections** — cards the learner opens to work through a **chunk** of content in order (e.g. “Letters I” … “Letters V”).  
+3. **Lessons (items)** — individual practicable rows: one canvas target each (`/lessons/[lessonId]`).
 
-The writing experience must support touch, stylus, and mouse input.
+**Units in the dataset:**
 
-The design should feel clean, minimal, and premium with an emerald green theme.
+- **Arabic letters** — isolated letter shapes, split into **five sections** (Letters I–V) with several letters per section.  
+- **Letter forms (positions)** — one section with initial / medial / final examples (e.g. jīm, nūn).  
+- **Simple words** — one section with short connected words.
+
+Future expansion can add more units (e.g. numbers, deeper connection drills). Those are not required for the current MVP dataset.
+
+## Unlock and progression
+
+Unlocking is **section-aware**, not a single flat global queue:
+
+- The **first lesson of the first section** (e.g. alif in Letters I) is available by default.  
+- **Within a section**, each lesson unlocks after the **previous lesson in that section** is completed with **Good** or **Excellent**.  
+- The **first lesson of the next section** unlocks only when **every** lesson in the **previous section** is completed.  
+- The next unit’s first section follows the same idea after the letters unit is finished (see `lib/progress/unlock.ts`).
+
+**Good** or **Excellent** still saves completion to **Supabase** keyed by stable **`lesson_id`**; navigation after save goes to the **next lesson in the section** when possible, otherwise to the **next section hub** or **`/lessons`**.
+
+## Lesson experience
+
+Each lesson includes:
+
+- Arabic script, transliteration, and a short meaning or note  
+- A **writing canvas** with a **faint guide** matching the Arabic to trace  
+- **Clear** (reset strokes) and **Check** (pixel-overlap scoring vs the guide mask)  
+- Feedback labels: **Excellent**, **Good**, or **Try again**  
+
+After a successful save on **Good** / **Excellent**, a full-screen **lesson complete** celebration (Framer Motion) appears: section progress, per-lesson badge icon, result line, **Practice again** (close overlay, keep progress) and **Next** (same routing as before: next item or next section).
+
+## Input and devices
+
+The writing canvas uses **pointer events** only (`pointerdown`, `pointermove`, `pointerup`) so **touch, stylus, and mouse** behave consistently.
+
+The product targets **phones, tablets, iPads, and desktop** with a **mobile-first** layout.
+
+## Visual direction
+
+Clean, minimal, **premium** feel with an **emerald-forward** theme (see `Projectdocs/ui.md`).
