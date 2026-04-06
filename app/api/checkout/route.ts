@@ -5,6 +5,7 @@ import { NextResponse } from "next/server";
 import {
   getStripe,
   getStripePriceId,
+  getStripeTrialPeriodDays,
   isStripeConfigured,
 } from "@/lib/stripe/server";
 
@@ -32,6 +33,7 @@ export async function POST() {
 
   const stripe = getStripe();
   const priceId = getStripePriceId();
+  const trialDays = getStripeTrialPeriodDays();
 
   const session = await stripe.checkout.sessions.create({
     mode: "subscription",
@@ -43,6 +45,7 @@ export async function POST() {
     metadata: { clerk_user_id: userId },
     subscription_data: {
       metadata: { clerk_user_id: userId },
+      ...(trialDays > 0 ? { trial_period_days: trialDays } : {}),
     },
   });
 

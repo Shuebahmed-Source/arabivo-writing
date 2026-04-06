@@ -6,6 +6,9 @@ import { revalidatePath } from "next/cache";
 import { getLessonById, getSectionIds } from "@/lib/lessons";
 import { getPostCompletionPath } from "@/lib/progress/post-completion";
 import { isLessonUnlocked } from "@/lib/progress/unlock";
+import { fetchUserSubscriptionForCurrentUser } from "@/lib/subscriptions/queries";
+import { isPaidSubscriptionStatus } from "@/lib/subscriptions/status";
+import { isStripeConfigured } from "@/lib/stripe/server";
 import {
   createSupabaseAdminClient,
   isSupabaseAdminConfigured,
@@ -71,6 +74,16 @@ export async function recordLessonCompletion(
   const { userId } = await auth();
   if (!userId) {
     return { ok: false, message: "You need to be signed in to save progress." };
+  }
+
+  if (isStripeConfigured()) {
+    const sub = await fetchUserSubscriptionForCurrentUser();
+    if (!isPaidSubscriptionStatus(sub?.status)) {
+      return {
+        ok: false,
+        message: "Subscribe to access lessons and save progress.",
+      };
+    }
   }
 
   if (!getLessonById(lessonId)) {
