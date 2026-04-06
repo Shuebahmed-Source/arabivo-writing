@@ -89,6 +89,16 @@ Serve the Frontend API under **your app origin** so `clerk-js` loads from `https
 
 Details: [Proxying the Clerk Frontend API](https://clerk.com/docs/guides/dashboard/dns-domains/proxy-fapi).
 
+## 8. Google sign-in: “Access blocked” after choosing Gmail
+
+In **production**, Clerk does **not** use shared development Google credentials. You must:
+
+1. **Clerk Dashboard** → **User & authentication** → **Social connections** → **Google** — add **Client ID** and **Client secret** from [Google Cloud Console](https://console.cloud.google.com) → **APIs & Services** → **Credentials** (OAuth 2.0 Web client).  
+2. In Google Cloud, under that OAuth client, set **Authorized redirect URIs** to the **exact** value(s) Clerk shows (often includes your **accounts.*** Clerk host).  
+3. **OAuth consent screen:** if the app is in **Testing**, add each test Gmail under **Test users**, or **Publish** the app (and complete Google verification if required).
+
+Misconfigured redirects or unpublished consent screens cause Google to block access even when email/password works.
+
 ## Related env vars
 
 See **`.env.example`** for path-based sign-in/sign-up URLs (`NEXT_PUBLIC_CLERK_SIGN_IN_URL`, etc.). Those routes must match the app (`/sign-in`, `/sign-up`).

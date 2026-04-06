@@ -11,6 +11,7 @@ Status is relative to the **current codebase** (not a strict phase gate).
 - **Phase 5 — Progress:** `user_progress` table, save on Good/Excellent, **section-based** unlock, dashboard, **`/lessons` section cards**, locked-lesson redirect, **post-save “next” path** (in-section → next section → home list)  
 - **Phase 6:** Emerald-tinted theme, feedback panel polish, mobile-friendly writing section, **lesson complete overlay** (Framer Motion), clearer Supabase error messages and service-role vs anon detection  
 - **Auth routing:** **`proxy.ts`** (Next.js 16 convention) with Clerk — replaces deprecated root `middleware.ts` for protected learn routes  
+- **Phase 7 — Billing:** Stripe Checkout + Customer Portal + webhooks; **`user_subscriptions`** migration; dashboard **Subscribe** / **Manage billing**; optional **`STRIPE_TRIAL_PERIOD_DAYS`**; **paywall** on **`/lessons`** + **`recordLessonCompletion`** when Stripe is configured; **`proxy.ts`** Clerk **CSP** and optional **`NEXT_PUBLIC_CLERK_PROXY_URL`** FAPI path proxy  
 
 ## In progress / optional next
 
@@ -21,6 +22,8 @@ Status is relative to the **current codebase** (not a strict phase gate).
 - **Home UX:** Signed-in shortcut to `/lessons` or `/dashboard` from `/`  
 - **Numbers / extra units:** Add rows and units when curriculum expands  
 - **Production hardening:** Stricter error handling, rate limits, monitoring  
+- **Legal / policy:** Terms, privacy, refund wording for paid product (outside codebase)  
+- **Pricing page:** Dedicated marketing copy if not relying on dashboard card alone  
 
 ## Explicitly deferred
 

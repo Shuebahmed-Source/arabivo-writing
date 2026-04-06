@@ -10,17 +10,14 @@ The app stores lesson completion in **`public.user_progress`**. The server uses 
 
 Use **one project** for production (Vercel). You can use the **same** project from local `.env.local` if you want local dev to hit production data, or create a **separate** dev project and keep test keys in `.env.local` only — your choice.
 
-## 2. Run the migration (create `user_progress`)
+## 2. Run migrations (`user_progress` + `user_subscriptions`)
 
-1. In the project: **SQL Editor** → **New query**.  
-2. Paste the **full** contents of:
+In the project: **SQL Editor** → **New query** for each file, **Run**, confirm no errors.
 
-   **`supabase/migrations/20260403120000_user_progress.sql`**
+1. **`supabase/migrations/20260403120000_user_progress.sql`** — lesson completion.  
+2. **`supabase/migrations/20260405120000_user_subscriptions.sql`** — Stripe subscription snapshot for dashboard + paywall.
 
-3. Click **Run**.  
-4. Confirm success (no errors).  
-
-`CREATE TABLE IF NOT EXISTS` is safe to run again if you are unsure whether it was applied.
+`CREATE TABLE IF NOT EXISTS` is safe to run again if you are unsure whether a migration was already applied.
 
 ## 3. Copy API credentials
 
@@ -52,8 +49,9 @@ If you use a **separate** dev Supabase project, keep dev URLs/keys in **`.env.lo
 ## 6. Verify
 
 1. Open your **deployed** app (or localhost with matching env).  
-2. Sign in with Clerk → complete a lesson with **Good** or **Excellent**.  
-3. In Supabase: **Table Editor** → **`user_progress`** — you should see a new row with your `clerk_user_id` and `lesson_id`.
+2. Sign in with Clerk → complete a lesson with **Good** or **Excellent** (requires subscription if Stripe billing env is fully configured on the deployment).  
+3. In Supabase: **Table Editor** → **`user_progress`** — new row with `clerk_user_id` and `lesson_id`.  
+4. After a successful Stripe Checkout (and webhook), check **`user_subscriptions`** for a row with **`active`** or **`trialing`** status.
 
 If saving fails, check Vercel logs and the in-app error string (the app surfaces common misconfigurations).
 

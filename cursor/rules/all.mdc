@@ -144,6 +144,7 @@ The ProjectDocs folder contains:
 - supabase-production.md
 - stripe.md
 - clerk-production.md
+- launch-checklist.md
 
 Follow these documents when designing features.
 

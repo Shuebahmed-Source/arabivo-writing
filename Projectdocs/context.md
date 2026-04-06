@@ -55,3 +55,17 @@ Clean, minimal, **premium** feel with an **emerald-forward** theme (see `Project
 ## Source control (GitHub)
 
 Repository URL, initial push steps, and **GitHub CLI (`gh`)** troubleshooting (including `gh auth login`) are documented in **`Projectdocs/github.md`**.
+
+## Billing and access (Stripe)
+
+The app can run as **free-for-signed-in-users** (Stripe env incomplete) or **paid lessons** (production):
+
+- **Stripe Checkout** (subscription) and **Customer Billing Portal**; state synced to **`user_subscriptions`** via **`/api/webhooks/stripe`**.  
+- **`/lessons`** and progress saves require subscription **`active`** or **`trialing`** when **`STRIPE_SECRET_KEY`** and **`STRIPE_PRICE_ID`** are set. **`/dashboard`** remains the place to subscribe.  
+- Optional **free trial** via **`STRIPE_TRIAL_PERIOD_DAYS`** (e.g. `3`) — no separate Stripe “trial product” required.
+
+Operational checklist: **`Projectdocs/launch-checklist.md`**. Technical detail: **`Projectdocs/stripe.md`**.
+
+## Clerk and custom domains
+
+Production sign-in depends on **Clerk DNS** (e.g. **`clerk.<your-subdomain>`**) verification, correct **Vercel env** keys, and the app hostname (**`write.arabivo.net`** or equivalent) **resolving** to Vercel. **Google sign-in** in production needs **your own** OAuth credentials in Clerk. See **`Projectdocs/clerk-production.md`**.

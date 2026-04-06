@@ -44,7 +44,11 @@ git commit -m "Your message"
 git push
 ```
 
-## Related next steps (not done in repo setup)
+## Deployment (Vercel)
 
-- Connect **Vercel** (or another host) to **`Shuebahmed-Source/arabivo-writing`**.  
-- Add **Production** environment variables on the host (Clerk live keys, Supabase production URL + keys, etc.) — never commit them to git.  
+If the GitHub repo is connected to **Vercel**, pushes to **`main`** typically trigger a **Production** deploy. Env vars and domain/DNS checks are summarized in **`Projectdocs/launch-checklist.md`** (Clerk, Supabase, Stripe, optional trial, paywall).
+
+## Related next steps (historical)
+
+- Connect **Vercel** to **`Shuebahmed-Source/arabivo-writing`** if not already linked.  
+- Add **Production** environment variables on the host — see **`launch-checklist.md`** and **`.env.example`**; never commit secrets to git.  

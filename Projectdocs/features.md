@@ -37,6 +37,7 @@
 
 - **`user_progress`** in Supabase: `clerk_user_id`, `lesson_id`, `completed`, `completed_at`, `best_result` (`excellent` | `good`) — **no** `section_id` column; sections are derived in app code  
 - **`user_subscriptions`** in Supabase: Stripe subscription snapshot (`status`, `current_period_end`, etc.) — updated via **`/api/webhooks/stripe`**; dashboard shows **Subscribe** / **Manage billing** when Stripe env vars are set; **`/lessons`** requires **`active`** or **`trialing`** subscription (see **`Projectdocs/stripe.md`**)  
+- **Checkout feedback:** `?checkout=success` / `?checkout=canceled` on dashboard; **`?subscribe=required`** when redirected from lessons without a subscription  
 - **Dashboard**: per-unit **completed / total** and progress bar; unit **Locked** until the **first lesson of that unit** is reachable under section rules  
 - **Post-save navigation** (`getPostCompletionPath`): next incomplete lesson in the same section when possible (skips items already in `user_progress`), else next section’s hub, else **`/lessons`**  
 

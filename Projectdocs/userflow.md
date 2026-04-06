@@ -10,8 +10,12 @@
 
 ## Protected app
 
-4. **`/dashboard`**, **`/lessons`**, **`/lessons/sections/*`**, and **`/lessons/[lessonId]`** require sign-in.  
-5. **Dashboard** — three units, **completed / total** per unit, progress bars, **Locked** until the first lesson of that unit is reachable under **section** rules.  
+4. **`/dashboard`**, **`/lessons`**, **`/lessons/sections/*`**, and **`/lessons/[lessonId]`** require sign-in (Clerk **`proxy.ts`**).  
+5. **Dashboard** — three units, **completed / total** per unit, progress bars, **Locked** until the first lesson of that unit is reachable under **section** rules; **Subscribe** / **Manage billing** when Stripe is configured; banner when **`?subscribe=required`** (user tried **lessons** without an active or trialing subscription).  
+
+### Billing gate (when Stripe env is complete)
+
+If **`STRIPE_SECRET_KEY`** and **`STRIPE_PRICE_ID`** are set on the deployment, **`/lessons`** and all nested lesson URLs require a Stripe subscription in **`active`** or **`trialing`** status (synced to **`user_subscriptions`**). Otherwise the app sends the user to **`/dashboard?subscribe=required`**. **`/dashboard`** itself is not paywalled. If Stripe env is **not** complete, lessons behave as before (signed-in users only). Saving progress uses the same subscription check when billing is on.
 
 ## Lessons overview
 
