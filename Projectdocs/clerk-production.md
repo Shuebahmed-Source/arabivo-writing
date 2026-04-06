@@ -50,6 +50,18 @@ Use **`https://`**, no trailing slash required. Used for Stripe return URLs and 
 - [ ] Keys are **live** vs **test** consistently for the environment you expect
 - [ ] No console errors on `/sign-in`
 
+## 6. CSP: “script source URI is not allowed” for `clerk.your-domain`
+
+If the console shows something like:
+
+`script source URI is not allowed … https://clerk.write.arabivo.net/npm/@clerk/clerk-js@…/clerk.browser.js`
+
+the browser is applying **Content-Security-Policy** and blocking Clerk’s **Frontend API** host (the `clerk.` subdomain). This is **not** a bad API key; it’s CSP.
+
+This repo enables Clerk’s automatic CSP in **`proxy.ts`** via `contentSecurityPolicy: {}` on **`clerkMiddleware`** so `script-src` / `connect-src` include your FAPI host. See Clerk’s docs: **`https://clerk.com/docs/security/clerk-csp`**.
+
+After deploying that change, hard-refresh `/sign-in` and confirm the Clerk script loads in the **Network** tab.
+
 ## Related env vars
 
 See **`.env.example`** for path-based sign-in/sign-up URLs (`NEXT_PUBLIC_CLERK_SIGN_IN_URL`, etc.). Those routes must match the app (`/sign-in`, `/sign-up`).
