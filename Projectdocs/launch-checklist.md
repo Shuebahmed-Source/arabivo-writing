@@ -57,10 +57,10 @@ Redeploy after any env change.
 ## Smoke tests before “released”
 
 1. Open **`https://<host>/sign-in`** — Clerk form loads; Google (or email) works.  
-2. Signed in **without** subscription — **`/lessons`** redirects to **`/dashboard?subscribe=required`**.  
-3. **Subscribe** — Checkout completes; webhook writes **`user_subscriptions`**; **`/lessons`** loads.  
+2. Signed in **without** subscription — **`/lessons`** redirects to **`/subscribe`** (then into Stripe Checkout).  
+3. From **`/`** pricing — **Start free trial** / **Subscribe** → auth → **`/subscribe`** → Checkout completes; webhook writes **`user_subscriptions`**; **`/lessons`** loads.  
 4. Complete a lesson — row in **`user_progress`**.  
-5. **Manage billing** — Stripe Customer Portal opens.
+5. **Manage billing** — from dashboard **Billing** card (subscribers only) — Stripe Customer Portal opens.
 
 ## Related docs
 

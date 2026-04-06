@@ -18,7 +18,7 @@ Required/optional matrix:
 | `STRIPE_WEBHOOK_SECRET` | From the **webhook endpoint** you create (Signing secret) |
 | `STRIPE_PRICE_ID` | **Recurring** Price id (e.g. `price_...`) for your product (required for checkout) |
 | `NEXT_PUBLIC_APP_URL` | Optional — canonical `https://your-domain.com` for Checkout success/cancel and Portal return URLs; if omitted, the app uses request headers (works on Vercel) |
-| `STRIPE_TRIAL_PERIOD_DAYS` | Optional — e.g. `3` for a 3-day trial on new Checkout subscriptions. Omit or `0` for no trial. Applied in **`POST /api/checkout`** (`subscription_data.trial_period_days`). You do **not** have to duplicate a trial on the Stripe Price unless you prefer configuring it only in the Dashboard (then leave this unset to avoid conflicting rules). |
+| `STRIPE_TRIAL_PERIOD_DAYS` | Optional — e.g. `3` for a 3-day trial on new Checkout subscriptions. Omit or `0` for no trial. Applied in **`lib/stripe/createCheckoutSession.ts`** (`subscription_data.trial_period_days`). You do **not** have to duplicate a trial on the Stripe Price unless you prefer configuring it only in the Dashboard (then leave this unset to avoid conflicting rules). |
 
 Set the same values in **Vercel** → Production (and Preview if you test billing there). Redeploy after changing env vars.
 
@@ -44,13 +44,16 @@ Run the migration **`supabase/migrations/20260405120000_user_subscriptions.sql`*
 
 | Route | Purpose |
 |-------|---------|
-| `POST /api/checkout` | Authenticated — creates a Checkout Session, returns `{ url }` |
+| **`/subscribe`** | Public URL — if signed in, creates a Checkout Session and redirects to Stripe; if signed out, redirects to sign-in with return to `/subscribe`. If already subscribed, redirects to **`/lessons`**. |
+| `POST /api/checkout` | Authenticated — creates a Checkout Session (same logic as `/subscribe`), returns `{ url }` |
 | `POST /api/billing-portal` | Authenticated — opens Billing Portal for the customer in `user_subscriptions` |
 | `POST /api/webhooks/stripe` | Stripe-only — verifies signature, upserts `user_subscriptions` |
 
-The **Dashboard** shows the subscription card when `STRIPE_SECRET_KEY` and `STRIPE_PRICE_ID` are both set. If either is missing, the card is hidden and **lessons are not paywalled** (Stripe treated as off).
+Checkout **success** returns to **`/dashboard?checkout=success`**. **Cancel** returns to **`/?checkout=canceled#pricing`**.
 
-When Stripe **is** configured, **`/lessons`** (and nested lesson/section routes) require an **`active`** or **`trialing`** subscription (`app/(learn)/lessons/layout.tsx`); **`/dashboard`** stays open so users can subscribe. Progress saves (`recordLessonCompletion`) enforce the same rule.
+The **landing page** (`/`, section **`#pricing`**) is the main place to start a subscription (CTAs go through Clerk, then **`/subscribe`** → Stripe). The **dashboard** shows a **Billing** card **only for active/trialing subscribers** (manage portal). If either Stripe env key/price is missing, that card is hidden and **lessons are not paywalled** (Stripe treated as off).
+
+When Stripe **is** configured, **`/lessons`** (and nested lesson/section routes) require an **`active`** or **`trialing`** subscription (`app/(learn)/lessons/layout.tsx`); users without access are redirected to **`/subscribe`** (not the dashboard). Progress saves (`recordLessonCompletion`) enforce the same rule.
 
 ## Common setup mistakes
 

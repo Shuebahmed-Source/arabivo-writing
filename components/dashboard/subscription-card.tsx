@@ -11,8 +11,12 @@ type Props = {
   subscription: UserSubscriptionRow | null;
 };
 
+/**
+ * Shown only for active subscribers — manage billing in Stripe portal.
+ * New subscriptions start from the landing page / pricing + /subscribe.
+ */
 export function SubscriptionCard({ stripeConfigured, subscription }: Props) {
-  const [pending, setPending] = useState<"checkout" | "portal" | null>(null);
+  const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   if (!stripeConfigured) {
@@ -20,28 +24,13 @@ export function SubscriptionCard({ stripeConfigured, subscription }: Props) {
   }
 
   const paid = isPaidSubscriptionStatus(subscription?.status);
-
-  async function openCheckout() {
-    setError(null);
-    setPending("checkout");
-    try {
-      const res = await fetch("/api/checkout", { method: "POST" });
-      const data = (await res.json()) as { url?: string; error?: string };
-      if (!res.ok || !data.url) {
-        setError(data.error ?? "Could not start checkout");
-        return;
-      }
-      window.location.href = data.url;
-    } catch {
-      setError("Could not start checkout");
-    } finally {
-      setPending(null);
-    }
+  if (!paid) {
+    return null;
   }
 
   async function openPortal() {
     setError(null);
-    setPending("portal");
+    setPending(true);
     try {
       const res = await fetch("/api/billing-portal", { method: "POST" });
       const data = (await res.json()) as { url?: string; error?: string };
@@ -53,7 +42,7 @@ export function SubscriptionCard({ stripeConfigured, subscription }: Props) {
     } catch {
       setError("Could not open billing portal");
     } finally {
-      setPending(null);
+      setPending(false);
     }
   }
 
@@ -76,48 +65,34 @@ export function SubscriptionCard({ stripeConfigured, subscription }: Props) {
         id="subscription-heading"
         className="font-heading text-lg font-semibold tracking-tight text-foreground"
       >
-        Subscription
+        Billing
       </h2>
       <p className="mt-1 text-sm text-muted-foreground">
-        Support ArabivoWrite with a subscription. Manage payment methods and
-        invoices in the Stripe customer portal.
+        Payment methods and invoices live in the Stripe customer portal.
       </p>
 
-      {paid ? (
-        <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="text-sm">
-            <span className="font-medium text-foreground capitalize">
-              {subscription?.status.replace(/_/g, " ")}
+      <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="text-sm">
+          <span className="font-medium text-foreground capitalize">
+            {subscription?.status.replace(/_/g, " ")}
+          </span>
+          {periodLabel ? (
+            <span className="text-muted-foreground">
+              {" "}
+              · Renews {periodLabel}
             </span>
-            {periodLabel ? (
-              <span className="text-muted-foreground">
-                {" "}
-                · Renews {periodLabel}
-              </span>
-            ) : null}
-          </div>
-          <Button
-            type="button"
-            variant="outline"
-            className="min-h-11 shrink-0"
-            disabled={pending !== null}
-            onClick={() => void openPortal()}
-          >
-            {pending === "portal" ? "Opening…" : "Manage billing"}
-          </Button>
+          ) : null}
         </div>
-      ) : (
-        <div className="mt-4">
-          <Button
-            type="button"
-            className="min-h-11"
-            disabled={pending !== null}
-            onClick={() => void openCheckout()}
-          >
-            {pending === "checkout" ? "Redirecting…" : "Subscribe"}
-          </Button>
-        </div>
-      )}
+        <Button
+          type="button"
+          variant="outline"
+          className="min-h-11 shrink-0"
+          disabled={pending}
+          onClick={() => void openPortal()}
+        >
+          {pending ? "Opening…" : "Manage billing"}
+        </Button>
+      </div>
 
       {error ? (
         <p className="mt-3 text-sm text-destructive" role="alert">

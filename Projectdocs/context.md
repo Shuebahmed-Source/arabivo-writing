@@ -61,7 +61,7 @@ Repository URL, initial push steps, and **GitHub CLI (`gh`)** troubleshooting (i
 The app can run as **free-for-signed-in-users** (Stripe env incomplete) or **paid lessons** (production):
 
 - **Stripe Checkout** (subscription) and **Customer Billing Portal**; state synced to **`user_subscriptions`** via **`/api/webhooks/stripe`**.  
-- **`/lessons`** and progress saves require subscription **`active`** or **`trialing`** when **`STRIPE_SECRET_KEY`** and **`STRIPE_PRICE_ID`** are set. **`/dashboard`** remains the place to subscribe.  
+- **`/lessons`** and progress saves require subscription **`active`** or **`trialing`** when **`STRIPE_SECRET_KEY`** and **`STRIPE_PRICE_ID`** are set. Subscriptions start from the **landing `#pricing`** section and **`/subscribe`**; unpaid visits to **`/lessons`** redirect to **`/subscribe`**.  
 - Optional **free trial** via **`STRIPE_TRIAL_PERIOD_DAYS`** (e.g. `3`) — no separate Stripe “trial product” required.
 
 Operational checklist: **`Projectdocs/launch-checklist.md`**. Technical detail: **`Projectdocs/stripe.md`**.

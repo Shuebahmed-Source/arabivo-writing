@@ -2,20 +2,24 @@
 
 ## Entry
 
-1. User visits **`/`** (landing).  
-2. User chooses **Start learning** (sign up) or **Sign in**.  
-3. After auth, Clerk may return to the requested URL or home.  
+1. User visits **`/`** (landing) — hero, features, and **`#pricing`**.  
+2. **Subscribe / Start free trial** (pricing): signed-out users go to **`/sign-up`** or **`/sign-in`** with **`redirect_url=/subscribe`**, then land on **`/subscribe`**, which redirects into **Stripe Checkout**. Signed-in users open **`/subscribe`** directly.  
+3. **Start learning** / generic sign-in: user may sign up or sign in; Clerk’s default post-auth destination is **`/dashboard`** (see root layout).  
 
-**Note:** The marketing header on **`/`** does not link to lessons. To practice, open **`/lessons`** or **`/dashboard`** manually (or set Clerk’s post-sign-in redirect to one of those paths in the Clerk dashboard).
+**Note:** The marketing header links to **`#pricing`**; the in-app header (after sign-in) links to **`/dashboard`** and **`/lessons`**.
 
 ## Protected app
 
-4. **`/dashboard`**, **`/lessons`**, **`/lessons/sections/*`**, and **`/lessons/[lessonId]`** require sign-in (Clerk **`proxy.ts`**).  
-5. **Dashboard** — three units, **completed / total** per unit, progress bars, **Locked** until the first lesson of that unit is reachable under **section** rules; **Subscribe** / **Manage billing** when Stripe is configured; banner when **`?subscribe=required`** (user tried **lessons** without an active or trialing subscription).  
+4. **`/dashboard`**, **`/lessons`**, **`/lessons/sections/*`**, and **`/lessons/[lessonId]`** require sign-in (Clerk **`proxy.ts`**). **`/subscribe`** is public (it redirects unauthenticated users to sign-in).  
+5. **Dashboard** — three units, **completed / total** per unit, progress bars, **Locked** until the first lesson of that unit is reachable under **section** rules; **Billing** (manage portal) only when the user already has an **active** or **trialing** subscription. No subscribe sales card on the dashboard.  
 
 ### Billing gate (when Stripe env is complete)
 
-If **`STRIPE_SECRET_KEY`** and **`STRIPE_PRICE_ID`** are set on the deployment, **`/lessons`** and all nested lesson URLs require a Stripe subscription in **`active`** or **`trialing`** status (synced to **`user_subscriptions`**). Otherwise the app sends the user to **`/dashboard?subscribe=required`**. **`/dashboard`** itself is not paywalled. If Stripe env is **not** complete, lessons behave as before (signed-in users only). Saving progress uses the same subscription check when billing is on.
+If **`STRIPE_SECRET_KEY`** and **`STRIPE_PRICE_ID`** are set on the deployment, **`/lessons`** and all nested lesson URLs require a Stripe subscription in **`active`** or **`trialing`** status (synced to **`user_subscriptions`**). Otherwise the app sends the user to **`/subscribe`** (which sends them into Checkout if signed in, or through auth first if not). **`/dashboard`** itself is not paywalled. If Stripe env is **not** complete, lessons behave as before (signed-in users only). Saving progress uses the same subscription check when billing is on.
+
+### After Checkout
+
+Successful payment returns to **`/dashboard?checkout=success`**. Canceled Checkout returns to **`/?checkout=canceled#pricing`**.
 
 ## Lessons overview
 

@@ -1,11 +1,23 @@
 import { SignIn } from "@clerk/nextjs";
 import type { Metadata } from "next";
 
+import { safeInternalRedirectPath } from "@/lib/auth/safe-redirect";
+
 export const metadata: Metadata = {
   title: "Sign in",
 };
 
-export default function SignInPage() {
+type PageProps = {
+  searchParams: Promise<{ redirect_url?: string }>;
+};
+
+export default async function SignInPage({ searchParams }: PageProps) {
+  const params = await searchParams;
+  const target = safeInternalRedirectPath(params.redirect_url);
+  const signUpUrl = target
+    ? `/sign-up?redirect_url=${encodeURIComponent(target)}`
+    : "/sign-up";
+
   return (
     <div className="flex flex-1 flex-col gap-4 py-2 sm:items-center">
       <details className="w-full max-w-md rounded-lg border border-border/60 bg-muted/20 px-3 py-2 text-left text-xs text-muted-foreground sm:mx-auto">
@@ -30,7 +42,8 @@ export default function SignInPage() {
           }}
           routing="path"
           path="/sign-in"
-          signUpUrl="/sign-up"
+          signUpUrl={signUpUrl}
+          {...(target ? { forceRedirectUrl: target } : {})}
         />
       </div>
     </div>

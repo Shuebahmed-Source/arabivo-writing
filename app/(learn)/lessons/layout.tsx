@@ -8,8 +8,8 @@ import { isPaidSubscriptionStatus } from "@/lib/subscriptions/status";
 export const dynamic = "force-dynamic";
 
 /**
- * Paid access: /dashboard stays open (subscribe / manage billing). Lessons require
- * active or trialing Stripe subscription when billing is configured.
+ * Paid access: subscribe from landing + /subscribe. Lessons require active or
+ * trialing Stripe subscription when billing is configured (else redirect /subscribe).
  */
 export default async function LessonsPaywallLayout({
   children,
@@ -27,7 +27,7 @@ export default async function LessonsPaywallLayout({
 
   const sub = await fetchUserSubscriptionForCurrentUser();
   if (!isPaidSubscriptionStatus(sub?.status)) {
-    redirect("/dashboard?subscribe=required");
+    redirect("/subscribe");
   }
 
   return children;

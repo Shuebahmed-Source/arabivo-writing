@@ -21,14 +21,14 @@ Clean, calm, **minimal**, and **premium**. The learning surface should stay focu
 ## Layout patterns
 
 - **Mobile-first** spacing and tap targets (`min-h-11` / `min-h-12` on primary actions where needed)  
-- **Marketing** (`/`): **MarketingHeader** — logo, Sign in, Start learning  
+- **Marketing** (`/`, `/subscribe`): **MarketingHeader** — logo, Pricing (`#pricing`), Sign in, Start learning  
 - **Learn** (`/dashboard`, `/lessons`, section hubs, lesson detail): **SiteHeader** — logo → dashboard, Dashboard + Lessons nav, **UserButton** / sign-in  
 - **Auth** (`/sign-in`, `/sign-up`): slim header, centered Clerk card  
 
 ## Key surfaces
 
-- **Landing:** Hero, dual CTAs, three short feature cards  
-- **Dashboard:** Unit cards with **Available / Locked**, **completed / total**, thin **progress bar**  
+- **Landing:** Hero, dual CTAs + **View pricing**, three short feature cards, **`#pricing`** section (plan copy + checkout CTAs)  
+- **Dashboard:** Unit cards with **Available / Locked**, **completed / total**, thin **progress bar**; **Billing** card only when subscribed (portal)  
 - **Lessons (`/lessons`):** Per-unit headings; **section cards** in a responsive grid (title, description, **Progress x/y**, **Done** / **Locked**, chevron when navigable)  
 - **Section hub (`/lessons/sections/[sectionId]`):** Back to all lessons, title + description, **Continue**, optional **Next section**, list of items as cards (link when unlocked)  
 - **Lesson detail:** **Back to section**, unit · **section** link, title, type + completed badges, script card (`rounded-2xl`), **LessonWritingSection** below  

@@ -20,6 +20,15 @@ export function MarketingHeader() {
             variant="ghost"
             size="lg"
             nativeButton={false}
+            render={<Link href="/#pricing" />}
+            className="min-h-11 px-4"
+          >
+            Pricing
+          </Button>
+          <Button
+            variant="ghost"
+            size="lg"
+            nativeButton={false}
             render={<Link href="/sign-in" />}
             className="min-h-11 px-4"
           >

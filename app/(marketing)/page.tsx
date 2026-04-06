@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { PenLine, Sparkles, Tablet } from "lucide-react";
 
+import { LandingPricingCTAs } from "@/components/marketing/landing-pricing-ctas";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -9,9 +10,29 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-export default function LandingPage() {
+type PageProps = {
+  searchParams: Promise<{ checkout?: string }>;
+};
+
+export default async function LandingPage({ searchParams }: PageProps) {
+  const params = await searchParams;
+  const checkoutCanceled = params.checkout === "canceled";
+
   return (
     <>
+      {checkoutCanceled ? (
+        <div className="border-b border-amber-500/30 bg-amber-500/10 px-4 py-3 text-center text-sm text-foreground sm:px-6">
+          Checkout was canceled. You can try again from{" "}
+          <Link
+            href="/#pricing"
+            className="font-medium text-primary underline-offset-4 hover:underline"
+          >
+            Pricing
+          </Link>
+          .
+        </div>
+      ) : null}
+
       <section className="relative overflow-hidden border-b border-primary/10 bg-gradient-to-b from-primary/8 via-background to-background px-4 pb-16 pt-12 sm:px-6 sm:pb-20 sm:pt-16">
         <div
           className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-[radial-gradient(ellipse_at_top,hsl(160_84%_38%/0.12),transparent_65%)]"
@@ -47,6 +68,12 @@ export default function LandingPage() {
             >
               I already have an account
             </Button>
+            <Link
+              href="/#pricing"
+              className="text-center text-sm font-medium text-primary underline-offset-4 hover:underline sm:text-left"
+            >
+              View pricing
+            </Link>
           </div>
         </div>
       </section>
@@ -105,6 +132,27 @@ export default function LandingPage() {
             </Card>
           </li>
         </ul>
+      </section>
+
+      <section
+        id="pricing"
+        className="scroll-mt-20 border-t border-border/80 bg-muted/25 px-4 py-12 sm:px-6 sm:py-16"
+      >
+        <div className="mx-auto flex max-w-5xl flex-col gap-4">
+          <h2 className="font-heading text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
+            Pricing
+          </h2>
+          <p className="max-w-2xl text-sm text-muted-foreground sm:text-base">
+            One subscription unlocks the full guided path: every unit, section,
+            and handwriting lesson. Billing is handled securely by Stripe; any
+            free trial is applied at checkout when enabled for your deployment.
+          </p>
+          <ul className="mt-2 max-w-xl list-disc space-y-1 pl-5 text-sm text-muted-foreground sm:text-base">
+            <li>Full access to all lessons and saved progress</li>
+            <li>Manage payment methods anytime (after you subscribe)</li>
+          </ul>
+          <LandingPricingCTAs />
+        </div>
       </section>
     </>
   );

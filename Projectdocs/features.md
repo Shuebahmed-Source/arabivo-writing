@@ -5,7 +5,7 @@
 - Sign up and sign in (`/sign-up`, `/sign-in`)  
 - **`/dashboard`**, **`/lessons`**, lesson URLs, and **section URLs** require authentication via **`proxy.ts`** (Clerk `auth.protect()` for the learn routes)  
 - Marketing home **`/`** stays public  
-- **`ClerkProvider`** sets sign-in/up paths and fallback redirects to **`/lessons`** (see **`.env.example`** for optional `NEXT_PUBLIC_CLERK_*` URL variables); users without a subscription are redirected from **`/lessons`** to **`/dashboard`** when Stripe billing env is configured  
+- **`ClerkProvider`** sets sign-in/up paths and fallback redirects to **`/dashboard`** (see **`.env.example`** for optional `NEXT_PUBLIC_CLERK_*` URL variables). **`/sign-in`** and **`/sign-up`** accept **`?redirect_url=`** (internal path only) so pricing CTAs can continue to **`/subscribe`** after auth. Users without a subscription who open **`/lessons`** are redirected to **`/subscribe`** when Stripe billing env is configured  
 
 ## Learning path
 
@@ -36,8 +36,8 @@
 ## Progress and dashboard
 
 - **`user_progress`** in Supabase: `clerk_user_id`, `lesson_id`, `completed`, `completed_at`, `best_result` (`excellent` | `good`) — **no** `section_id` column; sections are derived in app code  
-- **`user_subscriptions`** in Supabase: Stripe subscription snapshot (`status`, `current_period_end`, etc.) — updated via **`/api/webhooks/stripe`**; dashboard shows **Subscribe** / **Manage billing** when Stripe env vars are set; **`/lessons`** requires **`active`** or **`trialing`** subscription (see **`Projectdocs/stripe.md`**)  
-- **Checkout feedback:** `?checkout=success` / `?checkout=canceled` on dashboard; **`?subscribe=required`** when redirected from lessons without a subscription  
+- **`user_subscriptions`** in Supabase: Stripe subscription snapshot (`status`, `current_period_end`, etc.) — updated via **`/api/webhooks/stripe`**; landing **`#pricing`** + **`/subscribe`** start checkout; dashboard shows **Billing** (portal) **only** for **active** / **trialing** users when Stripe env vars are set; **`/lessons`** requires **`active`** or **`trialing`** subscription (see **`Projectdocs/stripe.md`**)  
+- **Checkout feedback:** `?checkout=success` on dashboard after payment; **`?checkout=canceled`** on **`/`** with anchor **`#pricing`** if the user cancels in Stripe  
 - **Dashboard**: per-unit **completed / total** and progress bar; unit **Locked** until the **first lesson of that unit** is reachable under section rules  
 - **Post-save navigation** (`getPostCompletionPath`): next incomplete lesson in the same section when possible (skips items already in `user_progress`), else next section’s hub, else **`/lessons`**  
 

@@ -15,13 +15,12 @@ export const metadata: Metadata = {
 };
 
 type PageProps = {
-  searchParams: Promise<{ checkout?: string; subscribe?: string }>;
+  searchParams: Promise<{ checkout?: string }>;
 };
 
 export default async function DashboardPage({ searchParams }: PageProps) {
   const params = await searchParams;
   const checkout = params.checkout;
-  const subscribe = params.subscribe;
 
   const rows = await fetchUserProgressForCurrentUser();
   const completedIds = completedLessonIdSet(rows);
@@ -51,24 +50,6 @@ export default async function DashboardPage({ searchParams }: PageProps) {
           within a minute, reload this page.
         </p>
       ) : null}
-      {checkout === "canceled" ? (
-        <p
-          className="rounded-lg border border-border bg-muted/40 px-4 py-3 text-sm text-muted-foreground"
-          role="status"
-        >
-          Checkout was canceled. You can subscribe anytime from below.
-        </p>
-      ) : null}
-      {subscribe === "required" && stripeConfigured ? (
-        <p
-          className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-foreground"
-          role="status"
-        >
-          Lessons are included with your subscription. Start checkout below (includes
-          any free trial if enabled). After you subscribe, open Lessons again.
-        </p>
-      ) : null}
-
       <SubscriptionCard
         stripeConfigured={stripeConfigured}
         subscription={subscription}
