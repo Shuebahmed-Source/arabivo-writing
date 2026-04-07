@@ -27,7 +27,7 @@ Clean, calm, **minimal**, and **premium**. The learning surface should stay focu
 
 ## Key surfaces
 
-- **Landing:** Hero + **`#pricing`** share **`TrialFunnelCTAs`** (copy from **`lib/marketing/trial-cta-copy.ts`**; **`initialSignedIn`** from server **`auth()`** to avoid Clerk-load flicker); **View pricing** on hero only; three feature cards between  
+- **Landing:** Hero uses **`TrialFunnelCTAs`**: **signed in** → one primary (checkout); **signed out** → primary + **Sign in** (same funnel via **`redirect_url=/subscribe`**). **Pricing** lives in the header link to **`#pricing`**, not a third hero link. **`#pricing`** block repeats CTAs for users who scrolled for plan copy  
 - **Dashboard:** Unit cards with **Available / Locked**, **completed / total**, thin **progress bar**; **Billing** card only when subscribed (portal)  
 - **Lessons (`/lessons`):** Per-unit headings; **section cards** in a responsive grid (title, description, **Progress x/y**, **Done** / **Locked**, chevron when navigable)  
 - **Section hub (`/lessons/sections/[sectionId]`):** Back to all lessons, title + description, **Continue**, optional **Next section**, list of items as cards (link when unlocked)  

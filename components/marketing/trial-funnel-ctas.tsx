@@ -71,14 +71,6 @@ export function TrialFunnelCTAs({
       >
         Sign in
       </Button>
-      {variant === "hero" ? (
-        <Link
-          href="/#pricing"
-          className="text-center text-sm font-medium text-primary underline-offset-4 hover:underline sm:text-left"
-        >
-          View pricing
-        </Link>
-      ) : null}
     </div>
   );
 }
