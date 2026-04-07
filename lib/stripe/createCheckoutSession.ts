@@ -50,6 +50,12 @@ export async function createCheckoutSessionUrlForCurrentUser(): Promise<CreateCh
 
   const stripe = getStripe();
   const priceId = getStripePriceId();
+  if (priceId.startsWith("prod_")) {
+    console.error(
+      "[stripe] STRIPE_PRICE_ID is a Product ID (prod_...). Set STRIPE_PRICE_ID to the recurring Price ID (price_...) from Stripe → Products → your product → Pricing → open the price.",
+    );
+    return { ok: false, error: "checkout_failed" };
+  }
   const trialDays = getStripeTrialPeriodDays();
 
   let session: Stripe.Checkout.Session;

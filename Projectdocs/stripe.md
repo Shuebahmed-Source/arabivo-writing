@@ -63,7 +63,7 @@ When Stripe **is** configured, **`/lessons`** (and nested lesson/section routes)
 
 ## Common setup mistakes
 
-- Using a **Product ID** (`prod_...`) instead of a **Price ID** (`price_...`) in `STRIPE_PRICE_ID`
+- Using a **Product ID** (`prod_...`) instead of a **Price ID** (`price_...`) in `STRIPE_PRICE_ID`. On the product page, open the **£/month price row** (or API) to copy the id that starts with **`price_`**. You do **not** need a separate product for a free trial: set **`STRIPE_TRIAL_PERIOD_DAYS`** (e.g. `3`) in env and the app passes **`trial_period_days`** at Checkout—unless you also put a trial on the Price in Stripe Dashboard, which can conflict; prefer **one** source (env **or** Dashboard).
 - Creating a one-time price instead of a **recurring** price for subscription checkout
 - Forgetting to set the same env vars in **Vercel Production** after testing locally
 - Webhook created but missing one of the required events (`checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`)

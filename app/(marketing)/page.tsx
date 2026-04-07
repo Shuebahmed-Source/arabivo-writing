@@ -40,22 +40,17 @@ export default async function LandingPage({ searchParams }: PageProps) {
       ) : null}
       {checkoutFailed ? (
         <div
-          className="border-b border-destructive/30 bg-destructive/10 px-4 py-3 text-center text-sm text-foreground sm:px-6"
+          className="border-b border-amber-500/30 bg-amber-500/10 px-4 py-3 text-center text-sm text-foreground sm:px-6"
           role="alert"
         >
-          We couldn&apos;t start checkout. Check Stripe keys and Price ID in
-          Vercel, then try again from{" "}
+          Something went wrong starting checkout. Please wait a moment and try
+          again from{" "}
           <Link
             href="/#pricing"
             className="font-medium text-primary underline-offset-4 hover:underline"
           >
             Pricing
           </Link>
-          . If it keeps failing, open your project{" "}
-          <strong>Functions</strong> logs for{" "}
-          <code className="rounded bg-muted px-1 py-0.5 text-xs">
-            [stripe] checkout.sessions.create
-          </code>
           .
         </div>
       ) : null}
