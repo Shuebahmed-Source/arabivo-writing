@@ -6,8 +6,7 @@ import { revalidatePath } from "next/cache";
 import { getLessonById, getSectionIds } from "@/lib/lessons";
 import { getPostCompletionPath } from "@/lib/progress/post-completion";
 import { isLessonUnlocked } from "@/lib/progress/unlock";
-import { fetchUserSubscriptionForCurrentUser } from "@/lib/subscriptions/queries";
-import { isPaidSubscriptionStatus } from "@/lib/subscriptions/status";
+import { hasSubscriptionAccessForCurrentUser } from "@/lib/subscriptions/access";
 import { isStripeConfigured } from "@/lib/stripe/server";
 import {
   createSupabaseAdminClient,
@@ -77,8 +76,8 @@ export async function recordLessonCompletion(
   }
 
   if (isStripeConfigured()) {
-    const sub = await fetchUserSubscriptionForCurrentUser();
-    if (!isPaidSubscriptionStatus(sub?.status)) {
+    const allowed = await hasSubscriptionAccessForCurrentUser();
+    if (!allowed) {
       return {
         ok: false,
         message: "Subscribe to access lessons and save progress.",

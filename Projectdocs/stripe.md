@@ -19,6 +19,7 @@ Required/optional matrix:
 | `STRIPE_PRICE_ID` | **Recurring** Price id **`price_...`** (recommended), **or** Product id **`prod_...`** (app uses that product’s **default price** via Stripe API) |
 | `NEXT_PUBLIC_APP_URL` | Optional — canonical `https://your-domain.com` for Checkout success/cancel and Portal return URLs; if omitted, the app uses request headers (works on Vercel) |
 | `STRIPE_TRIAL_PERIOD_DAYS` | Optional — e.g. `3` for a 3-day trial on new Checkout subscriptions. Omit or `0` for no trial. Applied in **`lib/stripe/createCheckoutSession.ts`** (`subscription_data.trial_period_days`). You do **not** have to duplicate a trial on the Stripe Price unless you prefer configuring it only in the Dashboard (then leave this unset to avoid conflicting rules). |
+| `FREE_ACCESS_EMAILS` | Optional — comma-separated allowlist (e.g. `a@x.com, b@y.com`). After sign-in, if **any** Clerk email on the user matches (trim + lowercase), they get the same access as **active/trialing** Stripe subscribers: lessons, progress saves, `/subscribe` and Checkout treat them as already entitled. Implemented in **`lib/subscriptions/access.ts`**. |
 
 Set the same values in **Vercel** → Production (and Preview if you test billing there). Redeploy after changing env vars.
 
@@ -44,7 +45,7 @@ Run the migration **`supabase/migrations/20260405120000_user_subscriptions.sql`*
 
 | Route | Purpose |
 |-------|---------|
-| **`/subscribe`** | Public URL — if signed in, creates a Checkout Session and redirects to Stripe; if signed out, redirects to sign-in with return to `/subscribe`. If already subscribed, redirects to **`/lessons`**. |
+| **`/subscribe`** | Public URL — if signed in, creates a Checkout Session and redirects to Stripe; if signed out, redirects to sign-in with return to `/subscribe`. If already subscribed (Stripe **or** `FREE_ACCESS_EMAILS`), redirects to **`/lessons`**. |
 | `POST /api/checkout` | Authenticated — creates a Checkout Session (same logic as `/subscribe`), returns `{ url }` |
 | `POST /api/billing-portal` | Authenticated — opens Billing Portal for the customer in `user_subscriptions` |
 | `POST /api/webhooks/stripe` | Stripe-only — verifies signature, upserts `user_subscriptions` |
@@ -53,7 +54,7 @@ Checkout **success** returns to **`/dashboard?checkout=success`**. **Cancel** re
 
 The **landing page** (`/`, section **`#pricing`**) is the main place to start a subscription (CTAs go through Clerk, then **`/subscribe`** → Stripe). The **dashboard** shows a **Billing** card **only for active/trialing subscribers** (manage portal). If either Stripe env key/price is missing, that card is hidden and **lessons are not paywalled** (Stripe treated as off).
 
-When Stripe **is** configured, **`/lessons`** (and nested lesson/section routes) require an **`active`** or **`trialing`** subscription (`app/(learn)/lessons/layout.tsx`); users without access are redirected to **`/subscribe`** (not the dashboard). Progress saves (`recordLessonCompletion`) enforce the same rule.
+When Stripe **is** configured, **`/lessons`** (and nested lesson/section routes) require **`hasSubscriptionAccessForCurrentUser()`** (`lib/subscriptions/access.ts`): either a matching email in **`FREE_ACCESS_EMAILS`** or an **`active`** / **`trialing`** row in **`user_subscriptions`**. Users without access are redirected to **`/subscribe`**. Progress saves (`recordLessonCompletion`) enforce the same rule. **`POST /api/checkout`** refuses new Checkout if access is already granted (including free-email allowlist).
 
 ## Vercel logs (why you might see “nothing”)
 
@@ -74,4 +75,4 @@ Deployment **Logs** only show requests that hit that deployment. If the **Route*
 
 ## Paywall
 
-Implemented via **`lib/subscriptions/status.ts`** (`active` / `trialing`) and **`fetchUserSubscriptionForCurrentUser`** in **`app/(learn)/lessons/layout.tsx`** and **`app/actions/progress.ts`**.
+Centralized in **`lib/subscriptions/access.ts`**: **`hasSubscriptionAccessForCurrentUser()`** returns true if **`FREE_ACCESS_EMAILS`** matches any Clerk email, else if **`lib/subscriptions/status.ts`** reports paid status for **`fetchUserSubscriptionForCurrentUser`**. Call sites: **`app/(learn)/lessons/layout.tsx`**, **`app/actions/progress.ts`**, **`app/(marketing)/subscribe/page.tsx`**, **`lib/stripe/createCheckoutSession.ts`**.

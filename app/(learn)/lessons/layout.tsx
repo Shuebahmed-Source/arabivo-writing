@@ -2,8 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 
 import { isStripeConfigured } from "@/lib/stripe/server";
-import { fetchUserSubscriptionForCurrentUser } from "@/lib/subscriptions/queries";
-import { isPaidSubscriptionStatus } from "@/lib/subscriptions/status";
+import { hasSubscriptionAccessForCurrentUser } from "@/lib/subscriptions/access";
 
 export const dynamic = "force-dynamic";
 
@@ -25,8 +24,8 @@ export default async function LessonsPaywallLayout({
     redirect("/sign-in");
   }
 
-  const sub = await fetchUserSubscriptionForCurrentUser();
-  if (!isPaidSubscriptionStatus(sub?.status)) {
+  const allowed = await hasSubscriptionAccessForCurrentUser();
+  if (!allowed) {
     redirect("/subscribe");
   }
 

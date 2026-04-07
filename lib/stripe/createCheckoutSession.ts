@@ -2,8 +2,7 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 import { headers } from "next/headers";
 import Stripe from "stripe";
 
-import { fetchUserSubscriptionForCurrentUser } from "@/lib/subscriptions/queries";
-import { isPaidSubscriptionStatus } from "@/lib/subscriptions/status";
+import { hasSubscriptionAccessForCurrentUser } from "@/lib/subscriptions/access";
 
 import { resolveSubscriptionPriceId } from "./resolveSubscriptionPriceId";
 import {
@@ -68,8 +67,8 @@ export async function createCheckoutSessionUrlForCurrentUser(): Promise<CreateCh
     return { ok: false, error: "unauthorized" };
   }
 
-  const existing = await fetchUserSubscriptionForCurrentUser();
-  if (isPaidSubscriptionStatus(existing?.status)) {
+  const hasAccess = await hasSubscriptionAccessForCurrentUser();
+  if (hasAccess) {
     return { ok: false, error: "already_subscribed" };
   }
 

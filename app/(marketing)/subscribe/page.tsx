@@ -3,8 +3,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 import { SubscribeBridge } from "@/components/marketing/subscribe-bridge";
-import { fetchUserSubscriptionForCurrentUser } from "@/lib/subscriptions/queries";
-import { isPaidSubscriptionStatus } from "@/lib/subscriptions/status";
+import { hasSubscriptionAccessForCurrentUser } from "@/lib/subscriptions/access";
 import { getSubscriptionPriceDisplay } from "@/lib/stripe/getSubscriptionPriceDisplay";
 import { getStripeTrialPeriodDays, isStripeConfigured } from "@/lib/stripe/server";
 
@@ -18,8 +17,8 @@ export default async function SubscribePage() {
     redirect("/sign-in?redirect_url=/subscribe");
   }
 
-  const existing = await fetchUserSubscriptionForCurrentUser();
-  if (isPaidSubscriptionStatus(existing?.status)) {
+  const hasAccess = await hasSubscriptionAccessForCurrentUser();
+  if (hasAccess) {
     redirect("/lessons");
   }
 
