@@ -14,9 +14,9 @@ Required/optional matrix:
 
 | Variable | Notes |
 |----------|--------|
-| `STRIPE_SECRET_KEY` | Dashboard → Developers → API keys — **Secret** key |
+| `STRIPE_SECRET_KEY` | Dashboard → Developers → API keys — **Secret** key (**`sk_live_...`** or **`sk_test_...`** only; not Publishable **`pk_`**) |
 | `STRIPE_WEBHOOK_SECRET` | From the **webhook endpoint** you create (Signing secret) |
-| `STRIPE_PRICE_ID` | **Recurring** Price id (e.g. `price_...`) for your product (required for checkout) |
+| `STRIPE_PRICE_ID` | **Recurring** Price id **`price_...`** (recommended), **or** Product id **`prod_...`** (app uses that product’s **default price** via Stripe API) |
 | `NEXT_PUBLIC_APP_URL` | Optional — canonical `https://your-domain.com` for Checkout success/cancel and Portal return URLs; if omitted, the app uses request headers (works on Vercel) |
 | `STRIPE_TRIAL_PERIOD_DAYS` | Optional — e.g. `3` for a 3-day trial on new Checkout subscriptions. Omit or `0` for no trial. Applied in **`lib/stripe/createCheckoutSession.ts`** (`subscription_data.trial_period_days`). You do **not** have to duplicate a trial on the Stripe Price unless you prefer configuring it only in the Dashboard (then leave this unset to avoid conflicting rules). |
 
@@ -49,7 +49,7 @@ Run the migration **`supabase/migrations/20260405120000_user_subscriptions.sql`*
 | `POST /api/billing-portal` | Authenticated — opens Billing Portal for the customer in `user_subscriptions` |
 | `POST /api/webhooks/stripe` | Stripe-only — verifies signature, upserts `user_subscriptions` |
 
-Checkout **success** returns to **`/dashboard?checkout=success`**. **Cancel** returns to **`/?checkout=canceled#pricing`**.
+Checkout **success** returns to **`/dashboard?checkout=success`**. **Cancel** returns to **`/?checkout=canceled`** (no `#` fragment so the page does not auto-scroll past the top banner). **Failed session creation** redirects to **`/?checkout=failed`** for the same reason.
 
 The **landing page** (`/`, section **`#pricing`**) is the main place to start a subscription (CTAs go through Clerk, then **`/subscribe`** → Stripe). The **dashboard** shows a **Billing** card **only for active/trialing subscribers** (manage portal). If either Stripe env key/price is missing, that card is hidden and **lessons are not paywalled** (Stripe treated as off).
 
@@ -57,7 +57,7 @@ When Stripe **is** configured, **`/lessons`** (and nested lesson/section routes)
 
 ## Checkout failed (500 on `/subscribe`)
 
-`/subscribe` calls **`stripe.checkout.sessions.create`**. If Stripe rejects the request (bad **Price ID**, test/live key mismatch, invalid trial, etc.), the SDK throws. The app now catches that, logs **`[stripe] checkout.sessions.create`** with **type**, **code**, and **message**, and redirects to **`/?checkout=failed#pricing`** instead of a blank error page.
+`/subscribe` calls **`stripe.checkout.sessions.create`**. If Stripe rejects the request (bad **Price ID**, test/live key mismatch, invalid trial, etc.), the SDK throws. The app now catches that, logs **`[stripe] checkout.sessions.create`** with **type**, **code**, and **message**, and redirects to **`/?checkout=failed`** instead of a blank error page.
 
 **Where to look:** Vercel → your project → **Logs** (or **Runtime Logs** / **Functions** for the Serverless invocation). Search for **`[stripe] checkout`**.
 

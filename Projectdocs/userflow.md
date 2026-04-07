@@ -19,7 +19,7 @@ If **`STRIPE_SECRET_KEY`** and **`STRIPE_PRICE_ID`** are set on the deployment, 
 
 ### After Checkout
 
-Successful payment returns to **`/dashboard?checkout=success`**. Canceled Checkout returns to **`/?checkout=canceled#pricing`**.
+Successful payment returns to **`/dashboard?checkout=success`**. Canceled Checkout returns to **`/?checkout=canceled`** (homepage banner; viewport stays at top).
 
 ## Lessons overview
 

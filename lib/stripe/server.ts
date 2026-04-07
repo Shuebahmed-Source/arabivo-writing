@@ -13,12 +13,16 @@ export function getStripe(): Stripe {
   return stripe;
 }
 
-/** Checkout + portal require secret key and a subscription price id. */
+/** Stripe standard secret keys are sk_live_... or sk_test_... (Dashboard → API keys). */
+export function isPlausibleStripeSecretKey(key: string): boolean {
+  return /^sk_(live|test)_/.test(key.trim());
+}
+
+/** Checkout + portal require a valid-format secret key and STRIPE_PRICE_ID (price_ or prod_). */
 export function isStripeConfigured(): boolean {
-  return Boolean(
-    process.env.STRIPE_SECRET_KEY?.trim() &&
-      process.env.STRIPE_PRICE_ID?.trim(),
-  );
+  const key = process.env.STRIPE_SECRET_KEY?.trim() ?? "";
+  const price = process.env.STRIPE_PRICE_ID?.trim() ?? "";
+  return Boolean(key && price && isPlausibleStripeSecretKey(key));
 }
 
 export function getStripePriceId(): string {

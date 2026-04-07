@@ -29,7 +29,7 @@ export default async function SubscribePage() {
     result.error === "no_url" ||
     result.error === "checkout_failed"
   ) {
-    redirect("/?checkout=failed#pricing");
+    redirect("/?checkout=failed");
   }
 
   redirect("/sign-in?redirect_url=/subscribe");

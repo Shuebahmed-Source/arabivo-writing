@@ -5,10 +5,12 @@ import Stripe from "stripe";
 import { fetchUserSubscriptionForCurrentUser } from "@/lib/subscriptions/queries";
 import { isPaidSubscriptionStatus } from "@/lib/subscriptions/status";
 
+import { resolveSubscriptionPriceId } from "./resolveSubscriptionPriceId";
 import {
   getStripe,
   getStripePriceId,
   getStripeTrialPeriodDays,
+  isPlausibleStripeSecretKey,
   isStripeConfigured,
 } from "./server";
 
@@ -24,8 +26,40 @@ export type CreateCheckoutSessionResult =
         | "checkout_failed";
     };
 
+function buildSessionParams(opts: {
+  priceId: string;
+  origin: string;
+  userId: string;
+  email?: string;
+  trialDays: number;
+  includeTrial: boolean;
+}): Stripe.Checkout.SessionCreateParams {
+  const { priceId, origin, userId, email, trialDays, includeTrial } = opts;
+  return {
+    mode: "subscription",
+    ...(email ? { customer_email: email } : {}),
+    line_items: [{ price: priceId, quantity: 1 }],
+    success_url: `${origin}/dashboard?checkout=success`,
+    cancel_url: `${origin}/?checkout=canceled`,
+    client_reference_id: userId,
+    metadata: { clerk_user_id: userId },
+    subscription_data: {
+      metadata: { clerk_user_id: userId },
+      ...(includeTrial && trialDays > 0
+        ? { trial_period_days: trialDays }
+        : {}),
+    },
+  };
+}
+
 export async function createCheckoutSessionUrlForCurrentUser(): Promise<CreateCheckoutSessionResult> {
   if (!isStripeConfigured()) {
+    const key = process.env.STRIPE_SECRET_KEY?.trim() ?? "";
+    if (key && !isPlausibleStripeSecretKey(key)) {
+      console.error(
+        "[stripe] STRIPE_SECRET_KEY must be the Secret key (sk_live_... or sk_test_...) from Stripe → Developers → API keys — not Publishable (pk_) or other prefixes.",
+      );
+    }
     return { ok: false, error: "not_configured" };
   }
 
@@ -49,42 +83,74 @@ export async function createCheckoutSessionUrlForCurrentUser(): Promise<CreateCh
   const origin = envOrigin || `${proto}://${host}`;
 
   const stripe = getStripe();
-  const priceId = getStripePriceId();
-  if (priceId.startsWith("prod_")) {
-    console.error(
-      "[stripe] STRIPE_PRICE_ID is a Product ID (prod_...). Set STRIPE_PRICE_ID to the recurring Price ID (price_...) from Stripe → Products → your product → Pricing → open the price.",
-    );
+  const envPriceOrProduct = getStripePriceId();
+  const resolved = await resolveSubscriptionPriceId(stripe, envPriceOrProduct);
+  if (!resolved.ok) {
+    console.error("[stripe] resolve price:", resolved.message);
     return { ok: false, error: "checkout_failed" };
   }
+  const priceId = resolved.priceId;
   const trialDays = getStripeTrialPeriodDays();
 
   let session: Stripe.Checkout.Session;
   try {
-    session = await stripe.checkout.sessions.create({
-      mode: "subscription",
-      ...(email ? { customer_email: email } : {}),
-      line_items: [{ price: priceId, quantity: 1 }],
-      success_url: `${origin}/dashboard?checkout=success`,
-      cancel_url: `${origin}/?checkout=canceled#pricing`,
-      client_reference_id: userId,
-      metadata: { clerk_user_id: userId },
-      subscription_data: {
-        metadata: { clerk_user_id: userId },
-        ...(trialDays > 0 ? { trial_period_days: trialDays } : {}),
-      },
-    });
+    session = await stripe.checkout.sessions.create(
+      buildSessionParams({
+        priceId,
+        origin,
+        userId,
+        email,
+        trialDays,
+        includeTrial: true,
+      }),
+    );
   } catch (e) {
-    if (e instanceof Stripe.errors.StripeError) {
-      console.error(
-        "[stripe] checkout.sessions.create",
-        e.type,
-        e.code ?? "",
+    const retryWithoutTrial =
+      trialDays > 0 &&
+      e instanceof Stripe.errors.StripeInvalidRequestError;
+
+    if (retryWithoutTrial) {
+      console.warn(
+        "[stripe] checkout with trial failed; retrying without trial_period_days:",
         e.message,
       );
+      try {
+        session = await stripe.checkout.sessions.create(
+          buildSessionParams({
+            priceId,
+            origin,
+            userId,
+            email,
+            trialDays,
+            includeTrial: false,
+          }),
+        );
+      } catch (e2) {
+        if (e2 instanceof Stripe.errors.StripeError) {
+          console.error(
+            "[stripe] checkout.sessions.create",
+            e2.type,
+            e2.code ?? "",
+            e2.message,
+          );
+        } else {
+          console.error("[stripe] checkout.sessions.create", e2);
+        }
+        return { ok: false, error: "checkout_failed" };
+      }
     } else {
-      console.error("[stripe] checkout.sessions.create", e);
+      if (e instanceof Stripe.errors.StripeError) {
+        console.error(
+          "[stripe] checkout.sessions.create",
+          e.type,
+          e.code ?? "",
+          e.message,
+        );
+      } else {
+        console.error("[stripe] checkout.sessions.create", e);
+      }
+      return { ok: false, error: "checkout_failed" };
     }
-    return { ok: false, error: "checkout_failed" };
   }
 
   if (!session.url) {
