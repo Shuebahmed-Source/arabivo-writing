@@ -21,6 +21,12 @@ export async function POST() {
         { status: 409 },
       );
     }
+    if (result.error === "checkout_failed") {
+      return NextResponse.json(
+        { error: "Could not start checkout" },
+        { status: 502 },
+      );
+    }
     return NextResponse.json(
       { error: "No checkout URL" },
       { status: 500 },

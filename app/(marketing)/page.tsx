@@ -12,12 +12,14 @@ import {
 } from "@/components/ui/card";
 
 type PageProps = {
-  searchParams: Promise<{ checkout?: string }>;
+  searchParams: Promise<{ checkout?: string; subscription_error?: string }>;
 };
 
 export default async function LandingPage({ searchParams }: PageProps) {
   const params = await searchParams;
   const checkoutCanceled = params.checkout === "canceled";
+  const checkoutFailed =
+    params.checkout === "failed" || params.subscription_error === "1";
   const trialDays = getStripeTrialPeriodDays();
   const { userId } = await auth();
   const initialSignedIn = Boolean(userId);
@@ -33,6 +35,27 @@ export default async function LandingPage({ searchParams }: PageProps) {
           >
             Pricing
           </Link>
+          .
+        </div>
+      ) : null}
+      {checkoutFailed ? (
+        <div
+          className="border-b border-destructive/30 bg-destructive/10 px-4 py-3 text-center text-sm text-foreground sm:px-6"
+          role="alert"
+        >
+          We couldn&apos;t start checkout. Check Stripe keys and Price ID in
+          Vercel, then try again from{" "}
+          <Link
+            href="/#pricing"
+            className="font-medium text-primary underline-offset-4 hover:underline"
+          >
+            Pricing
+          </Link>
+          . If it keeps failing, open your project{" "}
+          <strong>Functions</strong> logs for{" "}
+          <code className="rounded bg-muted px-1 py-0.5 text-xs">
+            [stripe] checkout.sessions.create
+          </code>
           .
         </div>
       ) : null}

@@ -1,5 +1,6 @@
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { headers } from "next/headers";
+import Stripe from "stripe";
 
 import { fetchUserSubscriptionForCurrentUser } from "@/lib/subscriptions/queries";
 import { isPaidSubscriptionStatus } from "@/lib/subscriptions/status";
@@ -19,7 +20,8 @@ export type CreateCheckoutSessionResult =
         | "unauthorized"
         | "not_configured"
         | "no_url"
-        | "already_subscribed";
+        | "already_subscribed"
+        | "checkout_failed";
     };
 
 export async function createCheckoutSessionUrlForCurrentUser(): Promise<CreateCheckoutSessionResult> {
@@ -50,19 +52,34 @@ export async function createCheckoutSessionUrlForCurrentUser(): Promise<CreateCh
   const priceId = getStripePriceId();
   const trialDays = getStripeTrialPeriodDays();
 
-  const session = await stripe.checkout.sessions.create({
-    mode: "subscription",
-    ...(email ? { customer_email: email } : {}),
-    line_items: [{ price: priceId, quantity: 1 }],
-    success_url: `${origin}/dashboard?checkout=success`,
-    cancel_url: `${origin}/?checkout=canceled#pricing`,
-    client_reference_id: userId,
-    metadata: { clerk_user_id: userId },
-    subscription_data: {
+  let session: Stripe.Checkout.Session;
+  try {
+    session = await stripe.checkout.sessions.create({
+      mode: "subscription",
+      ...(email ? { customer_email: email } : {}),
+      line_items: [{ price: priceId, quantity: 1 }],
+      success_url: `${origin}/dashboard?checkout=success`,
+      cancel_url: `${origin}/?checkout=canceled#pricing`,
+      client_reference_id: userId,
       metadata: { clerk_user_id: userId },
-      ...(trialDays > 0 ? { trial_period_days: trialDays } : {}),
-    },
-  });
+      subscription_data: {
+        metadata: { clerk_user_id: userId },
+        ...(trialDays > 0 ? { trial_period_days: trialDays } : {}),
+      },
+    });
+  } catch (e) {
+    if (e instanceof Stripe.errors.StripeError) {
+      console.error(
+        "[stripe] checkout.sessions.create",
+        e.type,
+        e.code ?? "",
+        e.message,
+      );
+    } else {
+      console.error("[stripe] checkout.sessions.create", e);
+    }
+    return { ok: false, error: "checkout_failed" };
+  }
 
   if (!session.url) {
     return { ok: false, error: "no_url" };

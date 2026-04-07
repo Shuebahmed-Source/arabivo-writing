@@ -24,8 +24,12 @@ export default async function SubscribePage() {
     redirect("/lessons");
   }
 
-  if (result.error === "not_configured" || result.error === "no_url") {
-    redirect("/#pricing");
+  if (
+    result.error === "not_configured" ||
+    result.error === "no_url" ||
+    result.error === "checkout_failed"
+  ) {
+    redirect("/?checkout=failed#pricing");
   }
 
   redirect("/sign-in?redirect_url=/subscribe");
