@@ -55,6 +55,10 @@ The **landing page** (`/`, section **`#pricing`**) is the main place to start a 
 
 When Stripe **is** configured, **`/lessons`** (and nested lesson/section routes) require an **`active`** or **`trialing`** subscription (`app/(learn)/lessons/layout.tsx`); users without access are redirected to **`/subscribe`** (not the dashboard). Progress saves (`recordLessonCompletion`) enforce the same rule.
 
+## Vercel logs (why you might see “nothing”)
+
+Deployment **Logs** only show requests that hit that deployment. If the **Route** filter is set to **`/`**, you will only see homepage hits—**not** `/subscribe` or `/api/checkout`. Clear the route filter, widen the time range, then open **`/subscribe`** and click through to Stripe to generate entries. Server `console.error` lines (e.g. **`[stripe]`**) appear in those logs.
+
 ## Checkout failed (500 on `/subscribe`)
 
 `/subscribe` calls **`stripe.checkout.sessions.create`**. If Stripe rejects the request (bad **Price ID**, test/live key mismatch, invalid trial, etc.), the SDK throws. The app now catches that, logs **`[stripe] checkout.sessions.create`** with **type**, **code**, and **message**, and redirects to **`/?checkout=failed`** instead of a blank error page.

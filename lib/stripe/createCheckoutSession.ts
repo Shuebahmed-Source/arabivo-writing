@@ -105,52 +105,17 @@ export async function createCheckoutSessionUrlForCurrentUser(): Promise<CreateCh
       }),
     );
   } catch (e) {
-    const retryWithoutTrial =
-      trialDays > 0 &&
-      e instanceof Stripe.errors.StripeInvalidRequestError;
-
-    if (retryWithoutTrial) {
-      console.warn(
-        "[stripe] checkout with trial failed; retrying without trial_period_days:",
+    if (e instanceof Stripe.errors.StripeError) {
+      console.error(
+        "[stripe] checkout.sessions.create",
+        e.type,
+        e.code ?? "",
         e.message,
       );
-      try {
-        session = await stripe.checkout.sessions.create(
-          buildSessionParams({
-            priceId,
-            origin,
-            userId,
-            email,
-            trialDays,
-            includeTrial: false,
-          }),
-        );
-      } catch (e2) {
-        if (e2 instanceof Stripe.errors.StripeError) {
-          console.error(
-            "[stripe] checkout.sessions.create",
-            e2.type,
-            e2.code ?? "",
-            e2.message,
-          );
-        } else {
-          console.error("[stripe] checkout.sessions.create", e2);
-        }
-        return { ok: false, error: "checkout_failed" };
-      }
     } else {
-      if (e instanceof Stripe.errors.StripeError) {
-        console.error(
-          "[stripe] checkout.sessions.create",
-          e.type,
-          e.code ?? "",
-          e.message,
-        );
-      } else {
-        console.error("[stripe] checkout.sessions.create", e);
-      }
-      return { ok: false, error: "checkout_failed" };
+      console.error("[stripe] checkout.sessions.create", e);
     }
+    return { ok: false, error: "checkout_failed" };
   }
 
   if (!session.url) {

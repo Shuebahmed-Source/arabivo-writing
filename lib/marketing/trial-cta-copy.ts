@@ -7,6 +7,9 @@ export function primaryTrialCtaLabel(trialDays: number): string {
   if (trialDays === 3) {
     return "Start 3-Day Free Trial";
   }
+  if (trialDays === 7) {
+    return "Start 7-Day Free Trial";
+  }
   if (trialDays > 0) {
     return "Start Free Trial";
   }
