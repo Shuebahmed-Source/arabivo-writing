@@ -1,3 +1,4 @@
+import { auth } from "@clerk/nextjs/server";
 import Link from "next/link";
 import { PenLine, Sparkles, Tablet } from "lucide-react";
 
@@ -18,6 +19,8 @@ export default async function LandingPage({ searchParams }: PageProps) {
   const params = await searchParams;
   const checkoutCanceled = params.checkout === "canceled";
   const trialDays = getStripeTrialPeriodDays();
+  const { userId } = await auth();
+  const initialSignedIn = Boolean(userId);
 
   return (
     <>
@@ -51,7 +54,11 @@ export default async function LandingPage({ searchParams }: PageProps) {
             and numerals—so you build muscle memory with clear feedback, not
             guesswork.
           </p>
-          <TrialFunnelCTAs trialDays={trialDays} variant="hero" />
+          <TrialFunnelCTAs
+            trialDays={trialDays}
+            initialSignedIn={initialSignedIn}
+            variant="hero"
+          />
         </div>
       </section>
 
@@ -128,7 +135,11 @@ export default async function LandingPage({ searchParams }: PageProps) {
             <li>Full access to all lessons and saved progress</li>
             <li>Manage payment methods anytime (after you subscribe)</li>
           </ul>
-          <TrialFunnelCTAs trialDays={trialDays} variant="pricing" />
+          <TrialFunnelCTAs
+            trialDays={trialDays}
+            initialSignedIn={initialSignedIn}
+            variant="pricing"
+          />
         </div>
       </section>
     </>

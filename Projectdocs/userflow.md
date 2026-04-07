@@ -3,7 +3,7 @@
 ## Entry
 
 1. User visits **`/`** (landing) — hero, features, and **`#pricing`**.  
-2. **Primary CTA** (hero, pricing, and marketing header): label is **`Start {n}-day free trial`** when **`STRIPE_TRIAL_PERIOD_DAYS`** is **n > 0**, otherwise **`Subscribe`**. Signed-out users go to **`/sign-up`** or **`/sign-in`** with **`redirect_url=/subscribe`**, then **`/subscribe`** → **Stripe Checkout**. Signed-in users use **`Continue to checkout`** → **`/subscribe`**.  
+2. **Primary CTA** (hero, pricing, and marketing header): signed-out label from **`primaryTrialCtaLabel`** — **`Start 3-Day Free Trial`** when **`STRIPE_TRIAL_PERIOD_DAYS`** is **3**, **`Start Free Trial`** for other **n > 0**, else **`Subscribe`**. Signed-out users go to **`/sign-up`** or **`/sign-in`** with **`redirect_url=/subscribe`**, then **`/subscribe`** → **Stripe Checkout**. Signed-in users see **`Start your free trial`** → **`/subscribe`**. Session for first paint comes from server **`auth()`** (`initialSignedIn`) so the hero does not flash the signed-out layout while Clerk loads.  
 3. Generic visits to **`/sign-in`** / **`/sign-up`** without **`redirect_url`** still use Clerk’s fallback **`/dashboard`** (root layout).  
 
 **Note:** The marketing header links to **`#pricing`**; the in-app header (after sign-in) links to **`/dashboard`** and **`/lessons`**.
