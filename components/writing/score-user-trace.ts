@@ -54,18 +54,18 @@ const MIN_GUIDE_PIXELS = 24;
  * Good — noticeable coverage or reasonable precision, with moderate outside ink.
  * try-again — weak coverage, mostly off-guide ink, or almost no drawing.
  */
-const EXCELLENT_MIN_COVERAGE = 0.28;
-const EXCELLENT_MIN_PRECISION = 0.4;
-const EXCELLENT_MAX_OFF_GUIDE = 0.4;
+const EXCELLENT_MIN_COVERAGE = 0.24;
+const EXCELLENT_MIN_PRECISION = 0.36;
+const EXCELLENT_MAX_OFF_GUIDE = 0.47;
 
 const EXCELLENT_ALT_MIN_PRECISION = 0.54;
 const EXCELLENT_ALT_MIN_OVERLAP = 40;
 const EXCELLENT_ALT_MAX_OFF_GUIDE = 0.32;
 const EXCELLENT_ALT_MIN_COVERAGE = 0.1;
 
-const GOOD_MIN_COVERAGE = 0.12;
-const GOOD_MIN_PRECISION = 0.26;
-const GOOD_MAX_OFF_GUIDE = 0.58;
+const GOOD_MIN_COVERAGE = 0.09;
+const GOOD_MIN_PRECISION = 0.22;
+const GOOD_MAX_OFF_GUIDE = 0.65;
 
 /** When the guide is very thin (e.g. alif), coverage stays low even if ink is on-letter. */
 const GOOD_ALT_MIN_PRECISION = 0.42;
@@ -73,7 +73,7 @@ const GOOD_ALT_MIN_OVERLAP = 22;
 const GOOD_ALT_MAX_OFF_GUIDE = 0.48;
 
 /** If more than this fraction of ink is off-guide, cap at try-again. */
-const HARD_FAIL_OFF_GUIDE = 0.72;
+const HARD_FAIL_OFF_GUIDE = 0.82;
 
 export function scoreUserTrace(
   guideMask: ImageData,
