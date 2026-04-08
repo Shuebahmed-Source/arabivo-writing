@@ -32,14 +32,16 @@ type NormPoint = { nx: number; ny: number };
 
 type InkCommand =
   | { kind: "segment"; from: NormPoint; to: NormPoint }
+  | { kind: "quad"; from: NormPoint; ctrl: NormPoint; to: NormPoint }
   | { kind: "dot"; p: NormPoint };
 
-/** Logical CSS px under the dpr transform — thick enough to see and to hit guide samples. */
-const INK_LINE_WIDTH_PX = 5.75;
+/** Logical CSS px under the dpr transform — bold ink similar to reference tracing apps (~10–12px). */
+const INK_LINE_WIDTH_PX = 11;
 /** Wider than visible ink so pixel scoring tolerates small drift from the guide. */
-const MASK_LINE_WIDTH_PX = 12;
-const INK_DOT_RADIUS_PX = 2.75;
-const MASK_DOT_RADIUS_PX = 4.5;
+const MASK_LINE_WIDTH_PX = 22;
+/** Match round line caps so dots read like pen blobs, not pinpoints. */
+const INK_DOT_RADIUS_PX = INK_LINE_WIDTH_PX / 2;
+const MASK_DOT_RADIUS_PX = MASK_LINE_WIDTH_PX / 2;
 
 function toNorm(p: Point, w: number, h: number): NormPoint {
   if (w < 1 || h < 1) return { nx: 0, ny: 0 };
@@ -118,7 +120,10 @@ export const WritingCanvas = forwardRef<WritingCanvasHandle, WritingCanvasProps>
     const userMaskRef = useRef<HTMLCanvasElement | null>(null);
     const fontProbeRef = useRef<HTMLSpanElement>(null);
     const drawingRef = useRef(false);
-    const lastPointRef = useRef<Point | null>(null);
+    /** Previous raw pointer position for the current stroke. */
+    const strokeRawRef = useRef<Point | null>(null);
+    /** Last drawn curve endpoint (midpoint between successive samples) for quadratic smoothing. */
+    const strokeMidRef = useRef<Point | null>(null);
     const dprRef = useRef(1);
     const cssSizeRef = useRef({ w: 0, h: 0 });
     const inkCommandsRef = useRef<InkCommand[]>([]);
@@ -208,6 +213,40 @@ export const WritingCanvas = forwardRef<WritingCanvasHandle, WritingCanvasProps>
       uctx.restore();
     }, []);
 
+    const drawQuadraticStroke = useCallback((from: Point, ctrl: Point, to: Point) => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+
+      ctx.save();
+      ctx.strokeStyle = "oklch(0.32 0.09 163)";
+      ctx.lineWidth = INK_LINE_WIDTH_PX;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.globalAlpha = 1;
+      ctx.beginPath();
+      ctx.moveTo(from.x, from.y);
+      ctx.quadraticCurveTo(ctrl.x, ctrl.y, to.x, to.y);
+      ctx.stroke();
+      ctx.restore();
+
+      const umc = userMaskRef.current;
+      if (!umc) return;
+      const uctx = umc.getContext("2d");
+      if (!uctx) return;
+      uctx.save();
+      uctx.strokeStyle = "#ffffff";
+      uctx.lineWidth = MASK_LINE_WIDTH_PX;
+      uctx.lineCap = "round";
+      uctx.lineJoin = "round";
+      uctx.beginPath();
+      uctx.moveTo(from.x, from.y);
+      uctx.quadraticCurveTo(ctrl.x, ctrl.y, to.x, to.y);
+      uctx.stroke();
+      uctx.restore();
+    }, []);
+
     const drawDot = useCallback((p: Point) => {
       const canvas = canvasRef.current;
       if (!canvas) return;
@@ -238,11 +277,17 @@ export const WritingCanvas = forwardRef<WritingCanvasHandle, WritingCanvasProps>
       for (const cmd of inkCommandsRef.current) {
         if (cmd.kind === "segment") {
           drawSegment(toCss(cmd.from, w, h), toCss(cmd.to, w, h));
+        } else if (cmd.kind === "quad") {
+          drawQuadraticStroke(
+            toCss(cmd.from, w, h),
+            toCss(cmd.ctrl, w, h),
+            toCss(cmd.to, w, h),
+          );
         } else {
           drawDot(toCss(cmd.p, w, h));
         }
       }
-    }, [drawSegment, drawDot]);
+    }, [drawSegment, drawQuadraticStroke, drawDot]);
 
     const syncMaskCanvases = useCallback(() => {
       if (!ensureMaskElements(guideMaskRef, userMaskRef)) return;
@@ -321,7 +366,8 @@ export const WritingCanvas = forwardRef<WritingCanvasHandle, WritingCanvasProps>
           inkCommandsRef.current = [];
           redrawVisibleBase();
           clearUserInkOnly();
-          lastPointRef.current = null;
+          strokeRawRef.current = null;
+          strokeMidRef.current = null;
           drawingRef.current = false;
         },
         check: () => {
@@ -394,7 +440,8 @@ export const WritingCanvas = forwardRef<WritingCanvasHandle, WritingCanvasProps>
       drawingRef.current = true;
 
       const p = getOffsetCoords(canvas, e.nativeEvent);
-      lastPointRef.current = p;
+      strokeMidRef.current = null;
+      strokeRawRef.current = p;
       inkCommandsRef.current.push({ kind: "dot", p: toNorm(p, w, h) });
       drawDot(p);
     };
@@ -404,18 +451,50 @@ export const WritingCanvas = forwardRef<WritingCanvasHandle, WritingCanvasProps>
 
       e.preventDefault();
       const canvas = canvasRef.current;
-      const last = lastPointRef.current;
-      if (!canvas || !last) return;
+      if (!canvas) return;
 
-      const p = getOffsetCoords(canvas, e.nativeEvent);
+      const raw = strokeRawRef.current;
+      if (!raw) return;
+
       const { w, h } = cssSizeRef.current;
-      inkCommandsRef.current.push({
-        kind: "segment",
-        from: toNorm(last, w, h),
-        to: toNorm(p, w, h),
-      });
-      drawSegment(last, p);
-      lastPointRef.current = p;
+      const native = e.nativeEvent;
+      const coalesced =
+        typeof native.getCoalescedEvents === "function"
+          ? native.getCoalescedEvents()
+          : [];
+      const samples: PointerEvent[] =
+        coalesced.length > 0 ? coalesced : [native];
+
+      let prevRaw = raw;
+      for (const ev of samples) {
+        const p = getOffsetCoords(canvas, ev);
+        const mid = {
+          x: (prevRaw.x + p.x) / 2,
+          y: (prevRaw.y + p.y) / 2,
+        };
+        const sm = strokeMidRef.current;
+
+        if (sm === null) {
+          inkCommandsRef.current.push({
+            kind: "segment",
+            from: toNorm(prevRaw, w, h),
+            to: toNorm(mid, w, h),
+          });
+          drawSegment(prevRaw, mid);
+        } else {
+          inkCommandsRef.current.push({
+            kind: "quad",
+            from: toNorm(sm, w, h),
+            ctrl: toNorm(prevRaw, w, h),
+            to: toNorm(mid, w, h),
+          });
+          drawQuadraticStroke(sm, prevRaw, mid);
+        }
+
+        strokeMidRef.current = mid;
+        prevRaw = p;
+      }
+      strokeRawRef.current = prevRaw;
     };
 
     const endStroke = (e: React.PointerEvent<HTMLCanvasElement>) => {
@@ -426,8 +505,22 @@ export const WritingCanvas = forwardRef<WritingCanvasHandle, WritingCanvasProps>
       if (canvas?.hasPointerCapture(e.pointerId)) {
         canvas.releasePointerCapture(e.pointerId);
       }
+
+      const { w, h } = cssSizeRef.current;
+      const sm = strokeMidRef.current;
+      const sr = strokeRawRef.current;
+      if (sm !== null && sr !== null) {
+        inkCommandsRef.current.push({
+          kind: "segment",
+          from: toNorm(sm, w, h),
+          to: toNorm(sr, w, h),
+        });
+        drawSegment(sm, sr);
+      }
+
       drawingRef.current = false;
-      lastPointRef.current = null;
+      strokeMidRef.current = null;
+      strokeRawRef.current = null;
     };
 
     return (
