@@ -5,7 +5,6 @@ import { notFound, redirect } from "next/navigation";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { LessonWritingSection } from "@/components/writing/lesson-writing-section";
 import {
   getLessonById,
@@ -66,96 +65,98 @@ export default async function LessonDetailPage({ params }: Props) {
   const sectionHref = `/lessons/sections/${lesson.sectionId}`;
 
   return (
-    <div className="flex flex-1 flex-col gap-6 md:gap-8">
-      <div className="flex flex-col gap-4 md:gap-5">
+    <div className="flex flex-1 flex-col gap-4 md:gap-5">
+      <header className="flex flex-col gap-2">
         <Button
           variant="ghost"
-          size="lg"
+          size="sm"
           nativeButton={false}
           render={<Link href={`/lessons/sections/${lesson.sectionId}`} />}
-          className="min-h-11 w-fit gap-2 px-2 sm:px-3"
+          className="h-9 w-fit gap-1.5 px-2 text-muted-foreground hover:text-foreground"
         >
-          <ArrowLeft className="size-4" aria-hidden />
+          <ArrowLeft className="size-3.5" aria-hidden />
           Back to section
         </Button>
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div className="space-y-2">
-            <p className="text-sm text-muted-foreground">
-              {getUnitTitle(lesson.unit)} ·{" "}
-              <Link
-                href={`/lessons/sections/${lesson.sectionId}`}
-                className="text-primary underline-offset-4 hover:underline"
-              >
-                {getSectionMeta(lesson.sectionId)?.title ?? "Section"}
-              </Link>
-            </p>
-            <h1 className="font-heading text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
-              {lesson.title}
-            </h1>
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="outline">{lessonTypeLabel(lesson.type)}</Badge>
-              {done ? (
-                <Badge variant="default" className="gap-1">
-                  <Check className="size-3" aria-hidden />
-                  Completed
-                </Badge>
-              ) : null}
-            </div>
+        <div className="space-y-1.5">
+          <p className="text-xs text-muted-foreground sm:text-sm">
+            {getUnitTitle(lesson.unit)} ·{" "}
+            <Link
+              href={`/lessons/sections/${lesson.sectionId}`}
+              className="text-primary underline-offset-4 hover:underline"
+            >
+              {getSectionMeta(lesson.sectionId)?.title ?? "Section"}
+            </Link>
+          </p>
+          <h1 className="font-heading text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
+            {lesson.title}
+          </h1>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <Badge variant="outline" className="text-xs font-normal">
+              {lessonTypeLabel(lesson.type)}
+            </Badge>
+            {done ? (
+              <Badge variant="default" className="gap-1 text-xs">
+                <Check className="size-3" aria-hidden />
+                Completed
+              </Badge>
+            ) : null}
           </div>
         </div>
-      </div>
+      </header>
 
-      <section
-        className="grid gap-6 rounded-2xl border border-border/70 bg-card/35 p-5 shadow-sm ring-1 ring-primary/5 sm:p-6"
-        aria-labelledby="script-heading"
-      >
-        <h2 id="script-heading" className="sr-only">
-          Lesson script
-        </h2>
-        <div className="grid gap-6 sm:grid-cols-2">
-          <div className="flex flex-col gap-2">
-            <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              Arabic
-            </h3>
-            <p
-              className="font-arabic text-5xl leading-tight text-foreground sm:text-6xl"
-              dir="rtl"
-              lang="ar"
-            >
-              {lesson.arabicText}
-            </p>
-          </div>
-          <div className="flex flex-col gap-4">
-            <div className="flex flex-col gap-1">
-              <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+      <div className="grid flex-1 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(220px,17.5rem)] lg:items-start lg:gap-6">
+        <div className="min-w-0">
+          <LessonWritingSection
+            guideText={lesson.arabicText}
+            lessonId={lesson.id}
+            sectionTitle={sectionTitle}
+            sectionHref={sectionHref}
+            sectionPosition={sectionPosition}
+            sectionTotal={sectionTotal}
+            lessonShortTitle={getLessonShortTitle(lesson.title)}
+          />
+        </div>
+
+        <section
+          className="rounded-xl border border-border/70 bg-card/40 p-4 shadow-sm ring-1 ring-primary/5 sm:p-4 lg:sticky lg:top-20 lg:self-start"
+          aria-labelledby="script-heading"
+        >
+          <h2
+            id="script-heading"
+            className="mb-3 text-xs font-medium uppercase tracking-wide text-muted-foreground"
+          >
+            Lesson reference
+          </h2>
+          <div className="flex flex-col gap-3 sm:gap-4 lg:gap-3">
+            <div>
+              <h3 className="sr-only">Arabic</h3>
+              <p
+                className="font-arabic text-4xl leading-none text-foreground sm:text-5xl lg:text-4xl xl:text-5xl"
+                dir="rtl"
+                lang="ar"
+              >
+                {lesson.arabicText}
+              </p>
+            </div>
+            <div className="border-t border-border/60 pt-3 sm:pt-4 lg:pt-3">
+              <h3 className="text-[0.65rem] font-medium uppercase tracking-wide text-muted-foreground">
                 Transliteration
               </h3>
-              <p className="text-lg font-medium text-foreground sm:text-xl">
+              <p className="mt-0.5 text-base font-medium text-foreground">
                 {lesson.transliteration}
               </p>
             </div>
-            <Separator />
-            <div className="flex flex-col gap-1">
-              <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            <div className="border-t border-border/60 pt-3 sm:pt-4 lg:pt-3">
+              <h3 className="text-[0.65rem] font-medium uppercase tracking-wide text-muted-foreground">
                 Meaning / note
               </h3>
-              <p className="text-sm leading-relaxed text-muted-foreground sm:text-base">
+              <p className="mt-0.5 text-sm leading-snug text-muted-foreground">
                 {lesson.englishMeaning}
               </p>
             </div>
           </div>
-        </div>
-      </section>
-
-      <LessonWritingSection
-        guideText={lesson.arabicText}
-        lessonId={lesson.id}
-        sectionTitle={sectionTitle}
-        sectionHref={sectionHref}
-        sectionPosition={sectionPosition}
-        sectionTotal={sectionTotal}
-        lessonShortTitle={getLessonShortTitle(lesson.title)}
-      />
+        </section>
+      </div>
     </div>
   );
 }

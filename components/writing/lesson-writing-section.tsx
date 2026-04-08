@@ -97,27 +97,25 @@ export function LessonWritingSection({
   return (
     <>
       <section
-        className="rounded-2xl border border-border/70 bg-card/40 p-5 shadow-sm ring-1 ring-primary/5 sm:p-6 md:p-7"
+        className="rounded-xl border border-border/70 bg-card/40 p-4 shadow-sm ring-1 ring-primary/5 sm:p-5"
         aria-labelledby="writing-area-heading"
       >
-        <div className="flex flex-col gap-4 sm:gap-5">
-          <header className="flex flex-col gap-1.5 sm:max-w-xl">
+        <div className="flex flex-col gap-3 sm:gap-4">
+          <header className="flex flex-col gap-1">
             <h2
               id="writing-area-heading"
-              className="font-heading text-lg font-semibold tracking-tight text-foreground sm:text-xl"
+              className="font-heading text-base font-semibold tracking-tight text-foreground sm:text-lg"
             >
               Practice writing
             </h2>
-            <p className="text-sm leading-relaxed text-muted-foreground sm:text-[0.9375rem]">
-              Trace the faint letter, then tap{" "}
-              <span className="font-medium text-foreground">Check</span> for
-              feedback.{" "}
+            <p className="max-w-2xl text-xs leading-snug text-muted-foreground sm:text-sm">
+              Trace the faint guide, then{" "}
+              <span className="font-medium text-foreground">Check</span>.{" "}
               <span className="font-medium text-foreground">Good</span> or{" "}
               <span className="font-medium text-foreground">Excellent</span>{" "}
-              saves progress and opens a short celebration—then you can go to the
-              next item.{" "}
-              <span className="font-medium text-foreground">Clear</span> removes
-              your strokes and the on-screen result (not saved progress).
+              saves progress and shows next steps;{" "}
+              <span className="font-medium text-foreground">Clear</span> resets
+              strokes only.
             </p>
           </header>
 
