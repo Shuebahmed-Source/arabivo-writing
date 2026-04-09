@@ -25,6 +25,19 @@ export function isStripeConfigured(): boolean {
   return Boolean(key && price && isPlausibleStripeSecretKey(key));
 }
 
+/**
+ * Enforce subscription paywall only in production.
+ * - Vercel: enforce only when VERCEL_ENV=production (skip preview).
+ * - Local/dev: skip (including localhost).
+ */
+export function shouldEnforceSubscriptionAccess(): boolean {
+  const vercelEnv = process.env.VERCEL_ENV?.trim().toLowerCase();
+  if (vercelEnv) {
+    return vercelEnv === "production";
+  }
+  return process.env.NODE_ENV === "production";
+}
+
 export function getStripePriceId(): string {
   const id = process.env.STRIPE_PRICE_ID?.trim();
   if (!id) {

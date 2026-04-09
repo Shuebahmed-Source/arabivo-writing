@@ -7,7 +7,10 @@ import { getLessonById, getSectionIds } from "@/lib/lessons";
 import { getPostCompletionPath } from "@/lib/progress/post-completion";
 import { isLessonUnlocked } from "@/lib/progress/unlock";
 import { hasSubscriptionAccessForCurrentUser } from "@/lib/subscriptions/access";
-import { isStripeConfigured } from "@/lib/stripe/server";
+import {
+  isStripeConfigured,
+  shouldEnforceSubscriptionAccess,
+} from "@/lib/stripe/server";
 import {
   createSupabaseAdminClient,
   isSupabaseAdminConfigured,
@@ -75,7 +78,7 @@ export async function recordLessonCompletion(
     return { ok: false, message: "You need to be signed in to save progress." };
   }
 
-  if (isStripeConfigured()) {
+  if (isStripeConfigured() && shouldEnforceSubscriptionAccess()) {
     const allowed = await hasSubscriptionAccessForCurrentUser();
     if (!allowed) {
       return {

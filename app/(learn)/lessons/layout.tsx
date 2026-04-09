@@ -1,7 +1,10 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 
-import { isStripeConfigured } from "@/lib/stripe/server";
+import {
+  isStripeConfigured,
+  shouldEnforceSubscriptionAccess,
+} from "@/lib/stripe/server";
 import { hasSubscriptionAccessForCurrentUser } from "@/lib/subscriptions/access";
 
 export const dynamic = "force-dynamic";
@@ -15,7 +18,7 @@ export default async function LessonsPaywallLayout({
 }: {
   children: React.ReactNode;
 }) {
-  if (!isStripeConfigured()) {
+  if (!isStripeConfigured() || !shouldEnforceSubscriptionAccess()) {
     return children;
   }
 
