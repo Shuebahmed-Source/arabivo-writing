@@ -39,7 +39,7 @@
 - **`user_subscriptions`** in Supabase: Stripe subscription snapshot (`status`, `current_period_end`, etc.) — updated via **`/api/webhooks/stripe`**; landing **`#pricing`** + **`/subscribe`** start checkout; dashboard shows **Billing** (portal) **only** for **active** / **trialing** users when Stripe env vars are set; **`/lessons`** requires **`active`** or **`trialing`** subscription (see **`Projectdocs/stripe.md`**)  
 - **Checkout feedback:** `?checkout=success` on dashboard after payment; **`?checkout=canceled`** or **`?checkout=failed`** on **`/`** (banner at top; no URL hash so the page does not jump to **`#pricing`**)  
 - **Dashboard**: per-unit **completed / total** and progress bar; unit **Locked** until the **first lesson of that unit** is reachable under section rules  
-- **Post-save navigation** (`getPostCompletionPath`): next incomplete lesson in the same section when possible (skips items already in `user_progress`), else next section’s hub, else **`/lessons`**  
+- **Post-save navigation** (`getPostCompletionPath`): after save, **Next** goes to the **next lesson in section order** (even if already completed, for replay); after the **last** lesson in the section, **`/lessons/sections/[sectionId]`** for that section (not auto-advance to the next section)  
 
 ## Responsive design
 
