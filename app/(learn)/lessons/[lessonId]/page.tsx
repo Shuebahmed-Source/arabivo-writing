@@ -16,6 +16,7 @@ import {
   lessonTypeLabel,
 } from "@/lib/lessons";
 import { isLessonUnlocked } from "@/lib/progress/unlock";
+import { isPreviewOrLocalDevBypassServer } from "@/lib/env/dev-access";
 import {
   completedLessonIdSet,
   fetchUserProgressForCurrentUser,
@@ -46,7 +47,9 @@ export default async function LessonDetailPage({ params }: Props) {
 
   const rows = await fetchUserProgressForCurrentUser();
   const completedIds = completedLessonIdSet(rows);
-  const unlocked = isLessonUnlocked(lesson.id, completedIds);
+  const flowBypass = await isPreviewOrLocalDevBypassServer();
+  const unlocked =
+    flowBypass || isLessonUnlocked(lesson.id, completedIds);
   if (!unlocked) {
     redirect("/lessons");
   }

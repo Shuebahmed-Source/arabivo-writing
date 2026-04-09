@@ -18,6 +18,7 @@ import {
   getSectionsOrdered,
   getUnitTitle,
 } from "@/lib/lessons";
+import { isPreviewOrLocalDevBypassServer } from "@/lib/env/dev-access";
 import {
   completedLessonIdSet,
   fetchUserProgressForCurrentUser,
@@ -65,7 +66,11 @@ export default async function SectionPage({ params }: Props) {
   const rows = await fetchUserProgressForCurrentUser();
   const completedIds = completedLessonIdSet(rows);
 
-  if (!isSectionEntryUnlocked(section.id, completedIds)) {
+  const flowBypass = await isPreviewOrLocalDevBypassServer();
+  if (
+    !flowBypass &&
+    !isSectionEntryUnlocked(section.id, completedIds)
+  ) {
     redirect("/lessons");
   }
 

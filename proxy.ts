@@ -1,5 +1,7 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
+import { isPreviewOrLocalDevBypassFromRequest } from "@/lib/env/dev-access";
+
 const isProtectedRoute = createRouteMatcher([
   "/dashboard(.*)",
   "/lessons(.*)",
@@ -21,6 +23,9 @@ const useFrontendApiProxy = Boolean(
  */
 export default clerkMiddleware(
   async (auth, req) => {
+    if (isPreviewOrLocalDevBypassFromRequest(req)) {
+      return;
+    }
     if (isProtectedRoute(req)) {
       await auth.protect();
     }

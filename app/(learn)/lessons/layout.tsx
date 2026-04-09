@@ -1,6 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 
+import { isPreviewOrLocalDevBypassServer } from "@/lib/env/dev-access";
 import {
   isStripeConfigured,
   shouldEnforceSubscriptionAccess,
@@ -18,6 +19,10 @@ export default async function LessonsPaywallLayout({
 }: {
   children: React.ReactNode;
 }) {
+  if (await isPreviewOrLocalDevBypassServer()) {
+    return children;
+  }
+
   if (!isStripeConfigured() || !shouldEnforceSubscriptionAccess()) {
     return children;
   }
