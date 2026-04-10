@@ -54,7 +54,7 @@ Checkout **success** returns to **`/dashboard?checkout=success`**. **Cancel** re
 
 The **landing page** (`/`, section **`#pricing`**) is the main place to start a subscription (CTAs go through Clerk, then **`/subscribe`** → Stripe). The **dashboard** shows a **Billing** card **only for active/trialing subscribers** (manage portal). If either Stripe env key/price is missing, that card is hidden and **lessons are not paywalled** (Stripe treated as off).
 
-When Stripe **is** configured, **`/lessons`** (and nested lesson/section routes) require **`hasSubscriptionAccessForCurrentUser()`** (`lib/subscriptions/access.ts`): either a matching email in **`FREE_ACCESS_EMAILS`** or an **`active`** / **`trialing`** row in **`user_subscriptions`**. Users without access are redirected to **`/subscribe`**. Progress saves (`recordLessonCompletion`) enforce the same rule. **`POST /api/checkout`** refuses new Checkout if access is already granted (including free-email allowlist).
+When Stripe **is** configured **and** **`shouldEnforceSubscriptionAccess()`** is true (**`VERCEL_ENV=production`** on Vercel; non-Vercel production uses **`NODE_ENV`** — see **`lib/stripe/server.ts`**), **`/lessons`** (and nested lesson/section routes) require **`hasSubscriptionAccessForCurrentUser()`** (`lib/subscriptions/access.ts`): either **`FREE_ACCESS_EMAILS`** or **`active`** / **`trialing`** in **`user_subscriptions`**. Otherwise redirect to **`/subscribe`**. Progress saves enforce the same rule when enforcement is on. **Vercel Preview** and local dev **skip** subscription enforcement. **`POST /api/checkout`** still refuses Checkout if access is already granted (including free-email allowlist).
 
 ## Vercel logs (why you might see “nothing”)
 
@@ -75,4 +75,4 @@ Deployment **Logs** only show requests that hit that deployment. If the **Route*
 
 ## Paywall
 
-Centralized in **`lib/subscriptions/access.ts`**: **`hasSubscriptionAccessForCurrentUser()`** returns true if **`FREE_ACCESS_EMAILS`** matches any Clerk email, else if **`lib/subscriptions/status.ts`** reports paid status for **`fetchUserSubscriptionForCurrentUser`**. Call sites: **`app/(learn)/lessons/layout.tsx`**, **`app/actions/progress.ts`**, **`app/(marketing)/subscribe/page.tsx`**, **`lib/stripe/createCheckoutSession.ts`**.
+**Access logic** lives in **`lib/subscriptions/access.ts`**: **`hasSubscriptionAccessForCurrentUser()`** — **`FREE_ACCESS_EMAILS`** or paid status via **`fetchUserSubscriptionForCurrentUser`**. **Enforcement** on lesson routes and saves is wrapped with **`shouldEnforceSubscriptionAccess()`** (**`lib/stripe/server.ts`**) in **`app/(learn)/lessons/layout.tsx`** and **`app/actions/progress.ts`**. **`/subscribe`** and **`createCheckoutSession`** use access checks without that gate (unchanged). Preview/local: see **`Projectdocs/features.md`**.

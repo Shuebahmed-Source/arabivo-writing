@@ -28,7 +28,7 @@ Stores **per-user, per-lesson completion** for the MVP. Tied to **Clerk** via `c
 
 ### `user_subscriptions`
 
-Snapshot of **Stripe** subscription state per Clerk user, updated from **webhooks** (and the same service-role server pattern as progress). Used for the dashboard **Subscribe** / **Manage billing** flow and for **paywall** checks on **`/lessons`** and **`recordLessonCompletion`** when Stripe billing env is configured (`active` / `trialing` allowed).
+Snapshot of **Stripe** subscription state per Clerk user, updated from **webhooks** (and the same service-role server pattern as progress). Used for the dashboard **Subscribe** / **Manage billing** flow and for **paywall** checks on **`/lessons`** and **`recordLessonCompletion`** when Stripe billing env is configured **and** **`shouldEnforceSubscriptionAccess()`** is true (**production** on Vercel; see **`stripe.md`** / **`features.md`**).
 
 | Column                    | Type         | Notes |
 |---------------------------|--------------|--------|

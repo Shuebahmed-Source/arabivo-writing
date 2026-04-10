@@ -12,8 +12,8 @@
 ## Routing and layouts
 
 - **Route groups:** `(marketing)` — landing; `(auth)` — Clerk sign-in/up; `(learn)` — dashboard + lessons + section hubs + shared **SiteHeader**  
-- **`proxy.ts`** (project root) — Clerk **`clerkMiddleware`**: **`auth.protect()`** for **`/dashboard`** and **`/lessons`**; **`contentSecurityPolicy: {}`** so Clerk’s Frontend API script host is CSP-allowed; optional **`frontendApiProxy`** when **`NEXT_PUBLIC_CLERK_PROXY_URL`** is set (path **`/__clerk`**). Matcher includes **`__clerk`** when proxying. Next.js 16 uses the **proxy** file convention; older **`middleware.ts`** is not used.  
-- **`app/(learn)/lessons/layout.tsx`** — when Stripe billing env is configured, requires **`active`** / **`trialing`** subscription before rendering lesson routes; otherwise redirect to **`/subscribe`**.  
+- **`proxy.ts`** (project root) — Clerk **`clerkMiddleware`**: **`auth.protect()`** for **`/dashboard`** and **`/lessons`** **in production**; when **`isPreviewOrLocalDevBypassFromRequest(req)`** (**`lib/env/dev-access.ts`**) is true (Vercel **Preview**, **`next dev`**, or localhost), **`protect`** is skipped so those routes load without sign-in. **`contentSecurityPolicy: {}`** so Clerk’s Frontend API script host is CSP-allowed; optional **`frontendApiProxy`** when **`NEXT_PUBLIC_CLERK_PROXY_URL`** is set (path **`/__clerk`**). Matcher includes **`__clerk`** when proxying. Next.js 16 uses the **proxy** file convention; older **`middleware.ts`** is not used.  
+- **`app/(learn)/lessons/layout.tsx`** — when Stripe billing is configured **and** **`shouldEnforceSubscriptionAccess()`** is true (**Vercel Production**), requires subscription access before rendering lesson routes; otherwise redirect to **`/subscribe`**. If the Preview/local dev bypass is active, the layout returns children without auth or subscription checks.  
 - Learn layout uses **`dynamic = "force-dynamic"`** so progress reads stay fresh  
 
 ## Backend and data
@@ -36,7 +36,9 @@
 ## Progress logic (app code)
 
 - **`lib/progress/unlock.ts`** — section-scoped unlock, section entry, section fully complete  
-- **`lib/progress/post-completion.ts`** — URL after successful save (next item / next section / lessons list)  
+- **`lib/progress/post-completion.ts`** — URL after successful save: **next lesson in section order** (replay-safe); after the **last** lesson in the section, **`/lessons/sections/[sectionId]`** for that section  
+- **`lib/env/dev-access.ts`** — **`isPreviewOrLocalDevBypassFromRequest`** / **`isPreviewOrLocalDevBypassServer`** for Preview/local QA (auth + unlock skips)  
+- **`lib/stripe/server.ts`** — Stripe helpers plus **`shouldEnforceSubscriptionAccess()`** (subscription paywall only when **`VERCEL_ENV=production`** on Vercel)  
 - **`lib/progress/dashboard-units.ts`** — dashboard unit aggregates  
 - **`lib/progress/queries.ts`** — fetch `user_progress` for the signed-in user  
 

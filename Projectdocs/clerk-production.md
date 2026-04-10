@@ -102,3 +102,9 @@ Misconfigured redirects or unpublished consent screens cause Google to block acc
 ## Related env vars
 
 See **`.env.example`** for path-based sign-in/sign-up URLs (`NEXT_PUBLIC_CLERK_SIGN_IN_URL`, etc.). Those routes must match the app (`/sign-in`, `/sign-up`).
+
+## Vercel Preview (`*.vercel.app`)
+
+- Allow **Preview** origins in **Clerk Dashboard** (Domains / allowed origins) if **`/`**, **`/sign-in`**, or other Clerk-dependent pages fail or stay blank on a Preview deployment.  
+- The app can still open **`/lessons`** on Preview **without** sign-in when **`lib/env/dev-access.ts`** bypass is active (middleware skips **`auth.protect()`** for **`/lessons`** / **`/dashboard`**). That does **not** fix a broken **`ClerkProvider`** on **`/`** — fix keys + domain allowlist for the preview host.  
+- **`NEXT_PUBLIC_CLERK_PROXY_URL`** pointing only at **production** (`https://write.arabivo.net/__clerk/`) while the page runs on **`*.vercel.app`** can break Clerk; omit or configure per-environment as needed.

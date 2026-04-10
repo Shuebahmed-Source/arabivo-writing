@@ -8,6 +8,7 @@ This document records how the **ArabivoWrite** codebase was connected to GitHub 
 - **Repository name:** `arabivo-writing`  
 - **URL:** https://github.com/Shuebahmed-Source/arabivo-writing  
 - **Default branch:** `main`  
+- **Development branch:** `dev` — used for features and QA before merging to **`main`** (e.g. progression fixes, Preview/local auth & paywall bypasses). Push **`dev`** to **`origin/dev`** for **Vercel Preview** deployments; merge **`dev` → `main`** when ready for production.
 
 ## What was done (initial setup)
 
@@ -46,7 +47,7 @@ git push
 
 ## Deployment (Vercel)
 
-If the GitHub repo is connected to **Vercel**, pushes to **`main`** typically trigger a **Production** deploy. Env vars and domain/DNS checks are summarized in **`Projectdocs/launch-checklist.md`** (Clerk, Supabase, Stripe, optional trial, paywall).
+If the GitHub repo is connected to **Vercel**, pushes to **`main`** typically trigger a **Production** deploy; pushes to **`dev`** (or other branches, per project settings) trigger **Preview** deploys. Env vars, Preview vs Production behavior, and domain/DNS checks are summarized in **`Projectdocs/launch-checklist.md`** and **`Projectdocs/features.md`** (Clerk, Supabase, Stripe, paywall, dev bypasses).
 
 ## Related next steps (historical)
 

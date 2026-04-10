@@ -31,8 +31,8 @@ Clean, calm, **minimal**, and **premium**. The learning surface should stay focu
 - **Dashboard:** Unit cards with **Available / Locked**, **completed / total**, thin **progress bar**; **Billing** card only when subscribed (portal)  
 - **Lessons (`/lessons`):** Per-unit headings; **section cards** in a responsive grid (title, description, **Progress x/y**, **Done** / **Locked**, chevron when navigable)  
 - **Section hub (`/lessons/sections/[sectionId]`):** Back to all lessons, title + description, **Continue**, optional **Next section**, list of items as cards (link when unlocked)  
-- **Lesson detail:** **Back to section**, unit · **section** link, title, type + completed badges, script card (`rounded-2xl`), **LessonWritingSection** below  
-- **Writing section:** Rounded card, instructions, canvas (rounded, subtle border/inner shadow), **WritingFeedbackPanel** after Check, **Clear** / **Check** (disabled while complete overlay is open)  
+- **Lesson detail:** Compact **Back to section**; unit · **section** link; title + badges; **`lg+` two-column grid** — **Practice writing** + canvas (primary column) and a denser **Lesson reference** sidebar (Arabic, transliteration, meaning) with **`lg:sticky`**; smaller padding than early MVP  
+- **Writing section:** Card with instructions, canvas (rounded, subtle border/inner shadow), **WritingFeedbackPanel** after Check, **Clear** / **Check** (disabled while complete overlay is open); thicker smoothed strokes on canvas (see codebase)  
 - **Lesson complete overlay (`LessonCompleteOverlay`):** Top bar — back to section, centered section title, **position/total**; animated progress bar; **icon in tinted circle** (Lucide icon from `lessonId` hash); **LESSON COMPLETE** + headline; **Result** card with **Excellent!** / **Good effort!** and faint Arabic watermark; **Practice again** (outline) + **Next** (primary)  
 
 ## Motion (Framer Motion)

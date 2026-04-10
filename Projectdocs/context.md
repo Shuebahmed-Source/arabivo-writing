@@ -29,7 +29,7 @@ Unlocking is **section-aware**, not a single flat global queue:
 - The **first lesson of the next section** unlocks only when **every** lesson in the **previous section** is completed.  
 - The next unit’s first section follows the same idea after the letters unit is finished (see `lib/progress/unlock.ts`).
 
-**Good** or **Excellent** still saves completion to **Supabase** keyed by stable **`lesson_id`**; navigation after save goes to the **next lesson in the section** when possible, otherwise to the **next section hub** or **`/lessons`**.
+**Good** or **Excellent** still saves completion to **Supabase** keyed by stable **`lesson_id`**; navigation after save (**Next**) goes to the **next lesson in the section** in order (including when replaying a section that is already complete); after the **last** lesson in the section, to **`/lessons/sections/[sectionId]`** for that section.
 
 ## Lesson experience
 
@@ -40,7 +40,7 @@ Each lesson includes:
 - **Clear** (reset strokes) and **Check** (pixel-overlap scoring vs the guide mask)  
 - Feedback labels: **Excellent**, **Good**, or **Try again**  
 
-After a successful save on **Good** / **Excellent**, a full-screen **lesson complete** celebration (Framer Motion) appears: section progress, per-lesson badge icon, result line, **Practice again** (close overlay, keep progress) and **Next** (same routing as before: next item or next section).
+After a successful save on **Good** / **Excellent**, a full-screen **lesson complete** celebration (Framer Motion) appears: section progress, per-lesson badge icon, result line, **Practice again** (close overlay, keep progress) and **Next** (next lesson in section, then section hub after the final item — see **`userflow.md`**).
 
 ## Input and devices
 
@@ -61,11 +61,11 @@ Repository URL, initial push steps, and **GitHub CLI (`gh`)** troubleshooting (i
 The app can run as **free-for-signed-in-users** (Stripe env incomplete) or **paid lessons** (production):
 
 - **Stripe Checkout** (subscription) and **Customer Billing Portal**; state synced to **`user_subscriptions`** via **`/api/webhooks/stripe`**.  
-- **`/lessons`** and progress saves require subscription **`active`** or **`trialing`** when **`STRIPE_SECRET_KEY`** and **`STRIPE_PRICE_ID`** are set. Subscriptions start from the **landing `#pricing`** section and **`/subscribe`**; unpaid visits to **`/lessons`** redirect to **`/subscribe`**.  
+- **`/lessons`** and progress saves require subscription access when Stripe billing is configured **and** enforcement runs (**Vercel Production** — **`shouldEnforceSubscriptionAccess()`**). Subscriptions start from the **landing `#pricing`** section and **`/subscribe`**; unpaid visits redirect to **`/subscribe`**. **Vercel Preview** and **local dev** skip subscription enforcement for testing; see **`features.md`**.  
 - Optional **free trial** via **`STRIPE_TRIAL_PERIOD_DAYS`** (e.g. `3`) — no separate Stripe “trial product” required.
 
 Operational checklist: **`Projectdocs/launch-checklist.md`**. Technical detail: **`Projectdocs/stripe.md`**.
 
 ## Clerk and custom domains
 
-Production sign-in depends on **Clerk DNS** (e.g. **`clerk.<your-subdomain>`**) verification, correct **Vercel env** keys, and the app hostname (**`write.arabivo.net`** or equivalent) **resolving** to Vercel. **Google sign-in** in production needs **your own** OAuth credentials in Clerk. See **`Projectdocs/clerk-production.md`**.
+Production sign-in depends on **Clerk DNS** (e.g. **`clerk.<your-subdomain>`**) verification, correct **Vercel env** keys, and the app hostname (**`write.arabivo.net`** or equivalent) **resolving** to Vercel. **Google sign-in** in production needs **your own** OAuth credentials in Clerk. **Preview** URLs (**`*.vercel.app`**) must be allowed in Clerk if the **marketing** shell or **`ClerkProvider`** needs to initialize there; **`/lessons`** can still be tested on Preview via **auth bypass** (**`lib/env/dev-access.ts`**). See **`Projectdocs/clerk-production.md`**.

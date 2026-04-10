@@ -32,11 +32,12 @@ In the project: **SQL Editor** → **New query** for each file, **Run**, confirm
 
 Never commit **`SUPABASE_SERVICE_ROLE_KEY`** or put it in client-side code.
 
-## 4. Vercel (Production)
+## 4. Vercel (Production and Preview)
 
 1. **Vercel** → your project → **Settings** → **Environment Variables**.  
 2. For **Production**, set the three variables above (same names as in **`.env.example`**).  
-3. **Save**, then **Redeploy** (or trigger a new deploy) so the app picks up the values.
+3. For **Preview**, add the same variables if you want **progress saves** and subscription reads to work on branch deploys (still requires **Clerk `userId`** for writes). Preview deploys otherwise may run lessons UI with bypasses documented in **`features.md`**.  
+4. **Save**, then **Redeploy** (or trigger a new deploy) so the app picks up the values.
 
 ## 5. Local `.env.local` (optional alignment)
 

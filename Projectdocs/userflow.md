@@ -10,14 +10,18 @@
 
 **Note:** The marketing header links to **`#pricing`**; the in-app header (after sign-in) links to **`/dashboard`** and **`/lessons`**.
 
-## Protected app
+## Protected app (production)
 
-5. **`/dashboard`**, **`/lessons`**, **`/lessons/sections/*`**, and **`/lessons/[lessonId]`** require sign-in (Clerk **`proxy.ts`**). **`/subscribe`** is public (unauthenticated users are redirected to sign-in).  
+5. **`/dashboard`**, **`/lessons`**, **`/lessons/sections/*`**, and **`/lessons/[lessonId]`** require sign-in via Clerk **`proxy.ts`** (**`auth.protect()`**). **`/subscribe`** is public (unauthenticated users are redirected to sign-in).  
 6. **Dashboard** — three units, **completed / total** per unit, progress bars, **Locked** until the first lesson of that unit is reachable under **section** rules; **Billing** (manage portal) only when the user already has an **active** or **trialing** subscription. No subscribe sales card on the dashboard.  
 
-### Billing gate (when Stripe env is complete)
+### Billing gate (production, when Stripe env is complete)
 
-If **`STRIPE_SECRET_KEY`** and **`STRIPE_PRICE_ID`** are set on the deployment, **`/lessons`** and all nested lesson URLs require a Stripe subscription in **`active`** or **`trialing`** status (synced to **`user_subscriptions`**). Otherwise the app sends the user to **`/subscribe`** (plan page, then Checkout). **`/dashboard`** itself is not paywalled. If Stripe env is **not** complete, lessons behave as before (signed-in users only). Saving progress uses the same subscription check when billing is on.
+If **`STRIPE_SECRET_KEY`** and **`STRIPE_PRICE_ID`** are set **and** **`shouldEnforceSubscriptionAccess()`** is true (**Vercel Production**), **`/lessons`** and nested lesson URLs require subscription access (**`hasSubscriptionAccessForCurrentUser()`** — Stripe **active/trialing** or **`FREE_ACCESS_EMAILS`**). Otherwise the app redirects to **`/subscribe`**. **`/dashboard`** is not paywalled. If Stripe env is incomplete, lessons are not paywalled. Saving progress uses the same subscription check when enforcement is on.
+
+### Vercel Preview and local development
+
+For **Preview** (`VERCEL_ENV=preview`), **`next dev`**, or **localhost** / **127.0.0.1** (`next start`), the app **skips** learn-route **`auth.protect()`** and subscription enforcement so **`/lessons`** and lesson URLs are usable without sign-in for UI/flow testing. **Progress save** still requires a Clerk **`userId`**. See **`lib/env/dev-access.ts`** and **`Projectdocs/features.md`**.  
 
 ### After Checkout
 
@@ -45,7 +49,7 @@ Successful payment returns to **`/dashboard?checkout=success`**. Canceled Checko
 ### If Good or Excellent
 
 17. Progress is **saved** to Supabase (upsert per `clerk_user_id` + `lesson_id`).  
-18. **Lesson complete** full-screen overlay appears (animated): section title, **x/y** progress bar, short lesson title, result line, faint Arabic watermark, **Practice again** (close overlay, clear canvas) or **Next** (navigate to the next lesson, next section hub, or **`/lessons`** per server rules).  
+18. **Lesson complete** full-screen overlay appears (animated): section title, **x/y** progress bar, short lesson title, result line, faint Arabic watermark, **Practice again** (close overlay, clear canvas) or **Next** — navigates to the **next lesson in the same section** in order (including replay when later lessons are already complete); after the **last** lesson in the section, **`Next`** goes to **`/lessons/sections/[sectionId]`** for that section (**`getPostCompletionPath`** in **`lib/progress/post-completion.ts`**).  
 19. User can still **Practice again** on the same lesson later; **best_result** does not downgrade (e.g. **excellent** kept over **good**).  
 
 ### If Try again
@@ -54,12 +58,12 @@ Successful payment returns to **`/dashboard?checkout=success`**. Canceled Checko
 
 ## Locked lesson
 
-21. If the user opens a locked lesson URL, the app **redirects to `/lessons`**.  
+21. If the user opens a locked lesson URL, the app **redirects to `/lessons`** (skipped when Preview/local dev bypass is active — see **Protected app**).  
 
 ## Locked section
 
-22. If the user opens a section whose **first lesson** is not unlocked, the app **redirects to `/lessons`**.  
+22. If the user opens a section whose **first lesson** is not unlocked, the app **redirects to `/lessons`** (skipped when Preview/local dev bypass is active).  
 
 ## Completion (MVP)
 
-23. There is no single global “course complete” finale; progression continues through **sections** and **units**. The last **Next** from the final item returns to **`/lessons`** when there is no further section.  
+23. There is no single global “course complete” finale; progression continues through **sections** and **units**. After the **final lesson in a section**, **Next** returns to that **section hub**; from there the learner can pick another section or return to **`/lessons`**.  
