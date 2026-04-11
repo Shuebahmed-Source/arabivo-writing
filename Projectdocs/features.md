@@ -18,7 +18,7 @@
   - First item of the first section is open by default  
   - Sequential completion **within** each section  
   - **Full section** completion required before the **next section** unlocks  
-- **Three units**: Arabic letters (five sections), letter forms (one section), simple words (one section)  
+- **Three units**: Arabic letters (five sections), letter forms (one section), simple words (seven sections)  
 - **`/lessons`** — per-unit headings and **section cards** (progress fraction, Locked / Done, link when the section’s first lesson is reachable)  
 - **`/lessons/sections/[sectionId]`** — section hub: item list, **Continue** to the first incomplete unlocked lesson, **Next section** when the section is complete  
 - **`/lessons/[lessonId]`** — practice page; **Back to section** returns to the section hub  

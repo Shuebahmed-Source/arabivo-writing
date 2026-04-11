@@ -18,7 +18,7 @@ Lesson content is defined in **`lib/lessons.ts`** (local source of truth). The M
 
 - **Arabic letters** — isolated letter shapes, split into **five sections** (Letters I–V) with several letters per section.  
 - **Letter forms (positions)** — one section with initial / medial / final examples (e.g. jīm, nūn).  
-- **Simple words** — one section with short connected words.
+- **Simple words** — seven themed sections (greetings through animals) with short connected nouns and phrases.
 
 Future expansion can add more units (e.g. numbers, deeper connection drills). Those are not required for the current MVP dataset.
 
