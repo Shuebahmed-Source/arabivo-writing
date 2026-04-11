@@ -2,7 +2,9 @@
 
 If **`/sign-in`** or **`/sign-up`** looks **blank** (header only, no form), Clerk’s browser bundle (`clerk-js`) is usually **not finishing initialization** or **redirects are blocked** for your domain. Fix the dashboard + env first.
 
-**This is not caused by Stripe or a subscription paywall.** Subscription code does not protect `/sign-in` or `/sign-up` (only `/dashboard` and `/lessons` use `auth.protect()` in **`proxy.ts`**).
+**This is not caused by Stripe or a subscription paywall.** Subscription code does not protect `/sign-in` or `/sign-up` (only `/dashboard` and **`/lessons`** use **`auth.protect()`** in **`proxy.ts`** on **production** — Preview/local may bypass **`protect`** for learn routes; see **`features.md`**).
+
+**Production host:** **`write.arabivo.net`** (typical) should use **live** Clerk keys in **Vercel Production** and match **Domains** allowlists in Clerk. **`main`** branch deploys are what learners hit.  
 
 ## 1. Keys must match the Clerk instance (production)
 

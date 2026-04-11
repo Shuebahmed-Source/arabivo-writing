@@ -40,7 +40,7 @@
 - **`lib/env/dev-access.ts`** — **`isPreviewOrLocalDevBypassFromRequest`** / **`isPreviewOrLocalDevBypassServer`** for Preview/local QA (auth + unlock skips)  
 - **`lib/stripe/server.ts`** — Stripe helpers plus **`shouldEnforceSubscriptionAccess()`** (subscription paywall only when **`VERCEL_ENV=production`** on Vercel)  
 - **`lib/progress/dashboard-units.ts`** — dashboard unit aggregates  
-- **`lib/progress/queries.ts`** — fetch `user_progress` for the signed-in user  
+- **`lib/progress/queries.ts`** — fetch **`user_progress`** for the signed-in user; structured **`console.error` / `console.warn`** on misconfig or transport errors (production-safe: no secrets in logs)  
 
 ## Writing canvas
 

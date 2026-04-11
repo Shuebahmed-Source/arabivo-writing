@@ -2,6 +2,8 @@
 
 ArabivoWrite uses **Stripe Checkout** (subscription mode) and the **Customer Billing Portal**. Subscription state is stored in Supabase table **`user_subscriptions`** and updated from **webhooks**.
 
+**Production:** Live billing and paywall rules apply on **Vercel** when **`VERCEL_ENV=production`** and Stripe env vars are set — same code path users get from **`main`**.
+
 ## Environment variables
 
 See **`.env.example`**. Use this quick rule:

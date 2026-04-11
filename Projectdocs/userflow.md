@@ -1,5 +1,7 @@
 # User Flow
 
+**Production:** This flow matches **`write.arabivo.net`** (or your live host) built from **`main`**. **Preview** URLs may skip sign-in on **`/lessons`** for testing only — see **`features.md`**.
+
 ## Entry
 
 1. User visits **`/`** (landing) — hero, features, and **`#pricing`**.  

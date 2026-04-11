@@ -1,5 +1,7 @@
 # Features
 
+**Live product:** **`main`** is deployed to **Vercel Production** (e.g. **`write.arabivo.net`**). Learners get **Clerk + Stripe paywall** as documented below; **section replay** (**Next** in order through completed sections) and related fixes ship on that same branch. **Preview** / **local** bypasses exist only for QA — they do **not** apply when **`VERCEL_ENV=production`**.
+
 ## Authentication (Clerk)
 
 - Sign up and sign in (`/sign-up`, `/sign-in`)  

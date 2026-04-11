@@ -8,7 +8,16 @@ This document records how the **ArabivoWrite** codebase was connected to GitHub 
 - **Repository name:** `arabivo-writing`  
 - **URL:** https://github.com/Shuebahmed-Source/arabivo-writing  
 - **Default branch:** `main`  
-- **Development branch:** `dev` — used for features and QA before merging to **`main`** (e.g. progression fixes, Preview/local auth & paywall bypasses). Push **`dev`** to **`origin/dev`** for **Vercel Preview** deployments; merge **`dev` → `main`** when ready for production.
+- **Development branch:** `dev` — used for features and QA before merging to **`main`**. Push **`dev`** to **`origin/dev`** for **Vercel Preview** deployments.  
+- **Production:** **`main`** is what **Vercel Production** builds for **`write.arabivo.net`** (typical setup). After a release, **`git checkout dev && git merge main && git push origin dev`** keeps **`dev`** aligned with what users see.
+
+## Release workflow (post-merge)
+
+1. Implement and test on **`dev`** (local + optional Preview).  
+2. Open a **PR** `dev` → `main` or merge locally, then **`git push origin main`**.  
+3. Confirm **Vercel Production** finishes deploying **`main`**.  
+4. Smoke **`https://write.arabivo.net`** (sign-in, paywall, lesson save, **Next** in a completed section).  
+5. Sync **`dev`** with **`main`** so the next feature branch does not diverge unexpectedly.
 
 ## What was done (initial setup)
 
@@ -53,3 +62,5 @@ If the GitHub repo is connected to **Vercel**, pushes to **`main`** typically tr
 
 - Connect **Vercel** to **`Shuebahmed-Source/arabivo-writing`** if not already linked.  
 - Add **Production** environment variables on the host — see **`launch-checklist.md`** and **`.env.example`**; never commit secrets to git.  
+
+*(Production deploys from **`main`** are assumed live for **ArabivoWrite**; adjust hostnames if you add staging projects.)*  

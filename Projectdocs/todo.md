@@ -12,7 +12,8 @@ Status is relative to the **current codebase** (not a strict phase gate).
 - **Phase 6:** Emerald-tinted theme, feedback panel polish, mobile-friendly writing section, **lesson complete overlay** (Framer Motion), clearer Supabase error messages and service-role vs anon detection  
 - **Auth routing:** **`proxy.ts`** (Next.js 16 convention) with Clerk — replaces deprecated root `middleware.ts` for protected learn routes  
 - **Phase 7 — Billing:** Stripe Checkout + Customer Portal + webhooks; **`user_subscriptions`** migration; dashboard **Subscribe** / **Manage billing**; optional **`STRIPE_TRIAL_PERIOD_DAYS`**; **paywall** on **`/lessons`** + **`recordLessonCompletion`** when Stripe is configured **on Vercel Production** (**`shouldEnforceSubscriptionAccess()`**); **`FREE_ACCESS_EMAILS`** allowlist; **`proxy.ts`** Clerk **CSP** and optional **`NEXT_PUBLIC_CLERK_PROXY_URL`** FAPI path proxy  
-- **Dev / Preview QA:** **`lib/env/dev-access.ts`** — skip **`auth.protect()`** and lesson unlock redirects on **Vercel Preview** and **localhost** / **`next dev`** so **`/lessons`** is testable without Clerk session; subscription enforcement also skipped on Preview/local (see **`features.md`**)  
+- **Dev / Preview QA:** **`lib/env/dev-access.ts`** — skip **`auth.protect()`** and lesson unlock redirects on **Vercel Preview** and **localhost** / **`next dev`** so **`/lessons`** is testable without Clerk session; subscription enforcement also skipped on Preview/local (see **`features.md`**) — **shipped on `main`**; production users are unaffected.  
+- **Observability:** **`fetchUserProgressForCurrentUser`** logs structured errors (**`clerkUserIdQueried`**, **`supabaseHost`**, PostgREST **`code`/`details`/`hint`**, or transport **`cause`**) when reads fail — **`lib/progress/queries.ts`**.  
 
 ## In progress / optional next
 

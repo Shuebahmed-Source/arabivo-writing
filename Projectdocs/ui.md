@@ -1,5 +1,7 @@
 # UI Design
 
+**Shipped:** Lesson and learn layouts described here match **`main`** (production deploy). Further visual experiments can land on **`dev`** first — **`github.md`**.
+
 ## Design direction
 
 Clean, calm, **minimal**, and **premium**. The learning surface should stay focused: script reference, canvas, and clear actions. Celebration UI after a pass should feel **rewarding** without breaking the emerald system.

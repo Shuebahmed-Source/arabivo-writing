@@ -2,6 +2,8 @@
 
 The app stores lesson completion in **`public.user_progress`**. The server uses the **service role** key only after Clerk verifies the user (see `lib/supabase/admin.ts`). **RLS is enabled** with no policies for anon/authenticated — the service role bypasses RLS when used from trusted server code.
 
+**Live app:** Vercel **Production** for **`main`** must include **`NEXT_PUBLIC_SUPABASE_URL`** and **`SUPABASE_SERVICE_ROLE_KEY`** so lesson pages and dashboard can load progress; failures surface in logs via **`lib/progress/queries.ts`** (see **`database.md`**).  
+
 ## 1. Create or choose a project
 
 1. Open [Supabase Dashboard](https://supabase.com/dashboard).  

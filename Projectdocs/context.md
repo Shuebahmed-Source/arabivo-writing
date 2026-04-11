@@ -2,6 +2,8 @@
 
 ArabivoWrite is a web app that helps users learn to write Arabic script through guided tracing and handwriting practice.
 
+**Deployment:** Production traffic is served from **`main`** via **Vercel** (custom domain **`write.arabivo.net`**). Feature development typically happens on **`dev`**, then merges into **`main`** when ready — see **`Projectdocs/github.md`**.  
+
 The app focuses on **Arabic letter formation and writing**, not general Arabic language learning.
 
 ## Curriculum scope (MVP)

@@ -2,6 +2,8 @@
 
 Single reference for **production** setup touched during billing, paywall, Clerk, Stripe, Supabase, and Vercel domain work. Details live in linked docs.
 
+**Deploy source:** Pushes to **`main`** trigger **Vercel Production** for the primary domain (e.g. **`write.arabivo.net`**). After each production deploy, run the **smoke tests** below on the **live** host—not only localhost.
+
 ## Product (current behaviour)
 
 - **Price:** £5.99/month (or your Stripe Price) — configured in **Stripe**; **`STRIPE_PRICE_ID`** in Vercel points at that recurring Price.  
@@ -66,7 +68,13 @@ Redeploy after any env change.
 2. Signed in **without** subscription — **`/lessons`** redirects to **`/subscribe`** (then into Stripe Checkout) when billing is configured on **Production**.  
 3. From **`/`** pricing — **Start free trial** / **Subscribe** → auth → **`/subscribe`** → Checkout completes; webhook writes **`user_subscriptions`**; **`/lessons`** loads.  
 4. Complete a lesson — row in **`user_progress`**.  
-5. **Manage billing** — from dashboard **Billing** card (subscribers only) — Stripe Customer Portal opens.
+5. **Manage billing** — from dashboard **Billing** card (subscribers only) — Stripe Customer Portal opens.  
+6. **Replay / progression** — in a **fully completed** section, complete a lesson → **Next** should go to the **next lesson in the section**, not dump you on the lessons index early; after the **last** lesson, **Next** should land on **that section’s hub**.
+
+## After a production deploy
+
+- Watch **Vercel → Logs** for spikes in **`[user_progress]`** or **`[stripe]`** lines (structured diagnostics on progress fetch failures include **`clerkUserIdQueried`** and **`supabaseHost`** — see **`lib/progress/queries.ts`**).  
+- Confirm **Clerk** and **Stripe** dashboards show traffic from the production hostname.
 
 ## Related docs
 

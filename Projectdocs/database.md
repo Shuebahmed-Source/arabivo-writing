@@ -26,6 +26,8 @@ Stores **per-user, per-lesson completion** for the MVP. Tied to **Clerk** via `c
 
 **Production setup (run SQL + Vercel env):** see **`Projectdocs/supabase-production.md`**.
 
+**Reads:** **`lib/progress/queries.ts`** loads rows with the **service role** after Clerk **`userId`** is known. On failure, server logs include **`clerkUserIdQueried`**, Supabase **hostname** (from URL only), and either PostgREST fields or a serialized exception (**`fetch failed`** / **`cause`**) — useful on **Vercel Production** logs without exposing keys.
+
 ### `user_subscriptions`
 
 Snapshot of **Stripe** subscription state per Clerk user, updated from **webhooks** (and the same service-role server pattern as progress). Used for the dashboard **Subscribe** / **Manage billing** flow and for **paywall** checks on **`/lessons`** and **`recordLessonCompletion`** when Stripe billing env is configured **and** **`shouldEnforceSubscriptionAccess()`** is true (**production** on Vercel; see **`stripe.md`** / **`features.md`**).
