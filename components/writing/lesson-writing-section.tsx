@@ -1,11 +1,12 @@
 "use client";
 
-import { useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
+import { Eye, EyeOff } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { recordLessonCompletion } from "@/app/actions/progress";
+import { captureEvent } from "@/components/analytics/posthog-provider";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 
 import { LessonCompleteOverlay } from "./lesson-complete-overlay";
 import { WritingFeedbackPanel } from "./writing-feedback-panel";
@@ -41,11 +42,16 @@ export function LessonWritingSection({
 }: LessonWritingSectionProps) {
   const router = useRouter();
   const canvasRef = useRef<WritingCanvasHandle>(null);
+  const [showGuide, setShowGuide] = useState(true);
   const [feedback, setFeedback] = useState<TraceScoreResult | null>(null);
   const [feedbackTick, setFeedbackTick] = useState(0);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const [complete, setComplete] = useState<CompleteState | null>(null);
+
+  useEffect(() => {
+    captureEvent("lesson_started", { lesson_id: lessonId });
+  }, [lessonId]);
 
   const handleClear = () => {
     canvasRef.current?.clear();
@@ -75,6 +81,10 @@ export function LessonWritingSection({
         setFeedback(result);
         return;
       }
+      captureEvent("lesson_completed", {
+        lesson_id: lessonId,
+        result: saveLevel,
+      });
       setComplete({ level: saveLevel, nextPath: out.nextPath });
     });
   };
@@ -94,73 +104,87 @@ export function LessonWritingSection({
     router.refresh();
   };
 
+  const controlsDisabled = pending || complete !== null;
+
   return (
     <>
       <section
-        className="rounded-xl border border-border/70 bg-card/40 p-4 shadow-sm ring-1 ring-primary/5 sm:p-5"
+        className="flex flex-col gap-3 sm:gap-4"
         aria-labelledby="writing-area-heading"
       >
-        <div className="flex flex-col gap-3 sm:gap-4">
-          <header className="flex flex-col gap-1">
-            <h2
-              id="writing-area-heading"
-              className="font-heading text-base font-semibold tracking-tight text-foreground sm:text-lg"
-            >
-              Practice writing
-            </h2>
-            <p className="max-w-2xl text-xs leading-snug text-muted-foreground sm:text-sm">
-              Trace the faint guide, then{" "}
-              <span className="font-medium text-foreground">Check</span>.{" "}
-              <span className="font-medium text-foreground">Good</span> or{" "}
-              <span className="font-medium text-foreground">Excellent</span>{" "}
-              saves progress and shows next steps;{" "}
-              <span className="font-medium text-foreground">Clear</span> resets
-              strokes only.
-            </p>
-          </header>
+        <h2 id="writing-area-heading" className="sr-only">
+          Practice writing
+        </h2>
 
-          <WritingCanvas guideText={guideText} ref={canvasRef} />
+        <div className="relative">
+          <WritingCanvas
+            ref={canvasRef}
+            guideText={guideText}
+            showGuide={showGuide}
+          />
 
-          {feedback ? (
-            <WritingFeedbackPanel key={feedbackTick} level={feedback.level} />
-          ) : null}
-
-          {saveError ? (
-            <p className="text-sm text-destructive" role="alert">
-              {saveError}
-            </p>
-          ) : null}
-
-          <Separator className="bg-border/80" />
-
-          <div className="flex flex-col gap-4">
-            <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+          <div className="pointer-events-none absolute inset-x-0 bottom-3 flex justify-center px-3 sm:bottom-4">
+            <div className="pointer-events-auto flex flex-wrap items-center justify-center gap-1 rounded-full border border-border/80 bg-background/95 p-1 shadow-lg shadow-primary/5 backdrop-blur-sm sm:gap-1.5 sm:p-1.5">
               <Button
                 type="button"
-                variant="outline"
-                size="lg"
-                className="min-h-12 w-full touch-manipulation transition-[transform,colors] duration-150 active:scale-[0.98] sm:min-h-11 sm:w-auto"
+                variant="ghost"
+                size="icon"
+                className="size-10 shrink-0 touch-manipulation sm:size-9"
+                onClick={() => setShowGuide((v) => !v)}
+                disabled={controlsDisabled}
+                aria-label={showGuide ? "Hide tracing guide" : "Show tracing guide"}
+                aria-pressed={showGuide}
+              >
+                {showGuide ? (
+                  <Eye className="size-4" aria-hidden />
+                ) : (
+                  <EyeOff className="size-4" aria-hidden />
+                )}
+              </Button>
+
+              <span
+                className="mx-0.5 hidden h-6 w-px bg-border/80 sm:block"
+                aria-hidden
+              />
+
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="min-h-10 touch-manipulation px-3 sm:min-h-9"
                 onClick={handleClear}
-                disabled={pending || complete !== null}
+                disabled={controlsDisabled}
               >
                 Clear
               </Button>
+
               <Button
                 type="button"
-                size="lg"
-                className="min-h-12 w-full touch-manipulation transition-[transform,colors] duration-150 active:scale-[0.98] sm:min-h-11 sm:w-auto"
+                size="sm"
+                className="min-h-10 touch-manipulation px-4 sm:min-h-9"
                 onClick={handleCheck}
-                disabled={pending || complete !== null}
+                disabled={controlsDisabled}
               >
                 {pending ? "Saving…" : "Check"}
               </Button>
             </div>
-            <p className="text-center text-xs leading-relaxed text-muted-foreground sm:text-left">
-              Feedback is a rough match to the guide shape, not a reading of your
-              handwriting.
-            </p>
           </div>
         </div>
+
+        {feedback ? (
+          <WritingFeedbackPanel key={feedbackTick} level={feedback.level} />
+        ) : null}
+
+        {saveError ? (
+          <p className="text-sm text-destructive" role="alert">
+            {saveError}
+          </p>
+        ) : null}
+
+        <p className="text-xs leading-relaxed text-muted-foreground sm:text-sm">
+          Trace the faint guide, then <span className="font-medium text-foreground">Check</span>.
+          Feedback rates shape, not handwriting.
+        </p>
       </section>
 
       {complete ? (

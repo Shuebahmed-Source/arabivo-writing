@@ -22,6 +22,8 @@ export type { TraceScoreResult };
 type WritingCanvasProps = {
   /** Arabic text shown faintly as a tracing guide */
   guideText: string;
+  /** When false, hides the visible guide; scoring still uses the hidden mask. */
+  showGuide?: boolean;
   className?: string;
 };
 
@@ -113,7 +115,7 @@ function clearUserMaskCanvas(
 }
 
 export const WritingCanvas = forwardRef<WritingCanvasHandle, WritingCanvasProps>(
-  function WritingCanvas({ guideText, className }, ref) {
+  function WritingCanvas({ guideText, showGuide = true, className }, ref) {
     const containerRef = useRef<HTMLDivElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const guideMaskRef = useRef<HTMLCanvasElement | null>(null);
@@ -136,7 +138,32 @@ export const WritingCanvas = forwardRef<WritingCanvasHandle, WritingCanvasProps>
       );
     }, []);
 
+    const drawBaseline = useCallback(() => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+
+      const { w, h } = cssSizeRef.current;
+      if (w < 8 || h < 8) return;
+
+      const fontSize = Math.min(w, h) * 0.42;
+      const baselineY = h / 2 + fontSize * 0.22;
+
+      ctx.save();
+      ctx.strokeStyle = "oklch(0.55 0.04 163 / 0.4)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(w * 0.06, baselineY);
+      ctx.lineTo(w * 0.94, baselineY);
+      ctx.stroke();
+      ctx.restore();
+    }, []);
+
     const drawGuide = useCallback(() => {
+      if (!showGuide) return;
+
       const canvas = canvasRef.current;
       const probe = fontProbeRef.current;
       if (!canvas || !probe) return;
@@ -159,7 +186,7 @@ export const WritingCanvas = forwardRef<WritingCanvasHandle, WritingCanvasProps>
       ctx.direction = "rtl";
       ctx.fillText(guideText, w / 2, h / 2);
       ctx.restore();
-    }, [guideText, getFontFamily]);
+    }, [guideText, getFontFamily, showGuide]);
 
     const redrawVisibleBase = useCallback(() => {
       const canvas = canvasRef.current;
@@ -173,11 +200,9 @@ export const WritingCanvas = forwardRef<WritingCanvasHandle, WritingCanvasProps>
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-      ctx.fillStyle = "oklch(0.99 0.01 163 / 0.35)";
-      ctx.fillRect(0, 0, w, h);
-
+      drawBaseline();
       drawGuide();
-    }, [drawGuide]);
+    }, [drawBaseline, drawGuide]);
 
     const drawSegment = useCallback((from: Point, to: Point) => {
       const canvas = canvasRef.current;
@@ -426,6 +451,11 @@ export const WritingCanvas = forwardRef<WritingCanvasHandle, WritingCanvasProps>
       syncMaskCanvases();
     }, [guideText, redrawVisibleBase, syncMaskCanvases]);
 
+    useEffect(() => {
+      redrawVisibleBase();
+      replayInk();
+    }, [showGuide, redrawVisibleBase, replayInk]);
+
     const onPointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
       if (e.pointerType === "mouse" && e.button !== 0) return;
 
@@ -527,8 +557,8 @@ export const WritingCanvas = forwardRef<WritingCanvasHandle, WritingCanvasProps>
       <div
         ref={containerRef}
         className={cn(
-          "relative min-h-[220px] w-full flex-1 touch-none select-none sm:min-h-[280px] md:min-h-[320px]",
-          "overscroll-contain rounded-xl border border-primary/15 bg-card/60 ring-1 ring-border/50 shadow-inner",
+          "relative min-h-[280px] w-full flex-1 touch-none select-none sm:min-h-[340px] md:min-h-[400px] lg:min-h-[420px]",
+          "overscroll-contain bg-transparent",
           className,
         )}
       >
