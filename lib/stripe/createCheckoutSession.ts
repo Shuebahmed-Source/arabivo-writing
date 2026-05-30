@@ -38,7 +38,7 @@ function buildSessionParams(opts: {
     mode: "subscription",
     ...(email ? { customer_email: email } : {}),
     line_items: [{ price: priceId, quantity: 1 }],
-    success_url: `${origin}/dashboard?checkout=success`,
+    success_url: `${origin}/dashboard?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${origin}/?checkout=canceled`,
     client_reference_id: userId,
     metadata: { clerk_user_id: userId },

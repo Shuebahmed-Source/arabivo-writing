@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Check } from "lucide-react";
 
+import { captureEvent } from "@/components/analytics/posthog-provider";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -53,6 +54,7 @@ export function SubscribeBridge({
         setError(data.error ?? "Could not start checkout. Try again shortly.");
         return;
       }
+      captureEvent("checkout_started");
       window.location.href = data.url;
     } catch {
       setError("Could not start checkout.");

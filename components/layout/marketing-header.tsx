@@ -3,6 +3,7 @@
 import { useAuth } from "@clerk/nextjs";
 import Link from "next/link";
 
+import { captureEvent } from "@/components/analytics/posthog-provider";
 import { primaryTrialCtaLabel } from "@/lib/marketing/trial-cta-copy";
 import { Button } from "@/components/ui/button";
 
@@ -42,6 +43,15 @@ export function MarketingHeader({ trialDays, initialSignedIn }: Props) {
             variant="ghost"
             size="lg"
             nativeButton={false}
+            render={<Link href="/try" />}
+            className="min-h-11 px-4"
+          >
+            Try
+          </Button>
+          <Button
+            variant="ghost"
+            size="lg"
+            nativeButton={false}
             render={<Link href="/#pricing" />}
             className="min-h-11 px-4"
           >
@@ -59,7 +69,17 @@ export function MarketingHeader({ trialDays, initialSignedIn }: Props) {
           <Button
             size="lg"
             nativeButton={false}
-            render={<Link href={primaryHref} />}
+            render={
+              <Link
+                href={primaryHref}
+                onClick={() =>
+                  captureEvent("subscribe_click", {
+                    source: "marketing_header",
+                    target: signedIn ? "subscribe" : "sign_up",
+                  })
+                }
+              />
+            }
             className="min-h-11 px-4"
           >
             {primaryLabel}

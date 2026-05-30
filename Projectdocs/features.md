@@ -7,19 +7,34 @@
 - Sign up and sign in (`/sign-up`, `/sign-in`)  
 - **Production:** **`/dashboard`**, **`/lessons`**, lesson URLs, and **section URLs** require authentication via **`proxy.ts`** (Clerk **`auth.protect()`** on those paths).  
 - **Vercel Preview + local dev:** the same routes can be opened **without** sign-in when **`isPreviewOrLocalDevBypassFromRequest`** / **`isPreviewOrLocalDevBypassServer()`** is true (**`lib/env/dev-access.ts`**): **`VERCEL_ENV=preview`**, or **`NODE_ENV=development`**, or **localhost** / **127.0.0.1** with no `VERCEL_ENV`. **Production** (`VERCEL_ENV=production` on Vercel) is unchanged.  
-- Marketing home **`/`** stays public  
+- Marketing home **`/`**, **`/try`**, and **`/#try`** stay public  
 - **`ClerkProvider`** sets sign-in/up paths and fallback redirects to **`/dashboard`** (see **`.env.example`** for optional `NEXT_PUBLIC_CLERK_*` URL variables). **`/sign-in`** and **`/sign-up`** accept **`?redirect_url=`** (internal path only) so pricing CTAs can continue to **`/subscribe`** after auth.  
 - **Production + Stripe billing configured:** users without subscription access who open **`/lessons`** are redirected to **`/subscribe`** (unless **`FREE_ACCESS_EMAILS`** matches — see **`stripe.md`**). Preview/local may skip both subscription enforcement and learn-route auth (see below).  
+
+## Marketing demo (public)
+
+- **`/#try`** on **`/`** — second section after the hero; live tracing canvas, no sign-up  
+- **`/try`** — standalone page (minimal chrome, **Home** back link) for TikTok / Reels bio links  
+- Featured word **`ششش`** (`challenge-shin-triple`) from **`lib/marketing/demo-challenge.ts`**  
+- **`TryChallengeDemo`** — Clear, Check, show/hide guide; same **`WritingCanvas`** + **`WritingFeedbackPanel`** as lessons; **no progress save**  
+- Hero secondary link: **try a challenge word free** → **`#try`**  
+- **MarketingHeader** — **Try** (`/try`), **Pricing** (`/#pricing`), **Sign in**, primary trial CTA  
+- After demo pass: **signed-out** → **`TrialFunnelCTAs`**; **signed-in** → **See all challenge words** → challenge section (paywalled in production without subscription)  
+- PostHog events (when configured): **`demo_trace_checked`**, **`demo_trace_passed`**, **`demo_cta_click`**
 
 ## Learning path
 
 - **Local curriculum** in **`lib/lessons.ts`** — units, **sections** (metadata + ordered `lessonIds`), and **lessons** with `sectionId`; not stored in Supabase yet  
 - **Section-based unlocking** (see `lib/progress/unlock.ts`):  
-  - First item of the first section is open by default  
-  - Sequential completion **within** each section  
-  - **Full section** completion required before the **next section** unlocks  
-- **Three units**: Arabic letters (five sections), letter forms (one section), simple words (seven sections)  
-- **`/lessons`** — per-unit headings and **section cards** (progress fraction, Locked / Done, link when the section’s first lesson is reachable)  
+  - First item of the first **sequential** section is open by default  
+  - Sequential completion **within** each sequential section  
+  - **Full section** completion required before the **next sequential section** unlocks  
+  - **Open sections** (`unlockPolicy: "open"`) — all items unlocked immediately  
+  - **Always-available units** (`alwaysAvailable: true`) — unit reachable on dashboard without prior unit completion  
+- **Four units**: Arabic letters (**5** sections), letter forms (**1** section), simple words (**7** sections), challenge words (**1** open section) — **79** total lessons in `lib/lessons.ts` (28 letters + 4 forms + 39 words + 8 challenge)  
+- **Simple words section ids** (in curriculum order): `simple-words-i`, `simple-words-ii`, `simple-words-iii`, `simple-words-body-people`, `simple-words-home-objects`, `simple-words-nature`, `simple-words-animals`  
+- **Challenge section id:** `challenge-words-core` — **Can you write this?** (8 challenge lessons; pick any order)  
+- **`/lessons`** — per-unit headings and **section cards** (progress fraction, Locked / Done, link when the section’s first lesson is reachable); **Challenge words** is always **Available** on the dashboard  
 - **`/lessons/sections/[sectionId]`** — section hub: item list, **Continue** to the first incomplete unlocked lesson, **Next section** when the section is complete  
 - **`/lessons/[lessonId]`** — practice page; **Back to section** returns to the section hub  
 - Locked lesson URL → **redirect to `/lessons`** (unlock rules skipped in Preview/local when the dev bypass is active — any lesson or section hub URL is reachable for QA)  
@@ -36,20 +51,21 @@
 - **Pointer-only** drawing (touch, stylus, mouse)  
 - **Clear** — resets strokes and on-screen feedback (not saved progress)  
 - **Check** — approximate scoring vs a hidden guide mask; **Try again** does not persist  
+- **Dynamic guide font size** — **`guideFontSizeRatio`** shrinks long challenge strings so they fit the canvas  
 
 ## Scoring and feedback
 
 - Outcomes: **Excellent**, **Good**, **Try again**  
 - Thresholds in **`components/writing/score-user-trace.ts`** are tuned for beginners (relaxed coverage/precision and off-guide caps vs earlier stricter defaults); still pixel-overlap based, not OCR  
 - Inline **WritingFeedbackPanel** after **Check** (headline + coaching copy) for all outcomes  
-- On **Good** / **Excellent**, **progress save** (server action + Supabase) then **Lesson complete overlay** (Framer Motion): staggered entrance, animated section progress bar, **deterministic icon + tint per `lessonId`**, **Practice again** or **Next**  
+- On **Good** / **Excellent**, **progress save** (server action + Supabase) then **Lesson complete overlay** (Framer Motion): staggered entrance, animated section progress bar, **deterministic icon + tint per `lessonId`**, **Practice again** or **Next** (lessons only — demo does not save)
 
 ## Progress and dashboard
 
 - **`user_progress`** in Supabase: `clerk_user_id`, `lesson_id`, `completed`, `completed_at`, `best_result` (`excellent` | `good`) — **no** `section_id` column; sections are derived in app code  
 - **`user_subscriptions`** in Supabase: Stripe subscription snapshot (`status`, `current_period_end`, etc.) — updated via **`/api/webhooks/stripe`**; landing **`#pricing`** + **`/subscribe`** start checkout; dashboard shows **Billing** (portal) **only** for **active** / **trialing** users when Stripe env vars are set; **`/lessons`** requires **`active`** or **`trialing`** subscription **in production** when billing is configured (see **`Projectdocs/stripe.md`**; Preview/local may bypass enforcement)  
 - **Checkout feedback:** `?checkout=success` on dashboard after payment; **`?checkout=canceled`** or **`?checkout=failed`** on **`/`** (banner at top; no URL hash so the page does not jump to **`#pricing`**)  
-- **Dashboard**: per-unit **completed / total** and progress bar; unit **Locked** until the **first lesson of that unit** is reachable under section rules  
+- **Dashboard**: per-unit **completed / total** and progress bar; unit **Locked** until the **first lesson of that unit** is reachable under section rules — **except** **`challenge-words`**, which is always **Available**  
 - **Post-save navigation** (`getPostCompletionPath`): after save, **Next** goes to the **next lesson in section order** (even if already completed, for replay); after the **last** lesson in the section, **`/lessons/sections/[sectionId]`** for that section (not auto-advance to the next section)  
 
 ## Responsive design
@@ -60,6 +76,6 @@
 ## Not in scope yet
 
 - Lesson rows in Supabase  
-- Per-attempt history, streaks, analytics  
+- Per-attempt history, streaks, analytics (PostHog captures demo funnel events only when env is set)  
 - `users` sync table in DB (progress keyed by Clerk `userId` only)  
 - Numbers unit and extended connection curriculum (optional future)  

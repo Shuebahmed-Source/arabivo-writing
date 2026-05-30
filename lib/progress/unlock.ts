@@ -1,14 +1,21 @@
 import {
   getLessonById,
+  getSectionMeta,
   getSectionsOrdered,
+  UNITS,
   type UnitId,
 } from "@/lib/lessons";
 
+function isSectionOpen(sectionId: string): boolean {
+  return getSectionMeta(sectionId)?.unlockPolicy === "open";
+}
+
 /**
  * Section-based unlock:
- * - First lesson of the first section is always available.
- * - First lesson of any later section requires every lesson in the previous section completed.
- * - Within a section, lesson k requires lesson k−1 completed.
+ * - Open sections: every lesson is available immediately.
+ * - First lesson of the first sequential section is always available.
+ * - First lesson of any later sequential section requires every lesson in the previous section completed.
+ * - Within a sequential section, lesson k requires lesson k−1 completed.
  */
 export function isLessonUnlocked(
   lessonId: string,
@@ -16,6 +23,8 @@ export function isLessonUnlocked(
 ): boolean {
   const lesson = getLessonById(lessonId);
   if (!lesson) return false;
+
+  if (isSectionOpen(lesson.sectionId)) return true;
 
   const sections = getSectionsOrdered();
   const section = sections.find((s) => s.id === lesson.sectionId);
@@ -41,6 +50,8 @@ export function isSectionEntryUnlocked(
   sectionId: string,
   completedLessonIds: Set<string>,
 ): boolean {
+  if (isSectionOpen(sectionId)) return true;
+
   const sections = getSectionsOrdered();
   const section = sections.find((s) => s.id === sectionId);
   if (!section || section.lessonIds.length === 0) return false;
@@ -64,6 +75,9 @@ export function isUnitUnlocked(
   unitId: UnitId,
   completedLessonIds: Set<string>,
 ): boolean {
+  const unit = UNITS.find((u) => u.id === unitId);
+  if (unit?.alwaysAvailable) return true;
+
   const sections = getSectionsOrdered().filter((s) => s.unitId === unitId);
   if (sections.length === 0) return false;
   const firstLessonId = sections[0].lessonIds[0];

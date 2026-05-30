@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
+import { CheckoutSuccessAnalytics } from "@/components/analytics/checkout-success";
 import { LearningUnitsGrid } from "@/components/dashboard/learning-units-grid";
 import { SubscriptionCard } from "@/components/dashboard/subscription-card";
 import { getDashboardUnits } from "@/lib/progress/dashboard-units";
@@ -31,6 +33,9 @@ export default async function DashboardPage({ searchParams }: PageProps) {
 
   return (
     <div className="flex flex-1 flex-col gap-8">
+      <Suspense fallback={null}>
+        <CheckoutSuccessAnalytics />
+      </Suspense>
       <header className="flex flex-col gap-2">
         <h1 className="font-heading text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
           Your learning path

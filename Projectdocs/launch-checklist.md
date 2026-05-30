@@ -7,9 +7,9 @@ Single reference for **production** setup touched during billing, paywall, Clerk
 ## Product (current behaviour)
 
 - **Price:** £5.99/month (or your Stripe Price) — configured in **Stripe**; **`STRIPE_PRICE_ID`** in Vercel points at that recurring Price.  
-- **Optional trial:** Set **`STRIPE_TRIAL_PERIOD_DAYS=3`** (or `0` / omit for no trial). Trial is applied in **Checkout** (`subscription_data.trial_period_days`); you do **not** need a separate “trial product” in Stripe.  
-- **Paywall (production only on Vercel):** When **`STRIPE_SECRET_KEY`** and **`STRIPE_PRICE_ID`** are both set **and** **`VERCEL_ENV=production`**, **`/lessons/*`** requires subscription access (**`active`** / **`trialing`** or **`FREE_ACCESS_EMAILS`**). **`/dashboard`** stays open for **Subscribe** / **Manage billing**. Progress saves use the same rule when enforcement is on. **Vercel Preview** and local dev **skip** this enforcement (**`shouldEnforceSubscriptionAccess()`**). If Stripe env is incomplete, lessons are not paywalled.  
-- **Auth (production):** **`/dashboard`** and **`/lessons`** require Clerk sign-in via **`proxy.ts`**. **Preview / local dev** can bypass **`auth.protect()`** for those paths (**`lib/env/dev-access.ts`**) for testing.  
+- **Optional trial:** Set **`STRIPE_TRIAL_PERIOD_DAYS=7`** (or `0` / omit for no trial). Trial is applied in **Checkout** (`subscription_data.trial_period_days`); you do **not** need a separate “trial product” in Stripe.  
+- **Paywall (production only on Vercel):** When **`STRIPE_SECRET_KEY`** and **`STRIPE_PRICE_ID`** are both set **and** **`VERCEL_ENV=production`**, **`/lessons/*`** requires subscription access (**`active`** / **`trialing`** or **`FREE_ACCESS_EMAILS`**). **`/dashboard`** stays open for **Subscribe** / **Manage billing**. **`/`**, **`/try`**, and **`/#try`** demo tracing stay public. Progress saves use the same rule when enforcement is on. **Vercel Preview** and local dev **skip** this enforcement (**`shouldEnforceSubscriptionAccess()`**). If Stripe env is incomplete, lessons are not paywalled.  
+- **Auth (production):** **`/dashboard`** and **`/lessons`** require Clerk sign-in via **`proxy.ts`**. **`/`** and **`/try`** do not. **Preview / local dev** can bypass **`auth.protect()`** for learn routes (**`lib/env/dev-access.ts`**) for testing.  
 - **Auth pages:** **`/sign-in`** and **`/sign-up`** are never paywalled.
 
 ## Vercel — project env (Production)
@@ -29,7 +29,7 @@ Single reference for **production** setup touched during billing, paywall, Clerk
 | `STRIPE_SECRET_KEY` | Stripe secret |
 | `STRIPE_WEBHOOK_SECRET` | Webhook signing secret |
 | `STRIPE_PRICE_ID` | Recurring Price id (`price_...`) |
-| `STRIPE_TRIAL_PERIOD_DAYS` | Optional, e.g. `3` |
+| `STRIPE_TRIAL_PERIOD_DAYS` | Optional, e.g. `7` |
 | `NEXT_PUBLIC_CLERK_PROXY_URL` | Optional — only if using Clerk **path** FAPI proxy (`https://your-host/__clerk/`) |
 
 Redeploy after any env change.
@@ -65,11 +65,14 @@ Redeploy after any env change.
 ## Smoke tests before “released” (production host)
 
 1. Open **`https://<host>/sign-in`** — Clerk form loads; Google (or email) works.  
-2. Signed in **without** subscription — **`/lessons`** redirects to **`/subscribe`** (then into Stripe Checkout) when billing is configured on **Production**.  
-3. From **`/`** pricing — **Start free trial** / **Subscribe** → auth → **`/subscribe`** → Checkout completes; webhook writes **`user_subscriptions`**; **`/lessons`** loads.  
-4. Complete a lesson — row in **`user_progress`**.  
-5. **Manage billing** — from dashboard **Billing** card (subscribers only) — Stripe Customer Portal opens.  
-6. **Replay / progression** — in a **fully completed** section, complete a lesson → **Next** should go to the **next lesson in the section**, not dump you on the lessons index early; after the **last** lesson, **Next** should land on **that section’s hub**.
+2. Open **`https://<host>/`** — scroll to **`#try`** or open **`/try`**; trace **ششش** and **Check** without sign-in.  
+3. Signed in **without** subscription — **`/lessons`** redirects to **`/subscribe`** (then into Stripe Checkout) when billing is configured on **Production**.  
+4. From **`/`** pricing — **Start free trial** / **Subscribe** → auth → **`/subscribe`** → Checkout completes; webhook writes **`user_subscriptions`**; **`/lessons`** loads.  
+5. Complete a lesson — row in **`user_progress`**.  
+6. **Manage billing** — from dashboard **Billing** card (subscribers only) — Stripe Customer Portal opens.  
+7. **Replay / progression** — in a **fully completed** section, complete a lesson → **Next** should go to the **next lesson in the section**, not dump you on the lessons index early; after the **last** lesson, **Next** should land on **that section’s hub**.  
+8. **Curriculum breadth** — on **`/lessons`**, confirm **four** units; under **Simple words**, **seven** section cards; under **Challenge words**, **Can you write this?** opens with all **8** items unlocked; open e.g. **`/lessons/challenge-shisha`** to confirm routing.  
+9. **Demo → paywall** — pass the homepage demo while signed in **without** a subscription; **See all challenge words** should redirect to **`/subscribe`** in production when billing is enforced.
 
 ## After a production deploy
 
@@ -82,4 +85,4 @@ Redeploy after any env change.
 - **`clerk-production.md`** — Clerk DNS, CSP, proxy, console checks  
 - **`supabase-production.md`** — migrations and Supabase env  
 - **`database.md`** — `user_progress`, `user_subscriptions`  
-- **`features.md`**, **`userflow.md`**, **`techstack.md`**, **`todo.md`**
+- **`context.md`** (curriculum / section ids), **`features.md`**, **`userflow.md`**, **`techstack.md`**, **`todo.md`**

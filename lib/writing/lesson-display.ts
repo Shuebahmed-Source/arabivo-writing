@@ -2,6 +2,7 @@ import type { LessonType } from "@/lib/lessons";
 
 /** Uppercase label for the practice screen header (e.g. WORD · TRACE). */
 export function practiceKindLabel(type: LessonType): string {
+  if (type === "challenge") return "CHALLENGE · TRACE";
   if (type === "word") return "WORD · TRACE";
   if (type === "letter_form") return "FORM · TRACE";
   return "LETTER · TRACE";
@@ -14,6 +15,17 @@ export function countArabicLetters(arabicText: string): number {
     "",
   );
   return [...stripped].length;
+}
+
+/** Canvas guide font size as a fraction of min(width, height). Shorter strings stay large; long challenge words shrink to fit. */
+export function guideFontSizeRatio(arabicText: string): number {
+  const len = countArabicLetters(arabicText);
+  if (len <= 3) return 0.42;
+  if (len <= 5) return 0.38;
+  if (len <= 8) return 0.32;
+  if (len <= 12) return 0.26;
+  if (len <= 16) return 0.2;
+  return 0.14;
 }
 
 export function formatBestResult(

@@ -3,6 +3,8 @@ import Link from "next/link";
 import { PenLine, Sparkles, Tablet } from "lucide-react";
 
 import { TrialFunnelCTAs } from "@/components/marketing/trial-funnel-ctas";
+import { TryChallengeDemo } from "@/components/marketing/try-challenge-demo";
+import { getHomepageDemoChallenge } from "@/lib/marketing/demo-challenge";
 import { getStripeTrialPeriodDays } from "@/lib/stripe/server";
 import {
   Card,
@@ -21,6 +23,7 @@ export default async function LandingPage({ searchParams }: PageProps) {
   const checkoutFailed =
     params.checkout === "failed" || params.subscription_error === "1";
   const trialDays = getStripeTrialPeriodDays();
+  const demo = getHomepageDemoChallenge();
   const { userId } = await auth();
   const initialSignedIn = Boolean(userId);
 
@@ -77,6 +80,29 @@ export default async function LandingPage({ searchParams }: PageProps) {
             initialSignedIn={initialSignedIn}
             variant="hero"
           />
+          <p className="text-sm text-muted-foreground">
+            Or{" "}
+            <Link
+              href="#try"
+              className="font-medium text-primary underline-offset-4 hover:underline"
+            >
+              try a challenge word free
+            </Link>{" "}
+            — no account needed.
+          </p>
+        </div>
+      </section>
+
+      <section
+        id="try"
+        className="scroll-mt-20 border-b border-primary/10 bg-muted/20 px-4 py-12 sm:px-6 sm:py-16"
+      >
+        <div className="mx-auto max-w-5xl">
+          <TryChallengeDemo
+            demo={demo}
+            trialDays={trialDays}
+            initialSignedIn={initialSignedIn}
+          />
         </div>
       </section>
 
@@ -86,8 +112,8 @@ export default async function LandingPage({ searchParams }: PageProps) {
         </h2>
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground sm:text-base">
           Every lesson follows the same rhythm: see the script, trace with
-          guides, then check your work. Later phases will add scoring and saved
-          progress.
+          guides, then check your work. Progress saves when you pass with Good
+          or Excellent.
         </p>
         <ul className="mt-8 grid list-none gap-4 sm:grid-cols-3 sm:gap-5">
           <li>

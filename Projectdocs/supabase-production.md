@@ -53,7 +53,7 @@ If you use a **separate** dev Supabase project, keep dev URLs/keys in **`.env.lo
 
 1. Open your **deployed** app (or localhost with matching env).  
 2. Sign in with Clerk → complete a lesson with **Good** or **Excellent** (requires subscription if Stripe billing env is fully configured on the deployment).  
-3. In Supabase: **Table Editor** → **`user_progress`** — new row with `clerk_user_id` and `lesson_id`.  
+3. In Supabase: **Table Editor** → **`user_progress`** — new row with `clerk_user_id` and `lesson_id` (value must match an **`id`** from **`lib/lessons.ts`**; the live curriculum is **~71** lessons — **`context.md`**).  
 4. After a successful Stripe Checkout (and webhook), check **`user_subscriptions`** for a row with **`active`** or **`trialing`** status.
 
 If saving fails, check Vercel logs and the in-app error string (the app surfaces common misconfigurations).

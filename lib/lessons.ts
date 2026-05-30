@@ -3,10 +3,21 @@
  * Structure: unit → section → lesson. Progress is still keyed by stable lesson `id` in Supabase.
  */
 
-export const UNIT_IDS = ["letters", "letter-forms", "simple-words"] as const;
+export const UNIT_IDS = [
+  "letters",
+  "letter-forms",
+  "simple-words",
+  "challenge-words",
+] as const;
 export type UnitId = (typeof UNIT_IDS)[number];
 
-export type LessonType = "isolated_letter" | "letter_form" | "word";
+export type LessonType =
+  | "isolated_letter"
+  | "letter_form"
+  | "word"
+  | "challenge";
+
+export type SectionUnlockPolicy = "sequential" | "open";
 
 export type Lesson = {
   id: string;
@@ -31,6 +42,8 @@ export type UnitDefinition = {
   title: string;
   description: string;
   order: number;
+  /** When true, the unit is reachable on the dashboard without finishing prior units. */
+  alwaysAvailable?: boolean;
 };
 
 export type SectionDefinition = {
@@ -40,6 +53,8 @@ export type SectionDefinition = {
   description: string;
   orderInUnit: number;
   lessonIds: string[];
+  /** Open sections unlock every lesson immediately (for viral / optional content). */
+  unlockPolicy?: SectionUnlockPolicy;
 };
 
 /** Section cards (metadata); `lessonIds` filled by `getCurriculumSections()`. */
@@ -66,6 +81,14 @@ export const UNITS: UnitDefinition[] = [
     description:
       "Short, high-frequency words to practice flow and proportion.",
     order: 3,
+  },
+  {
+    id: "challenge-words",
+    title: "Challenge words",
+    description:
+      "Visually wild Arabic—repeating shapes, dot walls, and famous one-word puzzles. Pick any item; no strict order.",
+    order: 4,
+    alwaysAvailable: true,
   },
 ];
 
@@ -169,6 +192,15 @@ const SECTION_META: SectionMeta[] = [
     description: "Creatures big and small; smooth joins and familiar shapes.",
     orderInUnit: 7,
   },
+  {
+    id: "challenge-words-core",
+    unitId: "challenge-words",
+    title: "Can you write this?",
+    description:
+      "Words and shapes that look impossible until you trace them—built for wow moments, not everyday vocabulary.",
+    orderInUnit: 1,
+    unlockPolicy: "open",
+  },
 ];
 
 const SECTION_META_BY_ID: Record<string, SectionMeta> = SECTION_META.reduce(
@@ -186,6 +218,7 @@ export function getUnitTitle(unitId: UnitId): string {
 export function lessonTypeLabel(type: LessonType): string {
   if (type === "isolated_letter") return "Isolated letter";
   if (type === "letter_form") return "Letter form";
+  if (type === "challenge") return "Challenge";
   return "Word";
 }
 
@@ -1084,6 +1117,110 @@ export const lessons: Lesson[] = [
     order: 39,
     type: "word",
     sectionId: "simple-words-animals",
+    locked: false,
+  },
+  {
+    id: "challenge-shin-triple",
+    title: "Challenge: shīn ×3",
+    arabicText: "ششش",
+    transliteration: "shīn shīn shīn",
+    englishMeaning:
+      "Not a word—a shape drill. Three shīn letters in a row; nine dots that look almost fake.",
+    unit: "challenge-words",
+    order: 1,
+    type: "challenge",
+    sectionId: "challenge-words-core",
+    locked: false,
+  },
+  {
+    id: "challenge-ba-repeat",
+    title: "Challenge: bāʾ ×5",
+    arabicText: "ببببب",
+    transliteration: "bāʾ bāʾ bāʾ bāʾ bāʾ",
+    englishMeaning:
+      "Not a word—a shape drill. Five identical bāʾ hooks with one dot each; looks like a fence.",
+    unit: "challenge-words",
+    order: 2,
+    type: "challenge",
+    sectionId: "challenge-words-core",
+    locked: false,
+  },
+  {
+    id: "challenge-nun-repeat",
+    title: "Challenge: nūn ×5",
+    arabicText: "ننننن",
+    transliteration: "nūn nūn nūn nūn nūn",
+    englishMeaning:
+      "Not a word—a shape drill. Five nūn letters in a row; same energy as repeated bāʾ, dots on top.",
+    unit: "challenge-words",
+    order: 3,
+    type: "challenge",
+    sectionId: "challenge-words-core",
+    locked: false,
+  },
+  {
+    id: "challenge-shisha",
+    title: "Challenge: shīsha",
+    arabicText: "شيشة",
+    transliteration: "shīsha",
+    englishMeaning:
+      "“Hookah.” Three shīn-family shapes with three dots each—looks like a barcode when written.",
+    unit: "challenge-words",
+    order: 4,
+    type: "challenge",
+    sectionId: "challenge-words-core",
+    locked: false,
+  },
+  {
+    id: "challenge-tashattut",
+    title: "Challenge: tashattut",
+    arabicText: "تشتت",
+    transliteration: "tashattut",
+    englishMeaning:
+      "“Scattering” or “dispersion.” A wall of dots and teeth—repeating shapes in a real word.",
+    unit: "challenge-words",
+    order: 5,
+    type: "challenge",
+    sectionId: "challenge-words-core",
+    locked: false,
+  },
+  {
+    id: "challenge-yastahyi",
+    title: "Challenge: yastaḥyī",
+    arabicText: "يستحيي",
+    transliteration: "yastaḥyī",
+    englishMeaning:
+      "“He is shy.” Looks like a row of identical teeth—same repeating-shape energy as the viral Cyrillic clips.",
+    unit: "challenge-words",
+    order: 6,
+    type: "challenge",
+    sectionId: "challenge-words-core",
+    locked: false,
+  },
+  {
+    id: "challenge-mustashfayat",
+    title: "Challenge: mustashfayāt",
+    arabicText: "مستشفيات",
+    transliteration: "mustashfayāt",
+    englishMeaning:
+      "“Hospitals” (plural). A long chain of teeth and dots—dense, connected, and surprisingly one word.",
+    unit: "challenge-words",
+    order: 7,
+    type: "challenge",
+    sectionId: "challenge-words-core",
+    locked: false,
+  },
+  {
+    id: "challenge-afastasqina-kumuha",
+    title: "Challenge: afastasqīnākumūhā",
+    arabicText: "أفاستسقيناكموها",
+    transliteration: "afastasqīnākumūhā",
+    englishMeaning:
+      "A real classical Arabic form meaning roughly “did we then ask you all for water to drink from it?” Famous as one of the longest Arabic words—caption bait: this is ONE word.",
+    unit: "challenge-words",
+    order: 8,
+    type: "challenge",
+    sectionId: "challenge-words-core",
     locked: false,
   },
 ];

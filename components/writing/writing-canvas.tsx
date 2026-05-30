@@ -9,6 +9,7 @@ import {
 } from "react";
 
 import { cn } from "@/lib/utils";
+import { guideFontSizeRatio } from "@/lib/writing/lesson-display";
 
 import { type TraceScoreResult, scoreUserTrace } from "./score-user-trace";
 
@@ -93,7 +94,7 @@ function renderGuideMask(
   ctx.fillStyle = "#ffffff";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  const fontSize = Math.min(cssW, cssH) * 0.42;
+  const fontSize = Math.min(cssW, cssH) * guideFontSizeRatio(text);
   ctx.font = `${fontSize}px ${fontFamily}`;
   ctx.direction = "rtl";
   const cx = cssW / 2;
@@ -148,7 +149,7 @@ export const WritingCanvas = forwardRef<WritingCanvasHandle, WritingCanvasProps>
       const { w, h } = cssSizeRef.current;
       if (w < 8 || h < 8) return;
 
-      const fontSize = Math.min(w, h) * 0.42;
+      const fontSize = Math.min(w, h) * guideFontSizeRatio(guideText);
       const baselineY = h / 2 + fontSize * 0.22;
 
       ctx.save();
@@ -175,7 +176,7 @@ export const WritingCanvas = forwardRef<WritingCanvasHandle, WritingCanvasProps>
       if (w < 8 || h < 8) return;
 
       const fontFamily = getFontFamily();
-      const fontSize = Math.min(w, h) * 0.42;
+      const fontSize = Math.min(w, h) * guideFontSizeRatio(guideText);
 
       ctx.save();
       ctx.globalAlpha = 0.14;

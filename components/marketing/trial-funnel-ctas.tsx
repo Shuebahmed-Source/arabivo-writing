@@ -3,6 +3,7 @@
 import { useAuth } from "@clerk/nextjs";
 import Link from "next/link";
 
+import { captureEvent } from "@/components/analytics/posthog-provider";
 import { Button } from "@/components/ui/button";
 import { primaryTrialCtaLabel } from "@/lib/marketing/trial-cta-copy";
 import { cn } from "@/lib/utils";
@@ -27,6 +28,8 @@ export function TrialFunnelCTAs({
 
   const primarySignedOutLabel = primaryTrialCtaLabel(trialDays);
 
+  const ctaSource = variant === "hero" ? "hero_cta" : "pricing_cta";
+
   if (signedIn) {
     return (
       <div
@@ -38,7 +41,17 @@ export function TrialFunnelCTAs({
         <Button
           size="lg"
           nativeButton={false}
-          render={<Link href="/subscribe" />}
+          render={
+            <Link
+              href="/subscribe"
+              onClick={() =>
+                captureEvent("subscribe_click", {
+                  source: ctaSource,
+                  target: "subscribe",
+                })
+              }
+            />
+          }
           className="min-h-12 w-full px-6 sm:w-auto"
         >
           Start your free trial
@@ -57,7 +70,17 @@ export function TrialFunnelCTAs({
       <Button
         size="lg"
         nativeButton={false}
-        render={<Link href={SIGN_UP_RETURN} />}
+        render={
+          <Link
+            href={SIGN_UP_RETURN}
+            onClick={() =>
+              captureEvent("subscribe_click", {
+                source: ctaSource,
+                target: "sign_up",
+              })
+            }
+          />
+        }
         className="min-h-12 w-full px-6 sm:w-auto"
       >
         {primarySignedOutLabel}
@@ -66,7 +89,17 @@ export function TrialFunnelCTAs({
         variant="outline"
         size="lg"
         nativeButton={false}
-        render={<Link href={SIGN_IN_RETURN} />}
+        render={
+          <Link
+            href={SIGN_IN_RETURN}
+            onClick={() =>
+              captureEvent("subscribe_click", {
+                source: ctaSource,
+                target: "sign_in",
+              })
+            }
+          />
+        }
         className="min-h-12 w-full px-6 sm:w-auto"
       >
         Sign in

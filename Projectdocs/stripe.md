@@ -2,6 +2,8 @@
 
 ArabivoWrite uses **Stripe Checkout** (subscription mode) and the **Customer Billing Portal**. Subscription state is stored in Supabase table **`user_subscriptions`** and updated from **webhooks**.
 
+When the paywall is active, subscribers can access the **full** in-repo curriculum on **`/lessons`** (currently **79** handwriting lessons across letters, letter forms, themed simple words, and challenge words — see **`Projectdocs/context.md`**). The **homepage / `/try` demo** is public and does not require a subscription.
+
 **Production:** Live billing and paywall rules apply on **Vercel** when **`VERCEL_ENV=production`** and Stripe env vars are set — same code path users get from **`main`**.
 
 ## Environment variables
@@ -20,7 +22,7 @@ Required/optional matrix:
 | `STRIPE_WEBHOOK_SECRET` | From the **webhook endpoint** you create (Signing secret) |
 | `STRIPE_PRICE_ID` | **Recurring** Price id **`price_...`** (recommended), **or** Product id **`prod_...`** (app uses that product’s **default price** via Stripe API) |
 | `NEXT_PUBLIC_APP_URL` | Optional — canonical `https://your-domain.com` for Checkout success/cancel and Portal return URLs; if omitted, the app uses request headers (works on Vercel) |
-| `STRIPE_TRIAL_PERIOD_DAYS` | Optional — e.g. `3` for a 3-day trial on new Checkout subscriptions. Omit or `0` for no trial. Applied in **`lib/stripe/createCheckoutSession.ts`** (`subscription_data.trial_period_days`). You do **not** have to duplicate a trial on the Stripe Price unless you prefer configuring it only in the Dashboard (then leave this unset to avoid conflicting rules). |
+| `STRIPE_TRIAL_PERIOD_DAYS` | Optional — e.g. `7` for a 7-day trial on new Checkout subscriptions. Omit or `0` for no trial. Applied in **`lib/stripe/createCheckoutSession.ts`** (`subscription_data.trial_period_days`). You do **not** have to duplicate a trial on the Stripe Price unless you prefer configuring it only in the Dashboard (then leave this unset to avoid conflicting rules). |
 | `FREE_ACCESS_EMAILS` | Optional — comma-separated allowlist (e.g. `a@x.com, b@y.com`). After sign-in, if **any** Clerk email on the user matches (trim + lowercase), they get the same access as **active/trialing** Stripe subscribers: lessons, progress saves, `/subscribe` and Checkout treat them as already entitled. Implemented in **`lib/subscriptions/access.ts`**. |
 
 Set the same values in **Vercel** → Production (and Preview if you test billing there). Redeploy after changing env vars.
@@ -54,9 +56,9 @@ Run the migration **`supabase/migrations/20260405120000_user_subscriptions.sql`*
 
 Checkout **success** returns to **`/dashboard?checkout=success`**. **Cancel** returns to **`/?checkout=canceled`** (no `#` fragment so the page does not auto-scroll past the top banner). **Failed session creation** redirects to **`/?checkout=failed`** for the same reason.
 
-The **landing page** (`/`, section **`#pricing`**) is the main place to start a subscription (CTAs go through Clerk, then **`/subscribe`** → Stripe). The **dashboard** shows a **Billing** card **only for active/trialing subscribers** (manage portal). If either Stripe env key/price is missing, that card is hidden and **lessons are not paywalled** (Stripe treated as off).
+The **landing page** (`/`, sections **`#try`** and **`#pricing`**) is the main place to start a subscription (CTAs go through Clerk, then **`/subscribe`** → Stripe). The **`/try`** page and **`#try`** demo canvas are public. The **dashboard** shows a **Billing** card **only for active/trialing subscribers** (manage portal). If either Stripe env key/price is missing, that card is hidden and **lessons are not paywalled** (Stripe treated as off).
 
-When Stripe **is** configured **and** **`shouldEnforceSubscriptionAccess()`** is true (**`VERCEL_ENV=production`** on Vercel; non-Vercel production uses **`NODE_ENV`** — see **`lib/stripe/server.ts`**), **`/lessons`** (and nested lesson/section routes) require **`hasSubscriptionAccessForCurrentUser()`** (`lib/subscriptions/access.ts`): either **`FREE_ACCESS_EMAILS`** or **`active`** / **`trialing`** in **`user_subscriptions`**. Otherwise redirect to **`/subscribe`**. Progress saves enforce the same rule when enforcement is on. **Vercel Preview** and local dev **skip** subscription enforcement. **`POST /api/checkout`** still refuses Checkout if access is already granted (including free-email allowlist).
+When Stripe **is** configured **and** **`shouldEnforceSubscriptionAccess()`** is true (**`VERCEL_ENV=production`** on Vercel; non-Vercel production uses **`NODE_ENV`** — see **`lib/stripe/server.ts`**), **`/lessons`** (and nested lesson/section routes) require **`hasSubscriptionAccessForCurrentUser()`** (`lib/subscriptions/access.ts`): either **`FREE_ACCESS_EMAILS`** or **`active`** / **`trialing`** in **`user_subscriptions`**. Otherwise redirect to **`/subscribe`**. Progress saves enforce the same rule when enforcement is on. **`/`**, **`/try`**, and the **`/#try`** demo are **not** paywalled. **Vercel Preview** and local dev **skip** subscription enforcement. **`POST /api/checkout`** still refuses Checkout if access is already granted (including free-email allowlist).
 
 ## Vercel logs (why you might see “nothing”)
 
@@ -70,7 +72,7 @@ Deployment **Logs** only show requests that hit that deployment. If the **Route*
 
 ## Common setup mistakes
 
-- Using a **Product ID** (`prod_...`) instead of a **Price ID** (`price_...`) in `STRIPE_PRICE_ID`. On the product page, open the **£/month price row** (or API) to copy the id that starts with **`price_`**. You do **not** need a separate product for a free trial: set **`STRIPE_TRIAL_PERIOD_DAYS`** (e.g. `3`) in env and the app passes **`trial_period_days`** at Checkout—unless you also put a trial on the Price in Stripe Dashboard, which can conflict; prefer **one** source (env **or** Dashboard).
+- Using a **Product ID** (`prod_...`) instead of a **Price ID** (`price_...`) in `STRIPE_PRICE_ID`. On the product page, open the **£/month price row** (or API) to copy the id that starts with **`price_`**. You do **not** need a separate product for a free trial: set **`STRIPE_TRIAL_PERIOD_DAYS`** (e.g. `7`) in env and the app passes **`trial_period_days`** at Checkout—unless you also put a trial on the Price in Stripe Dashboard, which can conflict; prefer **one** source (env **or** Dashboard).
 - Creating a one-time price instead of a **recurring** price for subscription checkout
 - Forgetting to set the same env vars in **Vercel Production** after testing locally
 - Webhook created but missing one of the required events (`checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`)

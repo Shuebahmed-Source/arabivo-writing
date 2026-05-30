@@ -4,7 +4,7 @@
 
 ### `user_progress`
 
-Stores **per-user, per-lesson completion** for the MVP. Tied to **Clerk** via `clerk_user_id` (Clerk `userId` string). **`lesson_id`** matches ids in **`lib/lessons.ts`** (stable slugs such as `alif-isolated`, `letters` sections, words, etc.).
+Stores **per-user, per-lesson completion** for the MVP. Tied to **Clerk** via `clerk_user_id` (Clerk `userId` string). **`lesson_id`** matches ids in **`lib/lessons.ts`** — stable slugs such as `alif-isolated`, `word-salam`, `challenge-shin-triple`, etc. (**79** lessons in the current file; see **`context.md`**).
 
 **Sections and units are not stored here** — grouping (`sectionId`, unit) lives only in **`lib/lessons.ts`**. The app derives section progress by counting completed `lesson_id`s that belong to each section.
 
@@ -59,7 +59,7 @@ Could mirror Clerk users for foreign keys or analytics. Currently **not** requir
 
 ### `lessons` / `lesson_items` / `sections` (optional later)
 
-When content moves to Supabase, expect fields aligned with **`Lesson`** and **`SectionDefinition`** in `lib/lessons.ts` (e.g. `id`, `title`, `unit`, `section_id`, `order`, `arabic_text`, `transliteration`, `english_meaning`, `type`).
+When content moves to Supabase, expect fields aligned with **`Lesson`** and **`SectionDefinition`** in `lib/lessons.ts` (e.g. `id`, `title`, `unit`, `section_id`, `order`, `arabic_text`, `transliteration`, `english_meaning`, `type` including **`challenge`**, optional `unlock_policy` on sections).
 
 ### `user_attempts` (optional later)
 
@@ -74,3 +74,5 @@ There is no separate **score** numeric column. **`best_result`** holds the best 
 ## Curriculum changes vs existing rows
 
 If **`lesson_id`** values stay stable when the curriculum is edited, existing **`user_progress`** rows remain valid. Adding new lessons does not require a migration — only new completion rows as users finish those items.  
+
+**Reordering or moving a lesson** (e.g. changing **`sectionId`** in `lib/lessons.ts` while keeping the same **`id`**) does not invalidate stored rows: Supabase only stores **`lesson_id`**, not section. Removing or renaming a **`lesson_id`** that already has rows is a separate concern (orphaned rows are harmless for unlock logic but may look odd in analytics).  

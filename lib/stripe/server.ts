@@ -48,7 +48,7 @@ export function getStripePriceId(): string {
 
 /**
  * Free trial length for new subscriptions created via Checkout.
- * Set `STRIPE_TRIAL_PERIOD_DAYS=3` on Vercel; omit or `0` for no trial.
+ * Set `STRIPE_TRIAL_PERIOD_DAYS=7` on Vercel; omit or `0` for no trial.
  * Avoid duplicating a trial on the Stripe Price unless you intend to stack behavior — prefer one place (here or Dashboard).
  */
 export function getStripeTrialPeriodDays(): number {
