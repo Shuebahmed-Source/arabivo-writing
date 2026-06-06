@@ -26,6 +26,10 @@ type WritingCanvasProps = {
   /** When false, hides the visible guide; scoring still uses the hidden mask. */
   showGuide?: boolean;
   className?: string;
+  /** Fired when the user begins a new stroke on the canvas. */
+  onDrawingStart?: () => void;
+  /** Fired when a stroke ends (pointer up / cancel). */
+  onStrokeEnd?: () => void;
 };
 
 type Point = { x: number; y: number };
@@ -116,7 +120,10 @@ function clearUserMaskCanvas(
 }
 
 export const WritingCanvas = forwardRef<WritingCanvasHandle, WritingCanvasProps>(
-  function WritingCanvas({ guideText, showGuide = true, className }, ref) {
+  function WritingCanvas(
+    { guideText, showGuide = true, className, onDrawingStart, onStrokeEnd },
+    ref,
+  ) {
     const containerRef = useRef<HTMLDivElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const guideMaskRef = useRef<HTMLCanvasElement | null>(null);
@@ -475,6 +482,7 @@ export const WritingCanvas = forwardRef<WritingCanvasHandle, WritingCanvasProps>
       strokeRawRef.current = p;
       inkCommandsRef.current.push({ kind: "dot", p: toNorm(p, w, h) });
       drawDot(p);
+      onDrawingStart?.();
     };
 
     const onPointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
@@ -552,6 +560,7 @@ export const WritingCanvas = forwardRef<WritingCanvasHandle, WritingCanvasProps>
       drawingRef.current = false;
       strokeMidRef.current = null;
       strokeRawRef.current = null;
+      onStrokeEnd?.();
     };
 
     return (
