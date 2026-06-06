@@ -31,7 +31,11 @@ export default clerkMiddleware(
     }
   },
   {
-    contentSecurityPolicy: {},
+    contentSecurityPolicy: {
+      directives: {
+        "connect-src": ["https://*.posthog.com"],
+      },
+    },
     ...(useFrontendApiProxy
       ? {
           frontendApiProxy: {
