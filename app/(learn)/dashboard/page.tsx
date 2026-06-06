@@ -2,9 +2,12 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 
 import { CheckoutSuccessAnalytics } from "@/components/analytics/checkout-success";
-import { LearningUnitsGrid } from "@/components/dashboard/learning-units-grid";
-import { SubscriptionCard } from "@/components/dashboard/subscription-card";
-import { getDashboardUnits } from "@/lib/progress/dashboard-units";
+import { DashboardView } from "@/components/learn/dashboard-view";
+import {
+  getLearnDashboardStats,
+  getLearnDashboardUnitCards,
+  getLearnUpNext,
+} from "@/lib/learn/dashboard-data";
 import {
   completedLessonIdSet,
   fetchUserProgressForCurrentUser,
@@ -26,41 +29,27 @@ export default async function DashboardPage({ searchParams }: PageProps) {
 
   const rows = await fetchUserProgressForCurrentUser();
   const completedIds = completedLessonIdSet(rows);
-  const units = getDashboardUnits(completedIds);
+  const stats = getLearnDashboardStats(completedIds);
+  const upNext = getLearnUpNext(completedIds);
+  const units = getLearnDashboardUnitCards(completedIds);
 
   const subscription = await fetchUserSubscriptionForCurrentUser();
   const stripeConfigured = isStripeConfigured();
 
   return (
-    <div className="flex flex-1 flex-col gap-8">
+    <>
       <Suspense fallback={null}>
         <CheckoutSuccessAnalytics />
       </Suspense>
-      <header className="flex flex-col gap-2">
-        <h1 className="font-heading text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
-          Your learning path
-        </h1>
-        <p className="max-w-2xl text-sm text-muted-foreground sm:text-base">
-          Complete lessons in order (Good or Excellent on Check). Your place is
-          stored per signed-in account.
-        </p>
-      </header>
 
-      {checkout === "success" ? (
-        <p
-          className="rounded-lg border border-primary/30 bg-primary/5 px-4 py-3 text-sm text-foreground"
-          role="status"
-        >
-          Thanks — your subscription is updating. If status does not refresh
-          within a minute, reload this page.
-        </p>
-      ) : null}
-      <SubscriptionCard
+      <DashboardView
+        stats={stats}
+        upNext={upNext}
+        units={units}
+        checkoutSuccess={checkout === "success"}
         stripeConfigured={stripeConfigured}
         subscription={subscription}
       />
-
-      <LearningUnitsGrid units={units} />
-    </div>
+    </>
   );
 }

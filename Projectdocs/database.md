@@ -4,7 +4,7 @@
 
 ### `user_progress`
 
-Stores **per-user, per-lesson completion** for the MVP. Tied to **Clerk** via `clerk_user_id` (Clerk `userId` string). **`lesson_id`** matches ids in **`lib/lessons.ts`** — stable slugs such as `alif-isolated`, `word-salam`, `challenge-shin-triple`, etc. (**79** lessons in the current file; see **`context.md`**).
+Stores **per-user, per-lesson completion** for the MVP. Tied to **Clerk** via `clerk_user_id` (Clerk `userId` string). **`lesson_id`** matches ids in **`lib/lessons.ts`** — stable slugs such as `alif-isolated`, `word-qalam`, `word-salam`, `challenge-shin-triple`, etc. (**79** lessons in the current file; see **`context.md`**). The public homepage demo references **`word-qalam`** but does **not** write to this table until the user completes a lesson in the app with **Check**.
 
 **Sections and units are not stored here** — grouping (`sectionId`, unit) lives only in **`lib/lessons.ts`**. The app derives section progress by counting completed `lesson_id`s that belong to each section.
 
@@ -46,6 +46,22 @@ Snapshot of **Stripe** subscription state per Clerk user, updated from **webhook
 **Migration file:** `supabase/migrations/20260405120000_user_subscriptions.sql`
 
 **Stripe env + webhook:** see **`Projectdocs/stripe.md`**.
+
+### `user_onboarding`
+
+Stores **onboarding questionnaire answers** and funnel completion per Clerk user. Written by **`app/actions/onboarding.ts`** after sign-up (service role, same pattern as progress).
+
+| Column | Type | Notes |
+|--------|------|--------|
+| `clerk_user_id` | `text` | Primary key; Clerk user id |
+| `answers` | `jsonb` | Profiling keys: `level`, `why`, `experience`, `time`, `goal` (option indices) |
+| `first_trace_completed` | `boolean` | User finished the **س** trace step in onboarding |
+| `first_trace_at` | `timestamptz` | When first trace was saved |
+| `demo_completed_at` | `timestamptz` | Set when sign-up completes — marks **onboarding funnel finished** (not a separate multi-exercise demo) |
+| `created_at` / `updated_at` | `timestamptz` | Audit |
+
+- **RLS** enabled; **no** JWT policies — server writes via **`SUPABASE_SERVICE_ROLE_KEY`**.  
+- **Migration file:** `supabase/migrations/20260530120000_user_onboarding.sql`
 
 ---
 

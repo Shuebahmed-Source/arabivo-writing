@@ -1,7 +1,7 @@
 import { getLessonById } from "@/lib/lessons";
 
-/** Featured on `/` and `/try` — maximum visual punch, same as the challenge lesson. */
-export const HOMEPAGE_DEMO_LESSON_ID = "challenge-shin-triple";
+/** Featured on `/` and `/try` — handoff landing challenge word. */
+export const HOMEPAGE_DEMO_LESSON_ID = "word-qalam";
 
 export type HomepageDemoChallenge = {
   lessonId: string;
@@ -23,8 +23,8 @@ export function getHomepageDemoChallenge(): HomepageDemoChallenge {
     arabicText: lesson.arabicText,
     transliteration: lesson.transliteration,
     englishMeaning: lesson.englishMeaning,
-    hookLine: "Nine dots. Three teeth. One shape.",
+    hookLine: "Three letters. One word for pen.",
     revealLine:
-      "Three shīn letters in a row — not a vocabulary word, but real Arabic script. Looks impossible until you trace it.",
+      "Qāf, lām, and mīm — a real Arabic word you can write by hand, not just read.",
   };
 }

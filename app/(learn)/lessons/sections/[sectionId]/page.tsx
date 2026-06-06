@@ -81,7 +81,7 @@ export default async function SectionPage({ params }: Props) {
   const nextSection = sections[sectionIndex + 1];
 
   return (
-    <div className="flex flex-1 flex-col gap-6 md:gap-8">
+    <div className="learn-main-default flex flex-1 flex-col gap-6 md:gap-8">
       <div className="flex flex-col gap-4">
         <Button
           variant="ghost"

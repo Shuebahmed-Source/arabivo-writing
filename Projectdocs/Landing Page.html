@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>ArabivoWrite — Learn Arabic by Writing</title>
+<meta name="theme-color" content="#0E7A4B" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Hanken+Grotesk:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Noto+Naskh+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+/* ============================================================
+   DESIGN TOKENS  (same palette as the onboarding)
+   ============================================================ */
+:root {
+  --brand:       #0E7A4B;
+  --brand-deep:  #0A5C39;
+  --brand-tint:  #E7F4ED;
+  --brand-tint2: #D6EEE0;
+  --ink:         #15231C;
+  --muted:       #5C6B63;
+  --faint:       #8B9991;
+  --line:        #E1EBE5;
+  --card:        #FFFFFF;
+  --bg:          #F4F9F6;
+  --font-d: 'Fredoka', system-ui, sans-serif;
+  --font-b: 'Hanken Grotesk', system-ui, sans-serif;
+  --font-ar: 'Noto Naskh Arabic', serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { font-family: var(--font-b); color: var(--ink); background: var(--bg);
+       -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+
+/* ---- shared ---- */
+.eyebrow {
+  font-family: var(--font-b); font-size: 12px; font-weight: 700;
+  letter-spacing: .14em; text-transform: uppercase; color: var(--brand);
+}
+.btn-primary {
+  display: inline-block;
+  font-family: var(--font-d); font-weight: 600; font-size: 17px;
+  color: #fff; background: var(--brand); border: none; cursor: pointer;
+  border-radius: 14px; padding: 15px 28px; text-decoration: none;
+  white-space: nowrap;
+  box-shadow: 0 6px 0 var(--brand-deep), 0 12px 22px -8px rgba(14,122,75,.38);
+  transition: transform .12s ease, box-shadow .12s ease, background .15s ease;
+}
+.btn-primary:hover  { background: #0f8853; }
+.btn-primary:active { transform: translateY(4px);
+  box-shadow: 0 2px 0 var(--brand-deep), 0 4px 10px -6px rgba(14,122,75,.35); }
+
+.btn-ghost {
+  display: inline-block;
+  font-family: var(--font-d); font-weight: 600; font-size: 17px;
+  color: var(--ink); background: var(--card);
+  border: 1.5px solid var(--line); cursor: pointer;
+  border-radius: 14px; padding: 14px 24px; text-decoration: none;
+  white-space: nowrap;
+  box-shadow: 0 6px 0 var(--line);
+  transition: transform .12s ease, box-shadow .12s ease, border-color .15s ease;
+}
+.btn-ghost:hover  { border-color: #bfd9cc; }
+.btn-ghost:active { transform: translateY(3px); box-shadow: 0 3px 0 var(--line); }
+
+/* ============================================================
+   NAV
+   ============================================================ */
+.nav {
+  position: sticky; top: 0; z-index: 100;
+  height: 64px;
+  background: rgba(244,249,246,.92);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--line);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 clamp(20px,5vw,64px);
+}
+.wordmark {
+  font-family: var(--font-d); font-weight: 600; font-size: 20px;
+  letter-spacing: -.01em; color: var(--ink); text-decoration: none;
+}
+.wordmark b { color: var(--brand); font-weight: 700; }
+
+.nav-links { display: flex; align-items: center; gap: 4px; list-style: none; }
+.nav-links a {
+  font-family: var(--font-b); font-weight: 500; font-size: 15px;
+  color: var(--muted); text-decoration: none;
+  padding: 8px 14px; border-radius: 10px;
+  white-space: nowrap;
+  transition: color .15s, background .15s;
+}
+.nav-links a:hover { color: var(--ink); background: var(--brand-tint); }
+
+.btn-nav {
+  font-family: var(--font-d); font-weight: 600; font-size: 14px;
+  color: #fff; background: var(--brand); border: none; cursor: pointer;
+  border-radius: 11px; padding: 10px 20px; text-decoration: none;
+  box-shadow: 0 4px 0 var(--brand-deep);
+  transition: transform .12s, box-shadow .12s, background .15s;
+  white-space: nowrap; flex-shrink: 0;
+}
+.btn-nav:hover  { background: #0f8853; }
+.btn-nav:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--brand-deep); }
+
+/* ============================================================
+   HERO
+   ============================================================ */
+.hero {
+  min-height: calc(100vh - 64px);
+  background: radial-gradient(110% 52% at 50% -6%, #c8e8d6 0%, var(--bg) 52%);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: 48px;
+  padding: clamp(48px,9vh,100px) clamp(24px,6vw,80px);
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.hero-copy { display: flex; flex-direction: column; gap: 22px; }
+
+.hero-h1 {
+  font-family: var(--font-d); font-weight: 600;
+  font-size: clamp(38px,5.5vw,66px);
+  line-height: 1.07; letter-spacing: -.02em;
+  text-wrap: balance;
+}
+.hero-h1 em { color: var(--brand); font-style: normal; }
+
+.hero-sub {
+  font-size: clamp(16px,1.7vw,19px); line-height: 1.58;
+  color: var(--muted); max-width: 460px;
+}
+
+.hero-ctas { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+
+.hero-footnote {
+  font-size: 14px; color: var(--faint); line-height: 1.5;
+}
+.hero-footnote a { color: var(--brand); text-decoration: none; }
+.hero-footnote a:hover { text-decoration: underline; }
+
+/* --- hero right: "live trace" card mockup --- */
+.hero-visual {
+  position: relative;
+  display: flex; justify-content: center; align-items: center;
+}
+
+/* big floating Arabic letters behind the card */
+.float-ar {
+  position: absolute;
+  font-family: var(--font-ar); font-weight: 700;
+  color: var(--brand); opacity: .065;
+  user-select: none; pointer-events: none; line-height: 1;
+}
+
+.trace-mock {
+  position: relative; z-index: 1;
+  background: var(--card);
+  border: 1.5px solid var(--line);
+  border-radius: 24px;
+  box-shadow: 0 2px 0 rgba(21,35,28,.04),
+              0 24px 64px -18px rgba(21,35,28,.22);
+  padding: 22px;
+  width: 100%; max-width: 400px;
+}
+
+.mock-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 14px;
+}
+.mock-tag {
+  font-family: var(--font-b); font-size: 11px; font-weight: 800;
+  letter-spacing: .15em; text-transform: uppercase; color: var(--faint);
+  white-space: nowrap;
+}
+.mock-translit {
+  font-family: var(--font-ar); font-size: 15px; color: var(--muted); font-style: italic;
+}
+
+.mock-canvas {
+  position: relative; height: 220px;
+  background:
+    linear-gradient(var(--line) 1px, transparent 1px) 0 0 / 100% 33.333%,
+    var(--bg);
+  border-radius: 14px; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* base glyph styles */
+.mock-glyph {
+  font-family: var(--font-ar); font-size: 88px; line-height: 1;
+  user-select: none; position: absolute; white-space: nowrap;
+}
+/* faded guide — always visible */
+.guide-glyph {
+  color: var(--brand); opacity: .13;
+}
+/* ink fill — revealed RTL (right = start of Arabic) */
+.ink-glyph {
+  color: var(--brand); opacity: .55;
+  clip-path: inset(0 0 0 100%);
+  animation: revealAr 2s .6s cubic-bezier(.4,0,.2,1) both;
+}
+@keyframes revealAr {
+  to { clip-path: inset(0 0 0 0%); }
+}
+
+.mock-footer {
+  display: flex; align-items: center; gap: 12px; margin-top: 14px;
+}
+.mock-word {
+  font-family: var(--font-ar); font-size: 18px; font-weight: 600;
+  color: var(--ink); flex: none;
+}
+.mock-bar-wrap {
+  flex: 1; height: 9px; background: var(--brand-tint);
+  border-radius: 999px; overflow: hidden;
+}
+.mock-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--brand), #1aa066);
+  border-radius: 999px;
+  width: 68%;
+}
+.mock-pct {
+  font-family: var(--font-d); font-weight: 600; font-size: 14px;
+  color: var(--brand-deep); flex: none;
+}
+
+/* ============================================================
+   CHALLENGE (interactive trace, dark bg)
+   ============================================================ */
+.challenge-section {
+  background: var(--ink);
+  padding: clamp(60px,9vw,100px) clamp(24px,6vw,80px);
+}
+.challenge-inner { max-width: 720px; margin: 0 auto; }
+
+.challenge-eyebrow { color: #5ad4a0; }
+.challenge-h2 {
+  font-family: var(--font-d); font-weight: 600;
+  font-size: clamp(28px,4.5vw,48px); line-height: 1.1;
+  color: #fff; margin: 10px 0 8px; text-wrap: balance;
+}
+.challenge-sub {
+  font-size: 17px; line-height: 1.55; color: rgba(255,255,255,.5);
+  max-width: 500px;
+}
+
+.challenge-card {
+  background: rgba(255,255,255,.055);
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 22px;
+  padding: 22px;
+  margin-top: 32px;
+}
+
+.ch-header {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  margin-bottom: 16px;
+}
+.ch-label {
+  font-family: var(--font-b); font-size: 11px; font-weight: 800;
+  letter-spacing: .15em; text-transform: uppercase; color: rgba(255,255,255,.38);
+  white-space: nowrap;
+}
+.ch-word {
+  font-family: var(--font-ar); font-size: 34px; font-weight: 600;
+  color: #fff; direction: rtl; margin-top: 4px;
+}
+.ch-translit {
+  font-family: var(--font-b); font-size: 13px; font-style: italic;
+  color: rgba(255,255,255,.38); text-align: right; margin-top: 6px;
+  white-space: nowrap;
+}
+
+.canvas-wrap {
+  position: relative; width: 100%;
+  height: clamp(280px,38vh,360px);
+  background: rgba(255,255,255,.035);
+  border-radius: 14px; overflow: hidden;
+  touch-action: none; cursor: crosshair;
+}
+.canvas-el {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+}
+
+.canvas-hint {
+  position: absolute; left: 50%; bottom: 18px;
+  transform: translateX(-50%);
+  display: flex; align-items: center; gap: 8px;
+  font-family: var(--font-d); font-weight: 500; font-size: 14px;
+  color: rgba(255,255,255,.45);
+  background: rgba(255,255,255,.08); backdrop-filter: blur(4px);
+  padding: 8px 18px; border-radius: 999px;
+  pointer-events: none;
+  white-space: nowrap;
+  transition: opacity .3s ease;
+}
+.canvas-hint.hidden { opacity: 0; }
+
+.pulse-dot {
+  width: 8px; height: 8px; border-radius: 999px; background: #5ad4a0;
+  animation: pulseDot 1.6s ease-out infinite;
+}
+@keyframes pulseDot {
+  0%   { box-shadow: 0 0 0 0 rgba(90,212,160,.6); }
+  100% { box-shadow: 0 0 0 10px rgba(90,212,160,0); }
+}
+
+.ch-footer {
+  display: flex; align-items: center; gap: 12px; margin-top: 14px;
+}
+.btn-clear {
+  font-family: var(--font-d); font-weight: 600; font-size: 14px;
+  color: rgba(255,255,255,.45);
+  background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.12);
+  border-radius: 10px; padding: 8px 16px; cursor: pointer;
+  transition: background .15s, color .15s;
+}
+.btn-clear:hover { background: rgba(255,255,255,.14); color: rgba(255,255,255,.75); }
+
+.ch-bar { flex: 1; height: 9px; background: rgba(255,255,255,.1); border-radius: 999px; overflow: hidden; }
+.ch-bar-fill {
+  height: 100%; width: 0;
+  background: linear-gradient(90deg, #1aa066, #5ad4a0);
+  border-radius: 999px; transition: width .08s linear;
+}
+.ch-pct {
+  font-family: var(--font-d); font-weight: 600; font-size: 14px;
+  color: #5ad4a0; min-width: 36px; text-align: right;
+}
+.ch-note { font-size: 13px; color: rgba(255,255,255,.3); margin-top: 12px; }
+.ch-note b { color: rgba(255,255,255,.5); }
+
+.ch-success {
+  display: none; margin-top: 24px; text-align: center;
+  animation: popUp .45s cubic-bezier(.3,1.5,.5,1) both;
+}
+.ch-success.show { display: block; }
+@keyframes popUp {
+  from { opacity: 0; transform: translateY(10px) scale(.9); }
+  to   { opacity: 1; transform: none; }
+}
+.ch-success-msg {
+  font-family: var(--font-d); font-weight: 600; font-size: 18px;
+  color: #fff; margin-bottom: 16px;
+}
+.ch-success-msg span { color: #5ad4a0; }
+
+/* ============================================================
+   FEATURES
+   ============================================================ */
+.features-section {
+  background: var(--card);
+  padding: clamp(64px,9vw,108px) clamp(24px,6vw,80px);
+}
+.features-inner { max-width: 1100px; margin: 0 auto; }
+
+.section-h2 {
+  font-family: var(--font-d); font-weight: 600;
+  font-size: clamp(28px,4vw,44px); line-height: 1.1;
+  letter-spacing: -.01em; color: var(--ink);
+  margin: 10px 0 10px; text-wrap: balance;
+}
+.section-sub { font-size: 17px; line-height: 1.55; color: var(--muted); max-width: 520px; }
+
+.features-header { margin-bottom: 52px; }
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+
+.feat {
+  background: var(--bg);
+  border: 1.5px solid var(--line);
+  border-radius: 20px;
+  padding: 26px 22px;
+  box-shadow: 0 1px 0 rgba(21,35,28,.03), 0 6px 18px -10px rgba(21,35,28,.09);
+  display: flex; flex-direction: column; gap: 11px;
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.feat:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 1px 0 rgba(21,35,28,.04), 0 12px 28px -10px rgba(21,35,28,.14);
+}
+
+.feat-icon {
+  width: 46px; height: 46px;
+  background: var(--brand-tint);
+  border-radius: 14px;
+  display: grid; place-items: center;
+  font-size: 22px;
+}
+.feat-title {
+  font-family: var(--font-d); font-weight: 600; font-size: 18px; color: var(--ink);
+}
+.feat-body { font-size: 14.5px; line-height: 1.56; color: var(--muted); }
+
+/* ============================================================
+   PRICING
+   ============================================================ */
+.pricing-section {
+  padding: clamp(64px,9vw,108px) clamp(24px,6vw,80px);
+  background: radial-gradient(90% 60% at 50% 100%, var(--brand-tint2) 0%, var(--bg) 60%);
+}
+.pricing-inner { max-width: 520px; margin: 0 auto; text-align: center; }
+
+.pricing-card {
+  background: var(--card);
+  border: 1.5px solid var(--line);
+  border-radius: 24px;
+  padding: 34px 30px;
+  box-shadow: 0 2px 0 rgba(21,35,28,.04), 0 18px 50px -14px rgba(21,35,28,.14);
+  margin-top: 32px; text-align: left;
+}
+
+.pricing-badge {
+  display: inline-block;
+  font-family: var(--font-b); font-size: 12px; font-weight: 700;
+  letter-spacing: .12em; text-transform: uppercase;
+  color: var(--brand); background: var(--brand-tint);
+  padding: 5px 13px; border-radius: 999px; margin-bottom: 18px;
+}
+.pricing-plan {
+  font-family: var(--font-d); font-weight: 600; font-size: 26px;
+  color: var(--ink); margin-bottom: 5px;
+}
+.pricing-desc { font-size: 15px; color: var(--muted); line-height: 1.55; margin-bottom: 22px; }
+
+.pricing-list { list-style: none; display: flex; flex-direction: column; gap: 10px; margin-bottom: 26px; }
+.pricing-list li { display: flex; align-items: center; gap: 10px; font-size: 15px; color: var(--ink); }
+.pricing-list li::before {
+  content: '';
+  flex: none; width: 20px; height: 20px; border-radius: 999px;
+  background: var(--brand-tint)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7' stroke='%230E7A4B' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+    no-repeat center;
+}
+
+.pricing-ctas { display: flex; flex-direction: column; gap: 10px; }
+.pricing-link {
+  font-family: var(--font-b); font-weight: 600; font-size: 14px;
+  color: var(--faint); background: none; border: none; cursor: pointer;
+  text-align: center; padding: 6px;
+  text-decoration: underline; text-underline-offset: 3px;
+}
+.pricing-link:hover { color: var(--muted); }
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+.footer {
+  border-top: 1px solid var(--line);
+  padding: 28px clamp(24px,6vw,80px);
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 10px;
+}
+.footer-copy { font-size: 13px; color: var(--faint); }
+.footer-links { display: flex; gap: 18px; list-style: none; }
+.footer-links a { font-size: 13px; color: var(--faint); text-decoration: none; }
+.footer-links a:hover { color: var(--muted); }
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 820px) {
+  .hero { grid-template-columns: 1fr; min-height: auto; padding-block: 48px; gap: 44px; }
+  .hero-visual { order: -1; }
+  .features-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 560px) {
+  .nav-links { display: none; }
+  .features-grid { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration:.001ms !important; transition-duration:.05ms !important; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── NAV ─────────────────────────────────────────────── -->
+<nav class="nav">
+  <a href="#" class="wordmark">Arabivo<b>Write</b></a>
+  <ul class="nav-links">
+    <li><a href="#challenge">Try</a></li>
+    <li><a href="#features">Features</a></li>
+    <li><a href="#pricing">Pricing</a></li>
+    <li><a href="#">Sign in</a></li>
+  </ul>
+  <a href="#" class="btn-nav">Start 7-Day Free Trial</a>
+</nav>
+
+<!-- ── HERO ─────────────────────────────────────────────── -->
+<section class="hero">
+  <div class="hero-copy">
+    <span class="eyebrow">Arabic handwriting practice</span>
+    <h1 class="hero-h1">
+      Learn to write Arabic.<br>
+      <em>One stroke at a time.</em>
+    </h1>
+    <p class="hero-sub">
+      Calm, guided tracing that builds real muscle memory — letter shapes, positions, connections — with clear feedback, not guesswork.
+    </p>
+    <div class="hero-ctas">
+      <a href="#" class="btn-primary">Let's go!</a>
+      <a href="#" class="btn-ghost">Sign in</a>
+    </div>
+    <p class="hero-footnote">
+      Or <a href="#challenge">try a challenge free</a> — no account needed. Already subscribed? <a href="#">Sign in</a>.
+    </p>
+  </div>
+
+  <div class="hero-visual">
+    <!-- floating decorative Arabic letterforms -->
+    <span class="float-ar" style="font-size:230px;top:-40px;right:-10px;transform:rotate(10deg);">ب</span>
+    <span class="float-ar" style="font-size:130px;bottom:0;left:-20px;transform:rotate(-8deg);">م</span>
+
+    <!-- trace card mockup -->
+    <div class="trace-mock">
+      <div class="mock-header">
+        <span class="mock-tag">Lesson 1 · Trace</span>
+        <span class="mock-translit">salām</span>
+      </div>
+
+      <div class="mock-canvas">
+        <!-- faded guide always visible -->
+        <span class="mock-glyph guide-glyph">سلام</span>
+        <!-- emerald fill revealed RTL to simulate tracing -->
+        <span class="mock-glyph ink-glyph">سلام</span>
+      </div>
+
+      <div class="mock-footer">
+        <span class="mock-word">سلام</span>
+        <div class="mock-bar-wrap">
+          <div class="mock-bar-fill" id="hero-bar"></div>
+        </div>
+        <span class="mock-pct">68%</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── CHALLENGE (interactive) ───────────────────────────── -->
+<section class="challenge-section" id="challenge">
+  <div class="challenge-inner">
+    <span class="eyebrow challenge-eyebrow">Try it now — no account</span>
+    <h2 class="challenge-h2">Can you write this?</h2>
+    <p class="challenge-sub">Three letters. One word for pen. Trace the outline — finger, stylus, or mouse.</p>
+
+    <div class="challenge-card">
+      <div class="ch-header">
+        <div>
+          <div class="ch-label">Challenge · Trace</div>
+          <div class="ch-word">قلم</div>
+        </div>
+        <div class="ch-translit">qalam</div>
+      </div>
+
+      <div class="canvas-wrap" id="canvas-wrap">
+        <canvas class="canvas-el" id="guide-canvas"></canvas>
+        <canvas class="canvas-el" id="ink-canvas"></canvas>
+        <div class="canvas-hint" id="canvas-hint">
+          <div class="pulse-dot"></div>
+          Trace the glowing outline
+        </div>
+      </div>
+
+      <div class="ch-footer">
+        <button class="btn-clear" id="clear-btn">↺ Clear</button>
+        <div class="ch-bar"><div class="ch-bar-fill" id="ch-bar-fill"></div></div>
+        <span class="ch-pct" id="ch-pct">0%</span>
+      </div>
+      <p class="ch-note">Trace the faint guide, then tap <b>Check</b>. No sign-up required for this demo.</p>
+    </div>
+
+    <div class="ch-success" id="ch-success">
+      <p class="ch-success-msg">✦ Great stroke! <span>You're a natural.</span></p>
+      <a href="#" class="btn-primary" style="font-size:17px;padding:16px 34px;">Start your first lesson →</a>
+    </div>
+  </div>
+</section>
+
+<!-- ── FEATURES ──────────────────────────────────────────── -->
+<section class="features-section" id="features">
+  <div class="features-inner">
+    <div class="features-header">
+      <span class="eyebrow">Built for steady progress</span>
+      <h2 class="section-h2">The same rhythm, every lesson.</h2>
+      <p class="section-sub">See the script. Trace with guides. Get feedback. Progress saves when you pass — no guesswork, no filler.</p>
+    </div>
+
+    <div class="features-grid">
+      <div class="feat">
+        <div class="feat-icon">✍️</div>
+        <div class="feat-title">Tracing canvas</div>
+        <p class="feat-body">Finger, stylus, and mouse — practice the same stroke on any device, the same way every time.</p>
+      </div>
+      <div class="feat">
+        <div class="feat-icon">💬</div>
+        <div class="feat-title">Simple feedback</div>
+        <p class="feat-body">Short evaluations after each trace so you always know when to move on or try again.</p>
+      </div>
+      <div class="feat">
+        <div class="feat-icon">📱</div>
+        <div class="feat-title">Mobile first</div>
+        <p class="feat-body">Large touch targets, iPad-optimised for stylus use, and installable as a PWA.</p>
+      </div>
+      <div class="feat">
+        <div class="feat-icon">🔤</div>
+        <div class="feat-title">Letters to words</div>
+        <p class="feat-body">Start with isolated letters, then positions, then connections — the natural sequence of Arabic script.</p>
+      </div>
+      <div class="feat">
+        <div class="feat-icon">📈</div>
+        <div class="feat-title">Saved progress</div>
+        <p class="feat-body">Every lesson you pass is saved. Pick up exactly where you left off, any time, any device.</p>
+      </div>
+      <div class="feat">
+        <div class="feat-icon">🕌</div>
+        <div class="feat-title">Naskh script</div>
+        <p class="feat-body">Practice the clear, classic naskh style — the script used in books, print, and everyday modern Arabic.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── PRICING ───────────────────────────────────────────── -->
+<section class="pricing-section" id="pricing">
+  <div class="pricing-inner">
+    <span class="eyebrow">Pricing</span>
+    <h2 class="section-h2">One plan. Everything unlocked.</h2>
+    <p class="section-sub">Start free. Upgrade when you're ready.</p>
+
+    <div class="pricing-card">
+      <span class="pricing-badge">7-Day Free Trial</span>
+      <div class="pricing-plan">Full Access</div>
+      <p class="pricing-desc">One subscription unlocks every unit, section, and handwriting lesson. Billing handled securely by Stripe.</p>
+      <ul class="pricing-list">
+        <li>Full access to all lessons and saved progress</li>
+        <li>Tracing canvas on phone, tablet, and desktop</li>
+        <li>Personalised plan based on your goal</li>
+        <li>Manage your subscription anytime</li>
+      </ul>
+      <div class="pricing-ctas">
+        <a href="#" class="btn-primary" style="text-align:center;">Start 7-Day Free Trial</a>
+        <button class="pricing-link">Already have an account? Sign in</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FOOTER ────────────────────────────────────────────── -->
+<footer class="footer">
+  <span class="footer-copy">© 2026 ArabivoWrite</span>
+  <ul class="footer-links">
+    <li><a href="#">Privacy</a></li>
+    <li><a href="#">Terms</a></li>
+    <li><a href="#">Contact</a></li>
+  </ul>
+</footer>
+
+<script>
+/* hero bar is now CSS-animated; no JS needed for it */
+
+/* ============================================================
+   2. Interactive trace canvas
+   ============================================================ */
+(function () {
+  const GLYPH     = 'قلم';
+  const CELL      = 13;
+  const BRUSH     = 18;
+  const THRESHOLD = 0.48;
+
+  const wrap    = document.getElementById('canvas-wrap');
+  const guideEl = document.getElementById('guide-canvas');
+  const inkEl   = document.getElementById('ink-canvas');
+  const barFill = document.getElementById('ch-bar-fill');
+  const barPct  = document.getElementById('ch-pct');
+  const hint    = document.getElementById('canvas-hint');
+  const success = document.getElementById('ch-success');
+  const clearBtn= document.getElementById('clear-btn');
+
+  let mask = null;
+  let draw = { on: false, lx: 0, ly: 0 };
+  let started = false;
+  let done    = false;
+
+  /* Build both canvases and the coverage mask */
+  function build() {
+    const w   = wrap.clientWidth;
+    const h   = wrap.clientHeight;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+
+    [guideEl, inkEl].forEach(c => {
+      c.width  = w * dpr;  c.height = h * dpr;
+      c.style.width  = w + 'px'; c.style.height = h + 'px';
+      c.getContext('2d').setTransform(dpr, 0, 0, dpr, 0, 0);
+    });
+
+    /* faded guide glyph (light teal on dark bg) */
+    const g  = guideEl.getContext('2d');
+    g.clearRect(0, 0, w, h);
+    // Large glyph so letterform stroke widths exceed the brush size
+    const fs = Math.min(h * 0.70, w * 0.42);
+    g.font = `${fs}px "Noto Naskh Arabic", serif`;
+    g.textAlign     = 'center';
+    g.textBaseline  = 'middle';
+    g.fillStyle     = 'rgba(90,212,160,0.16)';
+    g.fillText(GLYPH, w / 2, h / 2 + fs * 0.04);
+    g.lineWidth     = 2;
+    g.strokeStyle   = 'rgba(90,212,160,0.34)';
+    g.setLineDash([5, 7]);
+    g.strokeText(GLYPH, w / 2, h / 2 + fs * 0.04);
+    g.setLineDash([]);
+
+    /* build cell-based coverage mask from glyph alpha */
+    const id   = g.getImageData(0, 0, guideEl.width, guideEl.height).data;
+    const dpw  = guideEl.width;
+    const cols = Math.ceil(w / CELL);
+    const rows = Math.ceil(h / CELL);
+    const guide = new Set();
+    for (let cy = 0; cy < rows; cy++) {
+      for (let cx = 0; cx < cols; cx++) {
+        const px  = Math.floor((cx * CELL + CELL / 2) * dpr);
+        const py  = Math.floor((cy * CELL + CELL / 2) * dpr);
+        const idx = (py * dpw + px) * 4 + 3;
+        if (id[idx] > 18) guide.add(cy * cols + cx);
+      }
+    }
+    mask = { cols, rows, guide, total: guide.size || 1, covered: new Set() };
+  }
+
+  function stamp(x, y) {
+    if (!mask) return;
+    const r   = Math.ceil(BRUSH / 2 / CELL);
+    const ccx = Math.floor(x / CELL);
+    const ccy = Math.floor(y / CELL);
+    for (let dy = -r; dy <= r; dy++) {
+      for (let dx = -r; dx <= r; dx++) {
+        const cx = ccx + dx, cy = ccy + dy;
+        if (cx < 0 || cy < 0 || cx >= mask.cols || cy >= mask.rows) continue;
+        const key = cy * mask.cols + cx;
+        if (mask.guide.has(key)) mask.covered.add(key);
+      }
+    }
+  }
+
+  function updateUI() {
+    if (!mask) return;
+    const cov = mask.covered.size / mask.total;
+    const pct = Math.min(100, Math.round(cov * 178));
+    barFill.style.width  = pct + '%';
+    barPct.textContent   = pct + '%';
+    if (cov >= THRESHOLD && !done) {
+      done = true;
+      success.classList.add('show');
+    }
+  }
+
+  function getPos(e) {
+    const r = inkEl.getBoundingClientRect();
+    const t = e.touches ? e.touches[0] : e;
+    return { x: t.clientX - r.left, y: t.clientY - r.top };
+  }
+
+  function beginStroke(e) {
+    e.preventDefault();
+    if (done) return;
+    const { x, y } = getPos(e);
+    draw = { on: true, lx: x, ly: y };
+    if (!started) { started = true; hint.classList.add('hidden'); }
+    stamp(x, y); updateUI();
+  }
+
+  function moveStroke(e) {
+    if (!draw.on) return;
+    e.preventDefault();
+    const { x, y } = getPos(e);
+    const ctx = inkEl.getContext('2d');
+    ctx.strokeStyle = '#5ad4a0';
+    ctx.lineWidth   = BRUSH;
+    ctx.lineCap     = 'round';
+    ctx.lineJoin    = 'round';
+    ctx.beginPath();
+    ctx.moveTo(draw.lx, draw.ly);
+    ctx.lineTo(x, y);
+    ctx.stroke();
+    const steps = Math.max(1, Math.hypot(x - draw.lx, y - draw.ly) / 4);
+    for (let i = 0; i <= steps; i++) {
+      stamp(draw.lx + (x - draw.lx) * (i / steps),
+            draw.ly + (y - draw.ly) * (i / steps));
+    }
+    draw.lx = x; draw.ly = y;
+    updateUI();
+  }
+
+  function endStroke() { draw.on = false; }
+
+  inkEl.addEventListener('mousedown',  beginStroke);
+  inkEl.addEventListener('mousemove',  moveStroke);
+  inkEl.addEventListener('mouseup',    endStroke);
+  inkEl.addEventListener('mouseleave', endStroke);
+  inkEl.addEventListener('touchstart', beginStroke, { passive: false });
+  inkEl.addEventListener('touchmove',  moveStroke,  { passive: false });
+  inkEl.addEventListener('touchend',   endStroke);
+
+  clearBtn.addEventListener('click', () => {
+    const ctx = inkEl.getContext('2d');
+    ctx.clearRect(0, 0, inkEl.width, inkEl.height);
+    if (mask) mask.covered = new Set();
+    barFill.style.width = '0';
+    barPct.textContent  = '0%';
+    done = false; started = false;
+    hint.classList.remove('hidden');
+    success.classList.remove('show');
+  });
+
+  window.addEventListener('resize', () => {
+    build();
+    const ctx = inkEl.getContext('2d');
+    ctx.clearRect(0, 0, inkEl.width, inkEl.height);
+    if (mask) mask.covered = new Set();
+    barFill.style.width = '0';
+    barPct.textContent  = '0%';
+  });
+
+  /* init after fonts are ready so the guide glyph renders correctly */
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(() => { setTimeout(build, 100); });
+  }
+  setTimeout(build, 400); /* fallback */
+})();
+</script>
+</body>
+</html>

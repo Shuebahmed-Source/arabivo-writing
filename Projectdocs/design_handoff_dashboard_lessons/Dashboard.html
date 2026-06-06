@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ArabivoWrite — Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Hanken+Grotesk:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Noto+Naskh+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<style>
+/* ── TOKENS (exact match from Landing Page) ─────────────── */
+:root {
+  --brand:       #0E7A4B;
+  --brand-deep:  #0A5C39;
+  --brand-tint:  #E7F4ED;
+  --brand-tint2: #D6EEE0;
+  --ink:         #15231C;
+  --muted:       #5C6B63;
+  --faint:       #8B9991;
+  --line:        #E1EBE5;
+  --card:        #FFFFFF;
+  --bg:          #F4F9F6;
+  --font-d: 'Fredoka', system-ui, sans-serif;
+  --font-b: 'Hanken Grotesk', system-ui, sans-serif;
+  --font-ar: 'Noto Naskh Arabic', serif;
+  --amber:      #B86E1F;
+  --amber-tint: #FEF0E0;
+  --amber-tint2:#F5DFB8;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { min-height: 100%; }
+body {
+  font-family: var(--font-b); color: var(--ink); background: var(--bg);
+  -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
+}
+
+/* ── NAV ─────────────────────────────────────────────────── */
+.nav {
+  position: sticky; top: 0; z-index: 100;
+  height: 60px; padding: 0 clamp(20px,5vw,64px);
+  background: rgba(244,249,246,.92); backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--line);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.wordmark {
+  font-family: var(--font-d); font-weight: 600; font-size: 19px;
+  color: var(--ink); text-decoration: none; letter-spacing: -.01em;
+}
+.wordmark b { color: var(--brand); font-weight: 700; }
+.nav-tabs { display: flex; gap: 4px; }
+.nav-tab {
+  font-family: var(--font-b); font-size: 14px; font-weight: 500;
+  padding: 7px 16px; border-radius: 10px;
+  text-decoration: none; transition: all .15s;
+}
+.nav-tab.active { background: var(--brand); color: #fff; font-weight: 600; }
+.nav-tab:not(.active) { color: var(--muted); }
+.nav-tab:not(.active):hover { background: var(--brand-tint); color: var(--ink); }
+.nav-avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--brand-tint2); overflow: hidden;
+  cursor: pointer; flex-shrink: 0; display: grid; place-items: center;
+}
+
+/* ── MAIN ────────────────────────────────────────────────── */
+.main {
+  max-width: 900px; margin: 0 auto;
+  padding: clamp(36px,6vh,60px) clamp(20px,4vw,44px) 100px;
+  display: flex; flex-direction: column; gap: 28px;
+}
+
+/* ── STAT CHIPS ──────────────────────────────────────────── */
+.stats-row { display: flex; gap: 12px; flex-wrap: wrap; }
+.stat-chip {
+  flex: 1; min-width: 120px;
+  background: var(--card); border: 1.5px solid var(--line);
+  border-radius: 14px; padding: 16px 20px;
+  display: flex; flex-direction: column; gap: 3px;
+  box-shadow: 0 1px 0 rgba(21,35,28,.025);
+}
+
+/* ── CONTINUE CARD ───────────────────────────────────────── */
+.continue-card {
+  display: flex; align-items: center; gap: 20px;
+  background: var(--brand-tint); border: 1.5px solid var(--brand-tint2);
+  border-radius: 20px; padding: 26px 28px;
+  position: relative; overflow: hidden;
+  text-decoration: none; color: inherit; cursor: pointer;
+  transition: transform .18s ease, box-shadow .18s ease;
+  box-shadow: 0 6px 24px -8px rgba(14,122,75,.14);
+}
+.continue-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 36px -8px rgba(14,122,75,.22);
+}
+
+/* ── SECTIONS GRID ───────────────────────────────────────── */
+.sections-grid { display: grid; gap: 14px; }
+.sections-grid.col2 { grid-template-columns: 1fr 1fr; }
+.sections-grid.col3 { grid-template-columns: repeat(3,1fr); }
+
+/* ── SECTION CARD ────────────────────────────────────────── */
+.sc {
+  background: var(--card); border: 1.5px solid var(--line);
+  border-radius: 18px; padding: 22px 22px 20px;
+  display: flex; flex-direction: column; gap: 6px;
+  position: relative; overflow: hidden; cursor: pointer;
+  transition: transform .18s ease, box-shadow .18s ease, border-color .18s;
+  text-decoration: none; color: inherit;
+  box-shadow: 0 1px 0 rgba(21,35,28,.03), 0 4px 14px -8px rgba(21,35,28,.07);
+}
+.sc:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 1px 0 rgba(21,35,28,.04), 0 12px 28px -8px rgba(21,35,28,.13);
+  border-color: #c5d8ce;
+}
+.sc.sc-active { border-color: var(--amber-tint2); }
+
+/* ── SHARED LINK UTILITIES ───────────────────────────────── */
+.section-view-link {
+  font-size: 13px; font-weight: 500; color: var(--brand);
+  text-decoration: none;
+}
+.section-view-link:hover { text-decoration: underline; }
+
+/* ── BUTTON ──────────────────────────────────────────────── */
+.btn-go {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-family: var(--font-d); font-size: 15px; font-weight: 600;
+  color: #fff; background: var(--brand); border: none;
+  border-radius: 12px; padding: 12px 22px;
+  box-shadow: 0 4px 0 var(--brand-deep); cursor: pointer;
+  white-space: nowrap; text-decoration: none;
+  transition: transform .12s, box-shadow .12s, background .15s;
+}
+.btn-go:hover  { background: #0f8853; }
+.btn-go:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--brand-deep); }
+
+/* ── RESPONSIVE ──────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .sections-grid.col2,
+  .sections-grid.col3 { grid-template-columns: 1fr; }
+  .cc-action { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    transition-duration: .05ms !important;
+  }
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+<script type="text/babel">
+const { useState, useEffect } = React;
+
+/* ── DATA ──────────────────────────────────────────────────── */
+const SECTIONS = [
+  { id: 1, title: 'Arabic letters',  ar: 'أبجد',  done: 28, total: 28,
+    desc: 'Isolated letter shapes — the alphabet before worrying about connections.' },
+  { id: 2, title: 'Letter forms',    ar: 'جـ ـج', done: 4,  total: 4,
+    desc: 'Initial, medial, and final shapes as letters join in real words.' },
+  { id: 3, title: 'Simple words',    ar: 'سلام', done: 39, total: 39,
+    desc: 'Short, high-frequency words to practice flow and proportion.' },
+  { id: 4, title: 'Challenge words', ar: 'صعب', done: 4,  total: 8,
+    desc: 'Visually wild Arabic — repeating shapes, dot walls, and one-word puzzles.' },
+];
+
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "showContinue": true,
+  "layout": "2-col"
+}/*EDITMODE-END*/;
+
+/* ── PROGRESS RING ─────────────────────────────────────────── */
+const CIRC = 2 * Math.PI * 20; // r=20, SVG 52×52
+
+function ProgressRing({ pct, animated, accent }) {
+  const finalOff = CIRC * (1 - pct / 100);
+  const offset   = animated ? finalOff : CIRC;
+  const color    = accent ? 'var(--amber)' : 'var(--brand)';
+  return (
+    <div style={{ position: 'relative', width: 52, height: 52, flexShrink: 0 }}>
+      <svg width="52" height="52" viewBox="0 0 52 52" style={{ display: 'block' }}>
+        <circle fill="none" stroke="var(--line)" strokeWidth="3.5"
+          cx="26" cy="26" r="20" />
+        <circle fill="none" stroke={color} strokeWidth="3.5" strokeLinecap="round"
+          cx="26" cy="26" r="20"
+          strokeDasharray={CIRC}
+          strokeDashoffset={offset}
+          style={{
+            transformBox: 'fill-box', transformOrigin: 'center',
+            transform: 'rotate(-90deg)',
+            transition: 'stroke-dashoffset .75s cubic-bezier(.4,0,.2,1)'
+          }}
+        />
+      </svg>
+      <div style={{
+        position: 'absolute', inset: 0,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontFamily: 'var(--font-d)', fontSize: 10, fontWeight: 700,
+        color, lineHeight: 1, pointerEvents: 'none'
+      }}>
+        {pct}%
+      </div>
+    </div>
+  );
+}
+
+/* ── STATUS BADGE ──────────────────────────────────────────── */
+function Badge({ isActive }) {
+  const bg  = isActive ? 'var(--amber-tint)'  : 'var(--brand-tint)';
+  const col = isActive ? 'var(--amber)'        : 'var(--brand-deep)';
+  const lbl = isActive ? 'In progress'         : '✓ Complete';
+  return (
+    <span style={{
+      background: bg, color: col,
+      padding: '4px 10px', borderRadius: 999,
+      fontFamily: 'var(--font-b)', fontSize: 11, fontWeight: 700,
+      flexShrink: 0, position: 'relative', zIndex: 1, whiteSpace: 'nowrap'
+    }}>
+      {lbl}
+    </span>
+  );
+}
+
+/* ── APP ────────────────────────────────────────────────────── */
+function App() {
+  const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
+  const [animated, setAnimated] = useState(false);
+
+  useEffect(() => {
+    const id = setTimeout(() => setAnimated(true), 320);
+    return () => clearTimeout(id);
+  }, []);
+
+  const totalLessons = SECTIONS.reduce((s, c) => s + c.total, 0);
+  const doneLessons  = SECTIONS.reduce((s, c) => s + c.done,  0);
+  const overallPct   = Math.round(doneLessons / totalLessons * 100);
+  const doneCount    = SECTIONS.filter(s => s.done === s.total).length;
+
+  const gridClass = `sections-grid ${t.layout === '3-col' ? 'col3' : 'col2'}`;
+
+  return (
+    <>
+      {/* ────── NAV ────── */}
+      <nav className="nav">
+        <a href="#" className="wordmark">Arabivo<b>Write</b></a>
+        <div className="nav-tabs">
+          <a href="#" className="nav-tab active">Dashboard</a>
+          <a href="#" className="nav-tab">Lessons</a>
+        </div>
+        <div className="nav-avatar">
+          <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+            <circle cx="18" cy="18" r="18" fill="#D6EEE0"/>
+            <circle cx="18" cy="14" r="6"  fill="#8BB8A0"/>
+            <path   d="M4 34c0-7.7 6.3-14 14-14s14 6.3 14 14" fill="#8BB8A0"/>
+          </svg>
+        </div>
+      </nav>
+
+      {/* ────── MAIN ────── */}
+      <main className="main">
+
+        {/* Header */}
+        <header>
+          <h1 style={{
+            fontFamily: 'var(--font-d)', fontWeight: 600,
+            fontSize: 'clamp(28px,4vw,38px)', color: 'var(--ink)',
+            letterSpacing: '-.015em', lineHeight: 1.1, marginBottom: 7
+          }}>
+            Your learning path
+          </h1>
+          <p style={{ fontSize: 15, color: 'var(--muted)', lineHeight: 1.55, maxWidth: 460 }}>
+            Complete lessons in order — Good or Excellent on Check. Your place is stored per signed-in account.
+          </p>
+        </header>
+
+        {/* Stats row */}
+        <div className="stats-row">
+          {[
+            { val: overallPct, denom: '%',                   label: 'Overall progress', accent: true  },
+            { val: doneLessons, denom: ` / ${totalLessons}`, label: 'Lessons complete',  accent: false },
+            { val: doneCount,   denom: ` / ${SECTIONS.length}`, label: 'Sections done',  accent: false },
+          ].map(({ val, denom, label, accent }) => (
+            <div key={label} className="stat-chip">
+              <span style={{
+                fontFamily: 'var(--font-d)', fontSize: 27, fontWeight: 600,
+                lineHeight: 1, color: accent ? 'var(--brand)' : 'var(--ink)'
+              }}>
+                {val}
+                <span style={{ fontSize: 15, fontWeight: 500, color: 'var(--faint)' }}>{denom}</span>
+              </span>
+              <span style={{
+                fontSize: 11, fontWeight: 600, color: 'var(--faint)',
+                textTransform: 'uppercase', letterSpacing: '.07em'
+              }}>
+                {label}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        {/* Continue card */}
+        {t.showContinue && (
+          <a className="continue-card" href="#">
+            {/* Decorative Arabic bg */}
+            <span style={{
+              position: 'absolute', right: -8, top: '50%', transform: 'translateY(-50%)',
+              fontFamily: 'var(--font-ar)', fontSize: 130, fontWeight: 700,
+              color: 'var(--brand)', opacity: .07, lineHeight: 1,
+              direction: 'rtl', userSelect: 'none', pointerEvents: 'none'
+            }}>صعب</span>
+
+            {/* Body */}
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8, position: 'relative', zIndex: 1 }}>
+              <span style={{
+                fontFamily: 'var(--font-b)', fontSize: 11, fontWeight: 700,
+                letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--brand)'
+              }}>
+                Up next
+              </span>
+              <span style={{
+                fontFamily: 'var(--font-d)', fontSize: 22, fontWeight: 600,
+                color: 'var(--ink)', lineHeight: 1.1
+              }}>
+                Challenge words
+              </span>
+              <p style={{ fontSize: 14, color: 'var(--muted)', lineHeight: 1.45, maxWidth: 400 }}>
+                Visually wild Arabic — repeating shapes, dot walls, and famous one-word puzzles.
+              </p>
+              {/* Mini progress */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 2 }}>
+                <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--brand)', flexShrink: 0 }}>
+                  4 of 8 lessons
+                </span>
+                <div style={{
+                  flex: 1, maxWidth: 180, height: 5,
+                  background: 'rgba(14,122,75,.15)', borderRadius: 999, overflow: 'hidden'
+                }}>
+                  <div style={{
+                    height: '100%', width: '50%', borderRadius: 999,
+                    background: 'linear-gradient(90deg, var(--brand), #1aa066)'
+                  }}/>
+                </div>
+              </div>
+            </div>
+
+            {/* CTA */}
+            <div className="cc-action" style={{ flexShrink: 0, position: 'relative', zIndex: 1 }}>
+              <span className="btn-go">Continue →</span>
+            </div>
+          </a>
+        )}
+
+        {/* Sections group */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 16 }}>
+            <span style={{
+              fontFamily: 'var(--font-d)', fontSize: 17, fontWeight: 600, color: 'var(--ink)'
+            }}>
+              All sections
+            </span>
+            <a href="#" className="section-view-link">View all lessons →</a>
+          </div>
+
+          <div className={gridClass}>
+            {SECTIONS.map(s => {
+              const pct      = Math.round(s.done / s.total * 100);
+              const isActive = s.done < s.total;
+              return (
+                <a key={s.id} className={`sc${isActive ? ' sc-active' : ''}`} href="#">
+                  {/* Decorative Arabic glyph */}
+                  <span style={{
+                    position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
+                    fontFamily: 'var(--font-ar)', fontSize: 88, lineHeight: 1,
+                    color: 'var(--ink)', opacity: .04,
+                    direction: 'rtl', userSelect: 'none', pointerEvents: 'none'
+                  }}>
+                    {s.ar}
+                  </span>
+
+                  {/* Title + badge */}
+                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, flexWrap: 'nowrap' }}>
+                    <span style={{
+                      fontFamily: 'var(--font-d)', fontSize: 16, fontWeight: 600,
+                      color: 'var(--ink)', position: 'relative', zIndex: 1,
+                      flex: 1, minWidth: 0, lineHeight: 1.2
+                    }}>
+                      {s.title}
+                    </span>
+                    <Badge isActive={isActive} />
+                  </div>
+
+                  {/* Description */}
+                  <p style={{
+                    fontSize: 13, lineHeight: 1.5, color: 'var(--muted)',
+                    position: 'relative', zIndex: 1
+                  }}>
+                    {s.desc}
+                  </p>
+
+                  {/* Progress row */}
+                  <div style={{
+                    display: 'flex', alignItems: 'center', gap: 14,
+                    marginTop: 12, position: 'relative', zIndex: 1
+                  }}>
+                    <ProgressRing pct={pct} animated={animated} accent={isActive} />
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                      <span style={{
+                        fontFamily: 'var(--font-d)', fontSize: 16,
+                        fontWeight: 600, color: 'var(--ink)'
+                      }}>
+                        {s.done} / {s.total}
+                      </span>
+                      <span style={{ fontSize: 12, color: 'var(--faint)' }}>lessons</span>
+                    </div>
+                  </div>
+                </a>
+              );
+            })}
+          </div>
+        </div>
+
+      </main>
+
+      {/* ────── TWEAKS ────── */}
+      <TweaksPanel>
+        <TweakSection label="Dashboard" />
+        <TweakToggle
+          label="Continue card"
+          value={t.showContinue}
+          onChange={v => setTweak('showContinue', v)}
+        />
+        <TweakRadio
+          label="Card columns"
+          value={t.layout}
+          options={['2-col', '3-col']}
+          onChange={v => setTweak('layout', v)}
+        />
+      </TweaksPanel>
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

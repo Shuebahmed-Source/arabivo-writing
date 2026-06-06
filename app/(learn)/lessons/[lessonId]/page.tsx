@@ -76,7 +76,7 @@ export default async function LessonDetailPage({ params }: Props) {
     letterCount === 1 ? "1 letter" : `${letterCount} letters`;
 
   return (
-    <div className="flex flex-1 flex-col gap-5 md:gap-6">
+    <div className="learn-main-default flex flex-1 flex-col gap-5 md:gap-6">
       <header className="flex flex-col gap-3 border-b border-border/60 pb-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
         <nav
           className="flex min-w-0 flex-wrap items-center gap-1 text-xs text-muted-foreground sm:text-sm"

@@ -2,7 +2,7 @@
 
 ArabivoWrite uses **Stripe Checkout** (subscription mode) and the **Customer Billing Portal**. Subscription state is stored in Supabase table **`user_subscriptions`** and updated from **webhooks**.
 
-When the paywall is active, subscribers can access the **full** in-repo curriculum on **`/lessons`** (currently **79** handwriting lessons across letters, letter forms, themed simple words, and challenge words — see **`Projectdocs/context.md`**). The **homepage / `/try` demo** is public and does not require a subscription.
+When the paywall is active, subscribers can access the **full** in-repo curriculum on **`/lessons`** (currently **79** handwriting lessons across letters, letter forms, themed simple words, and challenge words — see **`Projectdocs/context.md`**). The **homepage / `/try` demo** and **`/onboarding`** (pre-sign-up steps) are public and do not require a subscription. **After onboarding sign-up**, users go to **`/subscribe`** before **`/lessons`**.
 
 **Production:** Live billing and paywall rules apply on **Vercel** when **`VERCEL_ENV=production`** and Stripe env vars are set — same code path users get from **`main`**.
 
@@ -56,9 +56,9 @@ Run the migration **`supabase/migrations/20260405120000_user_subscriptions.sql`*
 
 Checkout **success** returns to **`/dashboard?checkout=success`**. **Cancel** returns to **`/?checkout=canceled`** (no `#` fragment so the page does not auto-scroll past the top banner). **Failed session creation** redirects to **`/?checkout=failed`** for the same reason.
 
-The **landing page** (`/`, sections **`#try`** and **`#pricing`**) is the main place to start a subscription (CTAs go through Clerk, then **`/subscribe`** → Stripe). The **`/try`** page and **`#try`** demo canvas are public. The **dashboard** shows a **Billing** card **only for active/trialing subscribers** (manage portal). If either Stripe env key/price is missing, that card is hidden and **lessons are not paywalled** (Stripe treated as off).
+The **landing page** (`/`, sections **`#challenge`**, **`#features`**, and **`#pricing`**) is the main place to start a subscription (CTAs go through Clerk, then **`/subscribe`** → Stripe). The **`/try`** page and **`#challenge`** demo canvas are public. The **dashboard** shows a **Billing** card **only for active/trialing subscribers** (manage portal). If either Stripe env key/price is missing, that card is hidden and **lessons are not paywalled** (Stripe treated as off).
 
-When Stripe **is** configured **and** **`shouldEnforceSubscriptionAccess()`** is true (**`VERCEL_ENV=production`** on Vercel; non-Vercel production uses **`NODE_ENV`** — see **`lib/stripe/server.ts`**), **`/lessons`** (and nested lesson/section routes) require **`hasSubscriptionAccessForCurrentUser()`** (`lib/subscriptions/access.ts`): either **`FREE_ACCESS_EMAILS`** or **`active`** / **`trialing`** in **`user_subscriptions`**. Otherwise redirect to **`/subscribe`**. Progress saves enforce the same rule when enforcement is on. **`/`**, **`/try`**, and the **`/#try`** demo are **not** paywalled. **Vercel Preview** and local dev **skip** subscription enforcement. **`POST /api/checkout`** still refuses Checkout if access is already granted (including free-email allowlist).
+When Stripe **is** configured **and** **`shouldEnforceSubscriptionAccess()`** is true (**`VERCEL_ENV=production`** on Vercel; non-Vercel production uses **`NODE_ENV`** — see **`lib/stripe/server.ts`**), **`/lessons`** (and nested lesson/section routes) require **`hasSubscriptionAccessForCurrentUser()`** (`lib/subscriptions/access.ts`): either **`FREE_ACCESS_EMAILS`** or **`active`** / **`trialing`** in **`user_subscriptions`**. Otherwise redirect to **`/subscribe`**. Progress saves enforce the same rule when enforcement is on. **`/`**, **`/try`**, and the **`/#challenge`** demo are **not** paywalled. **Vercel Preview** and local dev **skip** subscription enforcement. **`POST /api/checkout`** still refuses Checkout if access is already granted (including free-email allowlist).
 
 ## Vercel logs (why you might see “nothing”)
 

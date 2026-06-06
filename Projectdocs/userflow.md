@@ -4,29 +4,38 @@
 
 ## Entry
 
-1. User visits **`/`** (landing) — hero, **`#try`** demo, features, and **`#pricing`**.  
-2. **`/try`** — same demo as **`/#try`**, minimal page for external links (bio, ads).  
+1. User visits **`/`** (landing) — hero with trace mockup, **`#challenge`** demo, **`#features`**, and **`#pricing`**.  
+2. **`/try`** — same **`#challenge`** demo as **`/`**, compact heading and **Home** back link (bio, ads).  
 3. **`/subscribe`** — After sign-in, shows a **plan summary page** (price from Stripe, trial copy from **`STRIPE_TRIAL_PERIOD_DAYS`**), then **Continue** calls **`POST /api/checkout`** and redirects to Stripe. Not an instant redirect-only route.
 
-4. **Primary CTA** (hero, pricing, and marketing header): signed-out label from **`primaryTrialCtaLabel`** — **`Start 3-Day Free Trial`** when **`STRIPE_TRIAL_PERIOD_DAYS`** is **3**, **`Start 7-Day Free Trial`** when **7**, **`Start Free Trial`** for other **n > 0**, else **`Start your free trial`** (set **`STRIPE_TRIAL_PERIOD_DAYS`** on Vercel so production matches local trial copy). Signed-out users go to **`/sign-up`** or **`/sign-in`** with **`redirect_url=/subscribe`**, then **`/subscribe`** (plan page) → **Stripe Checkout**. Signed-in users use **`Start your free trial`** → **`/subscribe`** (plan page) → **Stripe**. Session for first paint comes from server **`auth()`** (`initialSignedIn`) so the hero does not flash the signed-out layout while Clerk loads.  
-5. **Hero secondary:** **try a challenge word free** → scroll to **`#try`** (no account).  
+4. **Primary CTA** (hero, pricing, and marketing header): **signed-out hero** → **`Let's go!`** → **`/onboarding`** (profiling + one trace + sign-up → **`/subscribe`**). **Pricing / header trial CTAs** use **`primaryTrialCtaLabel`** — **`Start 3-Day Free Trial`** when **`STRIPE_TRIAL_PERIOD_DAYS`** is **3**, **`Start 7-Day Free Trial`** when **7**, **`Start Free Trial`** for other **n > 0**, else **`Start your free trial`** — those go to **`/sign-up`** or **`/sign-in`** with **`redirect_url=/subscribe`**, then **`/subscribe`** (plan page) → **Stripe Checkout**. **Signed-in** users on marketing pages use **`Start your free trial`** → **`/subscribe`** directly. Session for first paint comes from server **`auth()`** (`initialSignedIn`) so the hero does not flash the signed-out layout while Clerk loads.  
+5. **Hero secondary:** **try a challenge free** → scroll to **`#challenge`** (no account).  
 6. Generic visits to **`/sign-in`** / **`/sign-up`** without **`redirect_url`** still use Clerk’s fallback **`/dashboard`** (root layout).  
 
-**Note:** The marketing header links to **`/try`**, **`#pricing`**, and sign-in; the in-app header (after sign-in) links to **`/dashboard`** and **`/lessons`**.
+**Note:** The marketing header links to **`/#challenge`**, **`/#features`**, **`/#pricing`**, and sign-in; **`/try`** is the standalone challenge page. The in-app **`LearnHeader`** (after sign-in) links to **`/dashboard`** and **`/lessons`**. Signed-in users who open **`/onboarding`** are redirected to **`/dashboard`**.
 
-## Public demo (`/#try` and `/try`)
+## Onboarding funnel (`/onboarding`)
 
-7. User sees **ششش** (three shīn) with a live tracing canvas — **no sign-in**.  
-8. User traces, taps **Check** → **Excellent**, **Good**, or **Try again** (inline panel; no Supabase save).  
-9. On **Good** / **Excellent**:  
-   - **Signed out** — meaning reveal + **`TrialFunnelCTAs`** (start trial / sign in).  
-   - **Signed in** — meaning reveal + **See all challenge words** → **`/lessons/sections/challenge-words-core`**.  
-10. **See all challenge words** in production with billing enforced: requires **active/trialing** subscription (or **`FREE_ACCESS_EMAILS`**); otherwise redirect to **`/subscribe`**. Account alone is not enough.
+7. **Entry:** **`/`** hero **Let's go!** → **`/onboarding`** (signed-out only). **Welcome** is server-rendered; steps use **`?step=`** query params (`q0`–`q4`, `trace`, `projection`, `signup`).  
+8. **Five questions** — single-select profiling (level, why, experience, time, goal). Answers live in **session storage** until sign-up, then persist to Supabase **`user_onboarding`**.  
+9. **One trace** — **`?step=trace`**: trace **س** (sīn) on the onboarding canvas (**`OnboardingTraceStep`**). Coverage ≥ 50% shows celebration; user can **keep tracing** until they tap **Continue**.  
+10. **Projection** — personalized 1-year chart from answers.  
+11. **Sign up** — **`?step=signup`**: Clerk custom sign-up (Google OAuth or email + verification). **Free account** — no payment on this step.  
+12. **After sign-up** → **`/subscribe`** (plan summary + Stripe Checkout). **No** extra post-signup trace exercises. Google OAuth uses **`/onboarding/sso-callback`** then **`/subscribe`**.  
+13. **`/onboarding/demo`** — legacy URL; redirects signed-in users to **`/subscribe`**.  
+
+## Public demo (`/#challenge` and `/try`)
+
+14. User sees **قلم** (qalam — “pen”) on a dark tracing canvas — **no sign-in**.  
+15. User traces the guide; a **coverage bar** fills as they draw (**no Check button**; no Supabase save).  
+16. When coverage crosses the threshold:  
+   - **Signed out** — success message + **`MarketingTrialCTAs`** (**Start your first lesson** → **`/onboarding`**).  
+   - **Signed in** — success message + **Start your first lesson** → **`/lessons`**.  
 
 ## Protected app (production)
 
-11. **`/dashboard`**, **`/lessons`**, **`/lessons/sections/*`**, and **`/lessons/[lessonId]`** require sign-in via Clerk **`proxy.ts`** (**`auth.protect()`**). **`/subscribe`** is public (unauthenticated users are redirected to sign-in). **`/`** and **`/try`** remain public.  
-12. **Dashboard** — **four** units, **completed / total** per unit, progress bars, **Locked** until the first lesson of that unit is reachable under **section** rules — **except Challenge words**, which is always **Available**; **Billing** (manage portal) only when the user already has an **active** or **trialing** subscription. No subscribe sales card on the dashboard.  
+18. **`/dashboard`**, **`/lessons`**, **`/lessons/sections/*`**, and **`/lessons/[lessonId]`** require sign-in via Clerk **`proxy.ts`** (**`auth.protect()`**). **`/subscribe`** is public (unauthenticated users are redirected to sign-in). **`/`**, **`/try`**, **`/#challenge`**, and **`/onboarding`** (welcome for signed-out users) remain public.  
+19. **Dashboard** — stats row, **Up Next** continue card (when applicable), **four** unit section cards with progress rings; **Billing** (manage portal) only when the user already has an **active** or **trialing** subscription. No subscribe sales card on the dashboard.  
 
 ### Billing gate (production, when Stripe env is complete)
 
@@ -42,41 +51,41 @@ Successful payment returns to **`/dashboard?checkout=success`**. Canceled Checko
 
 ## Lessons overview
 
-13. **`/lessons`** — for each unit, a short description and a **grid of section cards**: **Letters I–V**, one **Letter forms** card, **seven** cards under **Simple words**, and **Can you write this?** under **Challenge words** (see **`context.md`** for section ids).  
-14. Each card shows **progress** (e.g. 3/5), **Locked** until the section is unlocked, or **Done** when every item in the section is completed. **Challenge words** section is never locked.  
-15. User taps an unlocked section → **`/lessons/sections/[sectionId]`**.  
+20. **`/lessons`** — four **unit blocks** (Arabic letters, letter forms, simple words, challenge words). Each block has a header (title, description, unit progress badge) and a grid of **section cards** (Letters I–V, letter forms, seven simple-word sections, **Can you write this?**). See **`context.md`** for section ids.  
+21. Each section card shows **progress dots**, **Done** / **In progress** / **Available** / **Locked**, and links to the **first incomplete unlocked lesson** (or section hub fallback). **Challenge words** section is never locked.  
+22. User taps an unlocked section card → **`/lessons/[lessonId]`** (or section hub when all items in that section are complete).  
 
 ## Section hub
 
-16. Section page shows the **section title**, **Continue** (first incomplete lesson that is unlocked), item list with **Done** / **Locked**, and **Next section** when the section is fully complete. In **open** sections (challenge), all items are unlocked from the start — **Continue** picks the first incomplete.  
-17. User can open any **unlocked** item → **`/lessons/[lessonId]`**.  
+23. Section page shows the **section title**, **Continue** (first incomplete lesson that is unlocked), item list with **Done** / **Locked**, and **Next section** when the section is fully complete. In **open** sections (challenge), all items are unlocked from the start — **Continue** picks the first incomplete.  
+24. User can open any **unlocked** item → **`/lessons/[lessonId]`**.  
 
 ## Lesson detail (practice)
 
-18. **Back to section** returns to **`/lessons/sections/[sectionId]`**.  
-19. Page shows unit · **section link**, lesson title, type badge (**CHALLENGE · TRACE** for challenge items), **Completed** if already saved, Arabic, transliteration, meaning.  
-20. **Practice writing** — canvas with faint guide; user traces with finger, stylus, or mouse.  
-21. User taps **Check**.  
-22. Feedback appears: **Excellent**, **Good**, or **Try again** (inline panel).  
+25. **Back to section** (breadcrumb) returns to **`/lessons/sections/[sectionId]`**.  
+26. Page shows unit · **section link**, lesson title, type badge (**CHALLENGE · TRACE** for challenge items), **Completed** if already saved, Arabic, transliteration, meaning.  
+27. **Practice writing** — canvas with faint guide; user traces with finger, stylus, or mouse.  
+28. User taps **Check**.  
+29. Feedback appears: **Excellent**, **Good**, or **Try again** (inline panel).  
 
 ### If Good or Excellent
 
-23. Progress is **saved** to Supabase (upsert per `clerk_user_id` + `lesson_id`).  
-24. **Lesson complete** full-screen overlay appears (animated): section title, **x/y** progress bar, short lesson title, result line, faint Arabic watermark, **Practice again** (close overlay, clear canvas) or **Next** — navigates to the **next lesson in the same section** in order (including replay when later lessons are already complete); after the **last** lesson in the section, **`Next`** goes to **`/lessons/sections/[sectionId]`** for that section (**`getPostCompletionPath`** in **`lib/progress/post-completion.ts`**).  
-25. User can still **Practice again** on the same lesson later; **best_result** does not downgrade (e.g. **excellent** kept over **good**).  
+30. Progress is **saved** to Supabase (upsert per `clerk_user_id` + `lesson_id`).  
+31. **Lesson complete** full-screen overlay appears (animated): section title, **x/y** progress bar, short lesson title, result line, faint Arabic watermark, **Practice again** (close overlay, clear canvas) or **Next** — navigates to the **next lesson in the same section** in order (including replay when later lessons are already complete); after the **last** lesson in the section, **`Next`** goes to **`/lessons/sections/[sectionId]`** for that section (**`getPostCompletionPath`** in **`lib/progress/post-completion.ts`**).  
+32. User can still **Practice again** on the same lesson later; **best_result** does not downgrade (e.g. **excellent** kept over **good**).  
 
 ### If Try again
 
-26. No save; user may **Clear** and retry.  
+33. No save; user may **Clear** and retry.  
 
 ## Locked lesson
 
-27. If the user opens a locked lesson URL, the app **redirects to `/lessons`** (skipped when Preview/local dev bypass is active — see **Protected app**). Open-section challenge lessons are never locked.
+34. If the user opens a locked lesson URL, the app **redirects to `/lessons`** (skipped when Preview/local dev bypass is active — see **Protected app**). Open-section challenge lessons are never locked.
 
 ## Locked section
 
-28. If the user opens a section whose **first lesson** is not unlocked, the app **redirects to `/lessons`** (skipped when Preview/local dev bypass is active). **Challenge words** section entry is always unlocked.
+35. If the user opens a section whose **first lesson** is not unlocked, the app **redirects to `/lessons`** (skipped when Preview/local dev bypass is active). **Challenge words** section entry is always unlocked.
 
 ## Completion (MVP)
 
-29. There is no single global “course complete” finale; progression continues through **sections** and **units**. After the **final lesson in a section**, **Next** returns to that **section hub**; from there the learner can pick another section or return to **`/lessons`**. Challenge items can be done in any order and do not gate the main curriculum.
+36. There is no single global “course complete” finale; progression continues through **sections** and **units**. After the **final lesson in a section**, **Next** returns to that **section hub**; from there the learner can pick another section or return to **`/lessons`**. Challenge items can be done in any order and do not gate the main curriculum.

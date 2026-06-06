@@ -1,20 +1,40 @@
+import { Fredoka, Hanken_Grotesk, Noto_Naskh_Arabic } from "next/font/google";
 import { auth } from "@clerk/nextjs/server";
 import type { Metadata } from "next";
 
 import { MarketingHeader } from "@/components/layout/marketing-header";
+import "@/components/marketing/marketing.css";
 import { getStripeTrialPeriodDays } from "@/lib/stripe/server";
+
+const fredoka = Fredoka({
+  subsets: ["latin"],
+  variable: "--font-mkt-display",
+  display: "swap",
+});
+
+const hanken = Hanken_Grotesk({
+  subsets: ["latin"],
+  variable: "--font-mkt-body",
+  display: "swap",
+});
+
+const notoNaskh = Noto_Naskh_Arabic({
+  subsets: ["arabic"],
+  variable: "--font-mkt-arabic",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://write.arabivo.net"),
-  title: "Arabivo Write — Learn Arabic by Tracing",
+  title: "ArabivoWrite — Learn Arabic by Writing",
   description:
-    "Build Arabic writing muscle memory by tracing real Arabic words and phrases.",
+    "Calm, guided Arabic handwriting practice — trace letter shapes, positions, and words with clear feedback.",
   openGraph: {
-    title: "Arabivo Write — Learn Arabic by Tracing",
+    title: "ArabivoWrite — Learn Arabic by Writing",
     description:
-      "Build Arabic writing muscle memory by tracing real Arabic words and phrases.",
+      "Calm, guided Arabic handwriting practice — trace letter shapes, positions, and words with clear feedback.",
     url: "https://write.arabivo.net",
-    siteName: "Arabivo Write",
+    siteName: "ArabivoWrite",
     locale: "en_GB",
     type: "website",
     images: [
@@ -22,15 +42,15 @@ export const metadata: Metadata = {
         url: "/preview.png",
         width: 1200,
         height: 630,
-        alt: "Arabivo Write preview image",
+        alt: "ArabivoWrite preview image",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Arabivo Write — Learn Arabic by Tracing",
+    title: "ArabivoWrite — Learn Arabic by Writing",
     description:
-      "Build Arabic writing muscle memory by tracing real Arabic words and phrases.",
+      "Calm, guided Arabic handwriting practice — trace letter shapes, positions, and words with clear feedback.",
     images: ["/preview.png"],
   },
 };
@@ -45,7 +65,9 @@ export default async function MarketingLayout({
   const initialSignedIn = Boolean(userId);
 
   return (
-    <div className="flex min-h-full flex-1 flex-col">
+    <div
+      className={`marketing-root ${fredoka.variable} ${hanken.variable} ${notoNaskh.variable}`}
+    >
       <MarketingHeader
         trialDays={trialDays}
         initialSignedIn={initialSignedIn}

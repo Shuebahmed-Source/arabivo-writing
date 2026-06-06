@@ -7,20 +7,31 @@
 - Sign up and sign in (`/sign-up`, `/sign-in`)  
 - **Production:** **`/dashboard`**, **`/lessons`**, lesson URLs, and **section URLs** require authentication via **`proxy.ts`** (Clerk **`auth.protect()`** on those paths).  
 - **Vercel Preview + local dev:** the same routes can be opened **without** sign-in when **`isPreviewOrLocalDevBypassFromRequest`** / **`isPreviewOrLocalDevBypassServer()`** is true (**`lib/env/dev-access.ts`**): **`VERCEL_ENV=preview`**, or **`NODE_ENV=development`**, or **localhost** / **127.0.0.1** with no `VERCEL_ENV`. **Production** (`VERCEL_ENV=production` on Vercel) is unchanged.  
-- Marketing home **`/`**, **`/try`**, and **`/#try`** stay public  
+- Marketing home **`/`**, **`/try`**, **`/#challenge`**, and **`/onboarding`** stay public  
 - **`ClerkProvider`** sets sign-in/up paths and fallback redirects to **`/dashboard`** (see **`.env.example`** for optional `NEXT_PUBLIC_CLERK_*` URL variables). **`/sign-in`** and **`/sign-up`** accept **`?redirect_url=`** (internal path only) so pricing CTAs can continue to **`/subscribe`** after auth.  
 - **Production + Stripe billing configured:** users without subscription access who open **`/lessons`** are redirected to **`/subscribe`** (unless **`FREE_ACCESS_EMAILS`** matches — see **`stripe.md`**). Preview/local may skip both subscription enforcement and learn-route auth (see below).  
 
-## Marketing demo (public)
+## Marketing landing (`/` and `/try`)
 
-- **`/#try`** on **`/`** — second section after the hero; live tracing canvas, no sign-up  
-- **`/try`** — standalone page (minimal chrome, **Home** back link) for TikTok / Reels bio links  
-- Featured word **`ششش`** (`challenge-shin-triple`) from **`lib/marketing/demo-challenge.ts`**  
-- **`TryChallengeDemo`** — Clear, Check, show/hide guide; same **`WritingCanvas`** + **`WritingFeedbackPanel`** as lessons; **no progress save**  
-- Hero secondary link: **try a challenge word free** → **`#try`**  
-- **MarketingHeader** — **Try** (`/try`), **Pricing** (`/#pricing`), **Sign in**, primary trial CTA  
-- After demo pass: **signed-out** → **`TrialFunnelCTAs`**; **signed-in** → **See all challenge words** → challenge section (paywalled in production without subscription)  
-- PostHog events (when configured): **`demo_trace_checked`**, **`demo_trace_passed`**, **`demo_cta_click`**
+- **Handoff reference:** **`Projectdocs/Landing Page.html`** — implemented with **`marketing-root`** layout, **`components/marketing/marketing.css`**, Fredoka / Hanken / Noto Naskh  
+- **Nav (`MarketingHeader`):** wordmark, **Try** (`/#challenge`), **Features** (`/#features`), **Pricing** (`/#pricing`), **Sign in**, primary trial CTA  
+- **Hero:** two-column layout, animated **سلام** trace mockup card, **`MarketingTrialCTAs`** — **Let's go!** → **`/onboarding`**, **Sign in** ghost button  
+- **`#challenge`:** dark section, **`LandingChallengeSection`** — trace **قلم** (`word-qalam`); coverage bar (no **Check**); success → trial / lesson CTAs  
+- **Features:** six emoji cards; **Pricing:** centered plan card + checklist; **Footer** with legal placeholders  
+- **`/try`:** same **`LandingChallengeSection`** (`compactHeading`) + **Home** back link  
+- **`MarketingTrialCTAs`** / **`primaryTrialCtaLabel`** — hero, pricing, and demo-success variants; PostHog **`subscribe_click`** when analytics env is set  
+- Demo pass event: **`demo_trace_passed`** with `lesson_id: word-qalam` when coverage threshold is met  
+
+## Onboarding funnel (`/onboarding`)
+
+- **`/onboarding`** — signed-out profiling + **one** trace (**س**) + projection + Clerk sign-up → **`/subscribe`**  
+- **Hero CTA (signed out):** **`Let's go!`** → **`/onboarding`** via **`MarketingTrialCTAs`** (`variant="hero"`)  
+- **Steps:** welcome (server-rendered) → **`?step=q0`…`q4`** → **`trace`** → **`projection`** → **`signup`**  
+- **Session storage** (`arabivo_onboarding_v1`) holds answers until sign-up; then **`saveOnboardingProfile`** → Supabase **`user_onboarding`**  
+- **Sign-up:** custom Clerk flow (**Google** + email/password + verification); OAuth callback **`/onboarding/sso-callback`**  
+- **After sign-up:** **`/subscribe`** only — **no** three-word post-signup demo (`/onboarding/demo` redirects to **`/subscribe`**)  
+- **Fonts / UI:** Fredoka, Hanken Grotesk, Noto Naskh Arabic scoped in **`app/onboarding/layout.tsx`**; styles in **`components/onboarding/onboarding.css`**  
+- **Trace canvas:** **`OnboardingTraceStep`** — cell coverage algorithm, **`onboardingTraceFontSize`**, resolved Arabic font via computed style (canvas cannot use CSS variables directly); user can keep tracing after 50% celebration  
 
 ## Learning path
 
@@ -34,9 +45,10 @@
 - **Four units**: Arabic letters (**5** sections), letter forms (**1** section), simple words (**7** sections), challenge words (**1** open section) — **79** total lessons in `lib/lessons.ts` (28 letters + 4 forms + 39 words + 8 challenge)  
 - **Simple words section ids** (in curriculum order): `simple-words-i`, `simple-words-ii`, `simple-words-iii`, `simple-words-body-people`, `simple-words-home-objects`, `simple-words-nature`, `simple-words-animals`  
 - **Challenge section id:** `challenge-words-core` — **Can you write this?** (8 challenge lessons; pick any order)  
-- **`/lessons`** — per-unit headings and **section cards** (progress fraction, Locked / Done, link when the section’s first lesson is reachable); **Challenge words** is always **Available** on the dashboard  
-- **`/lessons/sections/[sectionId]`** — section hub: item list, **Continue** to the first incomplete unlocked lesson, **Next section** when the section is complete  
-- **`/lessons/[lessonId]`** — practice page; **Back to section** returns to the section hub  
+- **`/dashboard`** (handoff UI): stats chips (overall %, lessons complete, sections done), **Up Next** continue card → first incomplete lesson, **All sections** grid with **SVG progress rings**, unit cards link to **`/lessons#<unitId>`** — data via **`lib/learn/dashboard-data.ts`**, UI **`DashboardView`**  
+- **`/lessons`** (handoff UI): four **unit blocks** with Arabic header watermarks; **section cards** with progress dots, status badges (**Done** / **In progress** / **Available** / **Locked**), links to first incomplete lesson — **`lib/learn/lessons-data.ts`**, UI **`LessonsView`**  
+- **`/lessons/sections/[sectionId]`** — section hub (shadcn shell): item list, **Continue**, **Next section** when complete  
+- **`/lessons/[lessonId]`** — practice page (shadcn shell); breadcrumb back to section hub  
 - Locked lesson URL → **redirect to `/lessons`** (unlock rules skipped in Preview/local when the dev bypass is active — any lesson or section hub URL is reachable for QA)  
 
 ## Production vs Vercel Preview / local (testing)
@@ -58,20 +70,21 @@
 - Outcomes: **Excellent**, **Good**, **Try again**  
 - Thresholds in **`components/writing/score-user-trace.ts`** are tuned for beginners (relaxed coverage/precision and off-guide caps vs earlier stricter defaults); still pixel-overlap based, not OCR  
 - Inline **WritingFeedbackPanel** after **Check** (headline + coaching copy) for all outcomes  
-- On **Good** / **Excellent**, **progress save** (server action + Supabase) then **Lesson complete overlay** (Framer Motion): staggered entrance, animated section progress bar, **deterministic icon + tint per `lessonId`**, **Practice again** or **Next** (lessons only — demo does not save)
+- On **Good** / **Excellent**, **progress save** (server action + Supabase) then **Lesson complete overlay** (Framer Motion): staggered entrance, animated section progress bar, **deterministic icon + tint per `lessonId`**, **Practice again** or **Next** (lessons only — homepage demo does not save)
 
 ## Progress and dashboard
 
 - **`user_progress`** in Supabase: `clerk_user_id`, `lesson_id`, `completed`, `completed_at`, `best_result` (`excellent` | `good`) — **no** `section_id` column; sections are derived in app code  
-- **`user_subscriptions`** in Supabase: Stripe subscription snapshot (`status`, `current_period_end`, etc.) — updated via **`/api/webhooks/stripe`**; landing **`#pricing`** + **`/subscribe`** start checkout; dashboard shows **Billing** (portal) **only** for **active** / **trialing** users when Stripe env vars are set; **`/lessons`** requires **`active`** or **`trialing`** subscription **in production** when billing is configured (see **`Projectdocs/stripe.md`**; Preview/local may bypass enforcement)  
-- **Checkout feedback:** `?checkout=success` on dashboard after payment; **`?checkout=canceled`** or **`?checkout=failed`** on **`/`** (banner at top; no URL hash so the page does not jump to **`#pricing`**)  
-- **Dashboard**: per-unit **completed / total** and progress bar; unit **Locked** until the **first lesson of that unit** is reachable under section rules — **except** **`challenge-words`**, which is always **Available**  
+- **`user_subscriptions`** in Supabase: Stripe subscription snapshot (`status`, `current_period_end`, etc.) — updated via **`/api/webhooks/stripe`**; landing **`#pricing`** + **`/subscribe`** start checkout; dashboard shows **Billing** (**LearnSubscriptionCard**) **only** for **active** / **trialing** users when Stripe env vars are set; **`/lessons`** requires **`active`** or **`trialing`** subscription **in production** when billing is configured (see **`Projectdocs/stripe.md`**; Preview/local may bypass enforcement)  
+- **Checkout feedback:** `?checkout=success` on dashboard after payment; **`?checkout=canceled`** or **`?checkout=failed`** on **`/`** (banner at top; links to **`#pricing`**)  
+- **Dashboard unit cards:** per-unit **completed / total**, animated **progress ring** %, **In progress** / **✓ Complete** / **Locked** badges; **Challenge words** always reachable when unit unlock rules allow — **`getDashboardUnits`** + **`getLearnDashboardUnitCards`**  
 - **Post-save navigation** (`getPostCompletionPath`): after save, **Next** goes to the **next lesson in section order** (even if already completed, for replay); after the **last** lesson in the section, **`/lessons/sections/[sectionId]`** for that section (not auto-advance to the next section)  
 
 ## Responsive design
 
 - Mobile-first layout, large tap targets, route groups for marketing vs learn chrome  
 - Canvas stroke data uses **normalized coordinates** so ink survives resize reasonably well  
+- **Learn nav:** centered Dashboard / Lessons tabs collapse below **720px** width  
 
 ## Not in scope yet
 
@@ -79,3 +92,4 @@
 - Per-attempt history, streaks, analytics (PostHog captures demo funnel events only when env is set)  
 - `users` sync table in DB (progress keyed by Clerk `userId` only)  
 - Numbers unit and extended connection curriculum (optional future)  
+- Handoff styling for **section hub** and **lesson detail** pages (still shadcn / Inter)  

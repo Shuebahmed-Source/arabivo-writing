@@ -6,6 +6,16 @@ ArabivoWrite is a web app that helps users learn to write Arabic script through 
 
 The app focuses on **Arabic letter formation and writing**, not general Arabic language learning.
 
+## Design handoffs (reference → live code)
+
+| Reference | Live implementation |
+|-----------|---------------------|
+| **`Projectdocs/design_handoff_onboarding/`** | **`/onboarding`** — `app/onboarding/`, `components/onboarding/`, `lib/onboarding/` |
+| **`Projectdocs/Landing Page.html`** | **`/`** and **`/try`** — `app/(marketing)/`, `components/marketing/marketing.css`, `components/marketing/landing-*.tsx` |
+| **`Projectdocs/design_handoff_dashboard_lessons/`** | **`/dashboard`** and **`/lessons`** — `components/learn/learn.css`, `components/learn/*-view.tsx`, `lib/learn/` |
+
+Section hubs (`/lessons/sections/*`) and lesson detail (`/lessons/[lessonId]`) still use the **shadcn / Inter** practice shell; they share **`LearnHeader`** padding via **`learn-main-default`** but are not yet restyled to the dashboard/lessons handoff.
+
 ## Curriculum scope (MVP)
 
 Lesson content is defined in **`lib/lessons.ts`** (local source of truth). The MVP uses a **three-level structure**:
@@ -24,7 +34,7 @@ Lesson content is defined in **`lib/lessons.ts`** (local source of truth). The M
 **Simple words — section ids and titles** (in unlock order; see `SECTION_META` in `lib/lessons.ts`):
 
 | Section id | Section card title |
-|------------|----------------------|
+|------------|-------------------|
 | `simple-words-i` | Simple words I |
 | `simple-words-ii` | Simple words II |
 | `simple-words-iii` | Simple words III |
@@ -36,10 +46,10 @@ Lesson content is defined in **`lib/lessons.ts`** (local source of truth). The M
 **Challenge words — section:**
 
 | Section id | Section card title |
-|------------|----------------------|
+|------------|-------------------|
 | `challenge-words-core` | Can you write this? |
 
-**Scale (current dataset):** **28** isolated-letter lessons, **4** letter-form lessons, **39** word lessons, **8** challenge lessons → **79** lesson rows in `lib/lessons.ts`, across **14** sections (5 + 1 + 7 + 1). The dashboard shows **four units**; section cards appear under each unit on **`/lessons`**.
+**Scale (current dataset):** **28** isolated-letter lessons, **4** letter-form lessons, **39** word lessons, **8** challenge lessons → **79** lesson rows in `lib/lessons.ts`, across **14** sections (5 + 1 + 7 + 1). The **dashboard** shows **four unit cards** (progress rings, Arabic watermarks). **`/lessons`** lists the same four units as **section blocks** with **section cards** inside each.
 
 Future expansion can add more units (e.g. numbers, deeper connection drills). Those are not required for the current MVP dataset.
 
@@ -70,13 +80,27 @@ After a successful save on **Good** / **Excellent**, a full-screen **lesson comp
 
 ## Marketing demo (no account)
 
-Public visitors can trace one featured challenge word **without sign-in**:
+Public visitors can trace a featured word **without sign-in**:
 
-- **`/#try`** on the landing page — live canvas section after the hero  
-- **`/try`** — standalone minimal page for social / bio links  
-- Featured word: **`challenge-shin-triple`** (**ششش**) — config in **`lib/marketing/demo-challenge.ts`**, UI in **`TryChallengeDemo`**  
-- Demo uses the same canvas and scoring as lessons but **does not save progress**  
-- After **Good** / **Excellent**: meaning reveal; **signed-out** users see trial CTAs; **signed-in** users see **See all challenge words** → **`/lessons/sections/challenge-words-core`** (requires subscription when the production paywall is active)
+- **`/#challenge`** on the landing page — dark **Can you write this?** section after the hero  
+- **`/try`** — same challenge UI with compact heading and **Home** back link (for social / bio links)  
+- Featured word: **`word-qalam`** (**قلم** — “pen”) — config in **`lib/marketing/demo-challenge.ts`**, UI in **`LandingChallengeSection`**  
+- **Coverage-based demo** (handoff algorithm): trace the guide until the bar fills (~48% threshold); **no Check button**; **no progress save**  
+- On success: **signed-out** → **`MarketingTrialCTAs`** (**Start your first lesson** → **`/onboarding`**); **signed-in** → **`/lessons`**
+
+Legacy components **`TryChallengeDemo`** / **`TrialFunnelCTAs`** (Check + **ششش**) remain in the repo but are **not** used on **`/`** or **`/try`**.
+
+## Onboarding funnel (`/onboarding`)
+
+Signed-out entry from the landing hero **Let's go!** — **not** paywalled; **signed-in** visitors are redirected to **`/dashboard`**.
+
+1. **Welcome** → five profiling questions (`q0`–`q4`)  
+2. **One trace** — **س** (sīn) via **`OnboardingTraceStep`** (onboarding canvas; separate from lesson **`WritingCanvas`**)  
+3. **Projection** — chart from answers  
+4. **Sign up** — free Clerk account (Google or email); answers saved to **`user_onboarding`**  
+5. **`/subscribe`** — Stripe plan page + Checkout (**no** extra post-signup trace exercises)
+
+Design reference: **`Projectdocs/design_handoff_onboarding/`**. Implementation: **`app/onboarding/`**, **`lib/onboarding/`**, **`components/onboarding/`**.
 
 ## Input and devices
 
@@ -86,7 +110,7 @@ The product targets **phones, tablets, iPads, and desktop** with a **mobile-firs
 
 ## Visual direction
 
-Clean, minimal, **premium** feel with an **emerald-forward** theme (see `Projectdocs/ui.md`).
+Clean, calm, **premium** feel with an **emerald-forward** theme. **Marketing**, **onboarding**, **dashboard**, and **`/lessons`** share **Fredoka / Hanken Grotesk / Noto Naskh Arabic** and scoped CSS (`marketing.css`, `onboarding.css`, `learn.css`). **Lesson practice** pages still use **Inter + Noto Sans Arabic** via shadcn globals until a future handoff. See **`Projectdocs/ui.md`**.
 
 ## Source control (GitHub)
 
@@ -97,9 +121,9 @@ Repository URL, initial push steps, and **GitHub CLI (`gh`)** troubleshooting (i
 The app can run as **free-for-signed-in-users** (Stripe env incomplete) or **paid lessons** (production):
 
 - **Stripe Checkout** (subscription) and **Customer Billing Portal**; state synced to **`user_subscriptions`** via **`/api/webhooks/stripe`**.  
-- **`/lessons`** and progress saves require subscription access when Stripe billing is configured **and** enforcement runs (**Vercel Production** — **`shouldEnforceSubscriptionAccess()`**). Subscriptions start from the **landing `#pricing`** section and **`/subscribe`**; unpaid visits redirect to **`/subscribe`**. **Vercel Preview** and **local dev** skip subscription enforcement for testing; see **`features.md`**.  
+- **`/lessons`** and progress saves require subscription access when Stripe billing is configured **and** enforcement runs (**Vercel Production** — **`shouldEnforceSubscriptionAccess()`**). Subscriptions start from **onboarding sign-up → `/subscribe`**, the **landing `#pricing`** section, and direct **`/subscribe`** visits; unpaid **`/lessons`** visits redirect to **`/subscribe`**. **Vercel Preview** and **local dev** skip subscription enforcement for testing; see **`features.md`**.  
 - Optional **free trial** via **`STRIPE_TRIAL_PERIOD_DAYS`** (e.g. `7`) — no separate Stripe “trial product” required.  
-- **`/`**, **`/try`**, and **`/#try`** stay public (demo tracing only; full challenge section is behind the lessons paywall in production).
+- **`/`**, **`/try`**, **`/#challenge`**, and **`/onboarding`** stay public (demo tracing only; full curriculum is behind the lessons paywall in production).
 
 Operational checklist: **`Projectdocs/launch-checklist.md`**. Technical detail: **`Projectdocs/stripe.md`**.
 

@@ -60,6 +60,10 @@ export function TrialFunnelCTAs({
     );
   }
 
+  const primaryHref = variant === "hero" ? "/onboarding" : SIGN_UP_RETURN;
+  const primaryLabel = variant === "hero" ? "Let's go!" : primarySignedOutLabel;
+  const primaryTarget = variant === "hero" ? "onboarding" : "sign_up";
+
   return (
     <div
       className={cn(
@@ -72,18 +76,18 @@ export function TrialFunnelCTAs({
         nativeButton={false}
         render={
           <Link
-            href={SIGN_UP_RETURN}
+            href={primaryHref}
             onClick={() =>
               captureEvent("subscribe_click", {
                 source: ctaSource,
-                target: "sign_up",
+                target: primaryTarget,
               })
             }
           />
         }
         className="min-h-12 w-full px-6 sm:w-auto"
       >
-        {primarySignedOutLabel}
+        {primaryLabel}
       </Button>
       <Button
         variant="outline"
