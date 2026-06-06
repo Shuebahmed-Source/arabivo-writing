@@ -9,7 +9,11 @@ import {
 } from "react";
 
 import { cn } from "@/lib/utils";
-import { guideFontSizeRatio } from "@/lib/writing/lesson-display";
+import {
+  CANVAS_INK_LINE_WIDTH_PX,
+  fitGuideFontSizePx,
+  type GuideFontMetrics,
+} from "@/lib/writing/lesson-display";
 
 import { type TraceScoreResult, scoreUserTrace } from "./score-user-trace";
 
@@ -42,8 +46,8 @@ type InkCommand =
   | { kind: "quad"; from: NormPoint; ctrl: NormPoint; to: NormPoint }
   | { kind: "dot"; p: NormPoint };
 
-/** Logical CSS px under the dpr transform — bold ink similar to reference tracing apps (~10–12px). */
-const INK_LINE_WIDTH_PX = 11;
+/** Logical CSS px under the dpr transform — slightly narrower than guide dots so grey rim stays visible. */
+const INK_LINE_WIDTH_PX = 10;
 /** Wider than visible ink so pixel scoring tolerates small drift from the guide. */
 const MASK_LINE_WIDTH_PX = 22;
 /** Match round line caps so dots read like pen blobs, not pinpoints. */
@@ -82,6 +86,37 @@ function ensureMaskElements(
   return true;
 }
 
+function measureGuideText(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  fontSize: number,
+  fontFamily: string,
+): GuideFontMetrics {
+  ctx.font = `${fontSize}px ${fontFamily}`;
+  ctx.direction = "rtl";
+  const metrics = ctx.measureText(text);
+  const height =
+    (metrics.actualBoundingBoxAscent ?? fontSize * 0.72) +
+    (metrics.actualBoundingBoxDescent ?? fontSize * 0.28);
+  return { width: metrics.width, height };
+}
+
+function resolveGuideFontSize(
+  ctx: CanvasRenderingContext2D,
+  cssW: number,
+  cssH: number,
+  text: string,
+  fontFamily: string,
+): number {
+  return fitGuideFontSizePx(
+    cssW,
+    cssH,
+    text,
+    (fontSize) => measureGuideText(ctx, text, fontSize, fontFamily),
+    INK_LINE_WIDTH_PX,
+  );
+}
+
 function renderGuideMask(
   canvas: HTMLCanvasElement,
   cssW: number,
@@ -98,7 +133,7 @@ function renderGuideMask(
   ctx.fillStyle = "#ffffff";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  const fontSize = Math.min(cssW, cssH) * guideFontSizeRatio(text);
+  const fontSize = resolveGuideFontSize(ctx, cssW, cssH, text, fontFamily);
   ctx.font = `${fontSize}px ${fontFamily}`;
   ctx.direction = "rtl";
   const cx = cssW / 2;
@@ -156,7 +191,8 @@ export const WritingCanvas = forwardRef<WritingCanvasHandle, WritingCanvasProps>
       const { w, h } = cssSizeRef.current;
       if (w < 8 || h < 8) return;
 
-      const fontSize = Math.min(w, h) * guideFontSizeRatio(guideText);
+      const fontFamily = getFontFamily();
+      const fontSize = resolveGuideFontSize(ctx, w, h, guideText, fontFamily);
       const baselineY = h / 2 + fontSize * 0.22;
 
       ctx.save();
@@ -167,7 +203,7 @@ export const WritingCanvas = forwardRef<WritingCanvasHandle, WritingCanvasProps>
       ctx.lineTo(w * 0.94, baselineY);
       ctx.stroke();
       ctx.restore();
-    }, []);
+    }, [guideText, getFontFamily]);
 
     const drawGuide = useCallback(() => {
       if (!showGuide) return;
@@ -183,7 +219,7 @@ export const WritingCanvas = forwardRef<WritingCanvasHandle, WritingCanvasProps>
       if (w < 8 || h < 8) return;
 
       const fontFamily = getFontFamily();
-      const fontSize = Math.min(w, h) * guideFontSizeRatio(guideText);
+      const fontSize = resolveGuideFontSize(ctx, w, h, guideText, fontFamily);
 
       ctx.save();
       ctx.globalAlpha = 0.14;

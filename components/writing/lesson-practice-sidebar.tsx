@@ -1,5 +1,8 @@
 import { cn } from "@/lib/utils";
-import { formatBestResult } from "@/lib/writing/lesson-display";
+import {
+  formatBestResult,
+  referenceArabicFontSize,
+} from "@/lib/writing/lesson-display";
 
 type LessonPracticeSidebarProps = {
   arabicText: string;
@@ -26,7 +29,8 @@ export function LessonPracticeSidebar({
           Reference
         </h2>
         <p
-          className="mt-2 font-arabic text-4xl leading-none text-foreground sm:text-[2.5rem]"
+          className="mt-2 font-arabic leading-snug text-foreground"
+          style={{ fontSize: `${referenceArabicFontSize(arabicText)}px` }}
           dir="rtl"
           lang="ar"
         >
