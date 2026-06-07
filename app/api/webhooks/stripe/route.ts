@@ -3,7 +3,10 @@ import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 
 import { getStripe } from "@/lib/stripe/server";
-import { syncSubscriptionFromStripe } from "@/lib/subscriptions/sync";
+import {
+  syncLifetimeFromCheckoutSession,
+  syncSubscriptionFromStripe,
+} from "@/lib/subscriptions/sync";
 
 export const runtime = "nodejs";
 
@@ -37,6 +40,10 @@ export async function POST(req: Request) {
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
+        if (session.mode === "payment") {
+          await syncLifetimeFromCheckoutSession(session);
+          break;
+        }
         if (session.mode !== "subscription") {
           break;
         }

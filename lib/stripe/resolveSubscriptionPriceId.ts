@@ -1,7 +1,7 @@
 import type Stripe from "stripe";
 
 /**
- * `STRIPE_PRICE_ID` may be a recurring `price_...` or a `prod_...` id (uses that
+ * `STRIPE_MONTHLY_PRICE_ID` may be a recurring `price_...` or a `prod_...` id (uses that
  * product’s default price — same as Stripe Checkout picking the product’s default).
  */
 export async function resolveSubscriptionPriceId(
@@ -22,7 +22,7 @@ export async function resolveSubscriptionPriceId(
         return {
           ok: false,
           message:
-            "Product has no default price. In Stripe → Products, set a default price or set STRIPE_PRICE_ID to a price_... id.",
+            "Product has no default price. In Stripe → Products, set a default price or set STRIPE_MONTHLY_PRICE_ID to a price_... id.",
         };
       }
       const id = typeof dp === "string" ? dp : dp.id;
@@ -38,6 +38,6 @@ export async function resolveSubscriptionPriceId(
   return {
     ok: false,
     message:
-      "STRIPE_PRICE_ID must start with price_ or prod_ (see Stripe Dashboard → Products).",
+      "STRIPE_MONTHLY_PRICE_ID must start with price_ or prod_ (see Stripe Dashboard → Products).",
   };
 }

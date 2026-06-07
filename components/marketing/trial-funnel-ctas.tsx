@@ -5,28 +5,24 @@ import Link from "next/link";
 
 import { captureEvent } from "@/components/analytics/posthog-provider";
 import { Button } from "@/components/ui/button";
-import { primaryTrialCtaLabel } from "@/lib/marketing/trial-cta-copy";
+import { MARKETING_ACCESS_CTA } from "@/lib/marketing/paywall-copy";
 import { cn } from "@/lib/utils";
 
 const SIGN_UP_RETURN = "/sign-up?redirect_url=%2Fsubscribe";
 const SIGN_IN_RETURN = "/sign-in?redirect_url=%2Fsubscribe";
 
 type Props = {
-  trialDays: number;
   /** From server `auth()` — correct first paint, avoids Clerk `isLoaded` flicker. */
   initialSignedIn: boolean;
   variant?: "hero" | "pricing";
 };
 
 export function TrialFunnelCTAs({
-  trialDays,
   initialSignedIn,
   variant = "hero",
 }: Props) {
   const { isSignedIn, isLoaded } = useAuth();
   const signedIn = isLoaded ? Boolean(isSignedIn) : initialSignedIn;
-
-  const primarySignedOutLabel = primaryTrialCtaLabel(trialDays);
 
   const ctaSource = variant === "hero" ? "hero_cta" : "pricing_cta";
 
@@ -54,14 +50,14 @@ export function TrialFunnelCTAs({
           }
           className="min-h-12 w-full px-6 sm:w-auto"
         >
-          Start your free trial
+          {MARKETING_ACCESS_CTA}
         </Button>
       </div>
     );
   }
 
   const primaryHref = variant === "hero" ? "/onboarding" : SIGN_UP_RETURN;
-  const primaryLabel = variant === "hero" ? "Let's go!" : primarySignedOutLabel;
+  const primaryLabel = variant === "hero" ? "Let's go!" : MARKETING_ACCESS_CTA;
   const primaryTarget = variant === "hero" ? "onboarding" : "sign_up";
 
   return (

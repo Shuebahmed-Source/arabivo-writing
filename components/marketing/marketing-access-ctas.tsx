@@ -4,20 +4,18 @@ import { useAuth } from "@clerk/nextjs";
 import Link from "next/link";
 
 import { captureEvent } from "@/components/analytics/posthog-provider";
-import { primaryTrialCtaLabel } from "@/lib/marketing/trial-cta-copy";
+import { MARKETING_ACCESS_CTA } from "@/lib/marketing/paywall-copy";
 
 const SIGN_UP_RETURN = "/sign-up?redirect_url=%2Fsubscribe";
 const SIGN_IN_RETURN = "/sign-in?redirect_url=%2Fsubscribe";
 
 type Props = {
-  trialDays: number;
   initialSignedIn: boolean;
   variant?: "hero" | "pricing" | "success";
   className?: string;
 };
 
-export function MarketingTrialCTAs({
-  trialDays,
+export function MarketingAccessCTAs({
   initialSignedIn,
   variant = "hero",
   className,
@@ -25,7 +23,6 @@ export function MarketingTrialCTAs({
   const { isSignedIn, isLoaded } = useAuth();
   const signedIn = isLoaded ? Boolean(isSignedIn) : initialSignedIn;
 
-  const primarySignedOutLabel = primaryTrialCtaLabel(trialDays);
   const ctaSource =
     variant === "hero"
       ? "hero_cta"
@@ -35,12 +32,7 @@ export function MarketingTrialCTAs({
 
   if (signedIn) {
     const label =
-      variant === "hero"
-        ? "Start your free trial"
-        : variant === "success"
-          ? "Start your first lesson →"
-          : primarySignedOutLabel;
-
+      variant === "success" ? "Start your first lesson →" : MARKETING_ACCESS_CTA;
     const href = variant === "success" ? "/lessons" : "/subscribe";
     const target = variant === "success" ? "lessons" : "subscribe";
 
@@ -101,7 +93,7 @@ export function MarketingTrialCTAs({
 
   const primaryHref = variant === "success" ? "/onboarding" : SIGN_UP_RETURN;
   const primaryLabel =
-    variant === "success" ? "Start your first lesson →" : primarySignedOutLabel;
+    variant === "success" ? "Start your first lesson →" : MARKETING_ACCESS_CTA;
   const primaryTarget = variant === "success" ? "onboarding" : "sign_up";
 
   return (

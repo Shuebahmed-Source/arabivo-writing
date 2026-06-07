@@ -2,7 +2,11 @@ import { auth } from "@clerk/nextjs/server";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 
-import { getStripe, isStripeConfigured } from "@/lib/stripe/server";
+import {
+  getStripe,
+  isStripeConfigured,
+  resolveAppOrigin,
+} from "@/lib/stripe/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export async function POST() {
@@ -40,8 +44,7 @@ export async function POST() {
   const h = await headers();
   const host = h.get("x-forwarded-host") ?? h.get("host") ?? "localhost:3000";
   const proto = h.get("x-forwarded-proto") ?? "http";
-  const envOrigin = process.env.NEXT_PUBLIC_APP_URL?.trim();
-  const origin = envOrigin || `${proto}://${host}`;
+  const origin = resolveAppOrigin(host, proto);
 
   const stripe = getStripe();
   const portal = await stripe.billingPortal.sessions.create({

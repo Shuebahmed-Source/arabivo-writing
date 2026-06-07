@@ -36,7 +36,7 @@ Three visual **shells** share the same emerald tokens but different scoped CSS:
 ## Layout patterns
 
 - **Mobile-first** spacing and tap targets  
-- **Marketing** (`/`, `/try`, `/daily`, `/subscribe`): **`MarketingHeader`** — wordmark, **Try** (`/#challenge`), **Features**, **Pricing**, **Sign in**, trial CTA; sticky 64px bar with backdrop blur  
+- **Marketing** (`/`, `/try`, `/daily`, `/subscribe`): **`MarketingHeader`** — wordmark, **Try** (`/#challenge`), **Features**, **Pricing**, **Sign in**, **Get full access** CTA; sticky 64px bar with backdrop blur  
 - **Onboarding** (`/onboarding`): **`onboarding-root`** — max-width **560px** column; fixed bottom **CTA dock** on question/trace/sign-up steps  
 - **Learn overview** (`/dashboard`, `/lessons`): **`LearnHeader`** — wordmark → `/dashboard`, centered **Dashboard / Lessons** tab pills, **UserButton**; 60px sticky bar  
 - **Learn section hub** (`/lessons/sections/*`): **`learn-main-section`** max-width column; **`SectionHubView`** — back link, **Continue** / **Next section**, Arabic-first **tappable lesson rows** (**Tap to start** badge, whole card links to **`/lessons/[lessonId]`**)  
@@ -47,10 +47,10 @@ Three visual **shells** share the same emerald tokens but different scoped CSS:
 
 ### Landing (`/`)
 
-- **Hero:** two-column grid — copy + **`MarketingTrialCTAs`** (**Let's go!** → `/onboarding`, **Sign in**); right column animated **سلام** trace mockup card  
+- **Hero:** two-column grid — copy + **`MarketingAccessCTAs`** (**Let's go!** → `/onboarding`, **Sign in**); right column animated **سلام** trace mockup card  
 - **`#challenge`:** dark band, **`LandingChallengeSection`** — **Today’s word** (UTC daily rotation), honest **0–100%** coverage bar, pass at **88%**; success panel expands **inside card**; streak pill when signed in  
 - **`#features`:** six emoji feature cards  
-- **`#pricing`:** centered plan card + **`MarketingTrialCTAs`** (`variant="pricing"`)  
+- **`#pricing`:** **`PaywallOptions`** — side-by-side monthly (left) + lifetime hero (right); emerald **Best value** tab, savings strikethrough  
 - **Footer:** copyright + legal link placeholders  
 - Green **primary buttons** use **white text** (link color override in `marketing.css`)
 
@@ -59,7 +59,7 @@ Three visual **shells** share the same emerald tokens but different scoped CSS:
 - Same **`LandingChallengeSection`** as **`#challenge`**, **Today’s word** heading, compact layout  
 - **`/daily`:** shareable URL for social / “today’s word” content  
 - **`/try`:** **← Home** back link (bio links)  
-- After pass: streak message (signed in), sign-up CTA (signed out), **`MarketingTrialCTAs`** success variant
+- After pass: streak message (signed in), sign-up CTA (signed out), **`MarketingAccessCTAs`** success variant
 
 ### Onboarding
 
@@ -73,7 +73,7 @@ Three visual **shells** share the same emerald tokens but different scoped CSS:
 - **Stats row:** three chips — overall %, lessons complete, sections done  
 - **Up Next card:** emerald tint, Arabic watermark, mini progress bar, **Continue →** (hidden CTA label on mobile; whole card tappable)  
 - **All sections grid:** 2-column unit cards, **SVG progress rings** (staggered mount animation), **In progress** / **✓ Complete** / **Locked** badges  
-- **Billing:** **`LearnSubscriptionCard`** when subscribed  
+- **Billing:** **`LearnSubscriptionCard`** — **Lifetime member** badge or monthly **Manage billing**  
 
 ### Lessons (`/lessons`)
 
@@ -109,7 +109,7 @@ Three visual **shells** share the same emerald tokens but different scoped CSS:
 
 ## Components (reference)
 
-**Marketing:** `MarketingHeader`, `MarketingTrialCTAs`, `LandingHero`, `LandingChallengeSection`, `LandingFeatures`, `LandingPricing`, `LandingFooter`  
+**Marketing:** `MarketingHeader`, `MarketingAccessCTAs`, `PaywallOptions`, `LandingHero`, `LandingChallengeSection`, `LandingFeatures`, `LandingPricing`, `LandingFooter`  
 
 **Onboarding:** `OnboardingFlow`, `OnboardingTraceStep`, `OnboardingSparkles`  
 

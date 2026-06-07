@@ -5,7 +5,6 @@ import type { Metadata } from "next";
 import { LandingChallengeSection } from "@/components/marketing/landing-challenge-section";
 import { getDailyChallengeStreakForCurrentUser } from "@/lib/daily-challenge/queries";
 import { getDailyChallenge } from "@/lib/marketing/demo-challenge";
-import { getStripeTrialPeriodDays } from "@/lib/stripe/server";
 
 export async function generateMetadata(): Promise<Metadata> {
   const challenge = getDailyChallenge();
@@ -17,7 +16,6 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function DailyChallengePage() {
   const challenge = getDailyChallenge();
-  const trialDays = getStripeTrialPeriodDays();
   const { userId } = await auth();
   const initialSignedIn = Boolean(userId);
   const streak = initialSignedIn
@@ -32,7 +30,6 @@ export default async function DailyChallengePage() {
 
       <LandingChallengeSection
         challenge={challenge}
-        trialDays={trialDays}
         initialSignedIn={initialSignedIn}
         streak={streak}
         compactHeading

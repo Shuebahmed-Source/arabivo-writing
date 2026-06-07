@@ -808,7 +808,7 @@
 }
 
 .mkt-pricing-inner {
-  max-width: 520px;
+  max-width: 960px;
   margin: 0 auto;
   text-align: center;
 }
@@ -823,6 +823,21 @@
     0 18px 50px -14px rgba(21, 35, 28, 0.14);
   margin-top: 32px;
   text-align: left;
+}
+
+.mkt-pricing-card-hero {
+  border-color: rgba(14, 122, 75, 0.35);
+  background: var(--mkt-brand-tint);
+  box-shadow:
+    0 2px 0 rgba(14, 122, 75, 0.06),
+    0 18px 50px -14px rgba(14, 122, 75, 0.18);
+}
+
+.mkt-paywall-error {
+  margin-top: 12px;
+  font-size: 14px;
+  color: #b42318;
+  text-align: center;
 }
 
 .mkt-pricing-badge {
@@ -903,6 +918,276 @@
 
 .mkt-pricing-link:hover {
   color: var(--mkt-muted);
+}
+
+/* ── Paywall (side-by-side plans) ─────────────────────────── */
+.mkt-paywall {
+  width: 100%;
+}
+
+.mkt-paywall-subscribe {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: clamp(32px, 5vw, 56px) clamp(16px, 4vw, 24px);
+}
+
+.mkt-paywall-header {
+  text-align: center;
+  margin-bottom: clamp(28px, 4vw, 40px);
+}
+
+.mkt-paywall-title {
+  font-family: var(--mkt-font-d);
+  font-size: clamp(1.65rem, 3.5vw, 2rem);
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--mkt-ink);
+}
+
+.mkt-paywall-sub {
+  margin-top: 12px;
+  font-size: clamp(0.9rem, 2vw, 1rem);
+  line-height: 1.55;
+  color: var(--mkt-muted);
+  max-width: 36rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.mkt-paywall-grid {
+  display: grid;
+  gap: 18px;
+  align-items: stretch;
+}
+
+@media (min-width: 768px) {
+  .mkt-paywall-grid {
+    grid-template-columns: minmax(0, 0.88fr) minmax(0, 1.12fr);
+    gap: 22px;
+  }
+
+  .mkt-paywall-card-monthly {
+    order: 1;
+  }
+
+  .mkt-paywall-card-lifetime {
+    order: 2;
+  }
+}
+
+@media (max-width: 767px) {
+  .mkt-paywall-card-lifetime {
+    order: 1;
+  }
+
+  .mkt-paywall-card-monthly {
+    order: 2;
+  }
+}
+
+.mkt-paywall-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  background: var(--mkt-card);
+  border: 1.5px solid var(--mkt-line);
+  border-radius: 22px;
+  padding: 28px 24px 26px;
+  box-shadow:
+    0 2px 0 rgba(21, 35, 28, 0.04),
+    0 14px 40px -16px rgba(21, 35, 28, 0.12);
+}
+
+.mkt-paywall-card-monthly {
+  padding-top: 32px;
+}
+
+.mkt-paywall-card-lifetime {
+  border-color: rgba(14, 122, 75, 0.42);
+  background: linear-gradient(
+    165deg,
+    var(--mkt-brand-tint) 0%,
+    #f8fcfa 48%,
+    var(--mkt-card) 100%
+  );
+  box-shadow:
+    0 2px 0 rgba(14, 122, 75, 0.07),
+    0 20px 48px -18px rgba(14, 122, 75, 0.22);
+  padding-top: 38px;
+}
+
+@media (min-width: 768px) {
+  .mkt-paywall-card-lifetime {
+    padding: 36px 30px 30px;
+    min-height: 100%;
+  }
+}
+
+.mkt-paywall-hero-tab {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: var(--mkt-font-b);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #fff;
+  background: var(--mkt-brand);
+  padding: 7px 16px;
+  border-radius: 999px;
+  white-space: nowrap;
+  box-shadow: 0 4px 14px -4px rgba(14, 122, 75, 0.55);
+}
+
+.mkt-paywall-plan-label {
+  font-family: var(--mkt-font-b);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--mkt-muted);
+  margin-bottom: 10px;
+}
+
+.mkt-paywall-plan-label-hero {
+  font-family: var(--mkt-font-d);
+  font-size: clamp(1.15rem, 2.2vw, 1.35rem);
+  font-weight: 600;
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--mkt-ink);
+  line-height: 1.3;
+  margin-bottom: 14px;
+}
+
+.mkt-paywall-price-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 10px;
+  margin-bottom: 6px;
+}
+
+.mkt-paywall-price-row-hero {
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.mkt-paywall-price {
+  font-family: var(--mkt-font-d);
+  font-size: clamp(2rem, 4vw, 2.35rem);
+  font-weight: 600;
+  line-height: 1;
+  color: var(--mkt-ink);
+}
+
+.mkt-paywall-price-hero {
+  font-size: clamp(2.25rem, 4.5vw, 2.75rem);
+}
+
+.mkt-paywall-interval {
+  font-size: 15px;
+  color: var(--mkt-muted);
+}
+
+.mkt-paywall-compare {
+  font-size: 1.05rem;
+  font-weight: 500;
+  color: var(--mkt-faint);
+  text-decoration: line-through;
+}
+
+.mkt-paywall-savings {
+  font-family: var(--mkt-font-b);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--mkt-brand-deep);
+  background: #d6eee0;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+.mkt-paywall-once {
+  font-size: 14px;
+  color: var(--mkt-muted);
+  margin-bottom: 18px;
+}
+
+.mkt-paywall-feature-list {
+  flex: 1;
+  margin-bottom: 22px;
+}
+
+.mkt-paywall-card-monthly .mkt-paywall-feature-list li {
+  font-size: 14px;
+}
+
+.mkt-paywall-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 48px;
+  margin-top: auto;
+  font-family: var(--mkt-font-b);
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: 14px;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    opacity 0.15s;
+}
+
+.mkt-paywall-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.mkt-paywall-btn-secondary {
+  color: var(--mkt-ink);
+  background: var(--mkt-card);
+  border: 1.5px solid var(--mkt-line);
+}
+
+.mkt-paywall-btn-secondary:hover:not(:disabled) {
+  border-color: #bfd9cc;
+  background: var(--mkt-brand-tint);
+}
+
+.mkt-paywall-btn-primary {
+  color: #fff;
+  background: var(--mkt-brand);
+  box-shadow: 0 8px 22px -8px rgba(14, 122, 75, 0.65);
+}
+
+.mkt-paywall-btn-primary:hover:not(:disabled) {
+  background: var(--mkt-brand-deep);
+}
+
+.mkt-paywall-footer-link {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 14px;
+}
+
+.mkt-paywall-footer-link a {
+  color: var(--mkt-brand);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.mkt-pricing-section .mkt-paywall {
+  margin-top: 32px;
 }
 
 /* ============================================================

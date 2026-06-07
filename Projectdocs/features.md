@@ -14,13 +14,13 @@
 ## Marketing landing (`/`, `/try`, and `/daily`)
 
 - **Handoff reference:** **`Projectdocs/Landing Page.html`** — implemented with **`marketing-root`** layout, **`components/marketing/marketing.css`**, Fredoka / Hanken / Noto Naskh  
-- **Nav (`MarketingHeader`):** wordmark, **Try** (`/#challenge`), **Features** (`/#features`), **Pricing** (`/#pricing`), **Sign in**, primary trial CTA  
-- **Hero:** two-column layout, animated **سلام** trace mockup card, **`MarketingTrialCTAs`** — **Let's go!** → **`/onboarding`**, **Sign in** ghost button  
+- **Nav (`MarketingHeader`):** wordmark, **Try** (`/#challenge`), **Features** (`/#features`), **Pricing** (`/#pricing`), **Sign in**, primary CTA **Get full access**  
+- **Hero:** two-column layout, animated **سلام** trace mockup card, **`MarketingAccessCTAs`** — **Let's go!** → **`/onboarding`**, **Sign in** ghost button  
 - **`#challenge`:** dark section, **`LandingChallengeSection`** — **today’s word** (one word per **UTC day** from a curated pool in **`lib/daily-challenge/pool.ts`**); honest **0–100%** coverage bar (pass at **88%**); user can **keep tracing** after pass; success expands **inside the card** (no page jump); **no Check**; **no lesson progress save**  
 - **`/daily`:** shareable page with the same daily challenge (`compactHeading`) + **Home** back link  
-- **Features:** six emoji cards; **Pricing:** centered plan card + checklist; **Footer** with legal placeholders  
+- **Features:** six emoji cards; **Pricing:** side-by-side plan cards via **`PaywallOptions`** (monthly left, lifetime hero right); **Footer** with legal placeholders  
 - **`/try`:** same **`LandingChallengeSection`** as **`/daily`** (`compactHeading`) + **Home** back link  
-- **`MarketingTrialCTAs`** / **`primaryTrialCtaLabel`** — hero, pricing, and demo-success variants; PostHog **`subscribe_click`** when analytics env is set  
+- **`MarketingAccessCTAs`** — hero and demo-success variants; **`PaywallOptions`** on **`#pricing`** and **`/subscribe`**; PostHog **`subscribe_click`** / **`checkout_started`** when analytics env is set  
 - **PostHog events (when env set):** **`daily_challenge_started`**, **`daily_challenge_passed`**, **`demo_trace_passed`**, **`$pageview`**, plus lesson/checkout events — see **`PostHogProvider`** in **`app/layout.tsx`**
 
 ## Daily challenge (retention)
@@ -35,7 +35,7 @@
 ## Onboarding funnel (`/onboarding`)
 
 - **`/onboarding`** — signed-out profiling + **one** trace (**س**) + projection + Clerk sign-up → **`/subscribe`**  
-- **Hero CTA (signed out):** **`Let's go!`** → **`/onboarding`** via **`MarketingTrialCTAs`** (`variant="hero"`)  
+- **Hero CTA (signed out):** **`Let's go!`** → **`/onboarding`** via **`MarketingAccessCTAs`** (`variant="hero"`)  
 - **Steps:** welcome (server-rendered) → **`?step=q0`…`q4`** → **`trace`** → **`projection`** → **`signup`**  
 - **Session storage** (`arabivo_onboarding_v1`) holds answers until sign-up; then **`saveOnboardingProfile`** → Supabase **`user_onboarding`**  
 - **Sign-up:** custom Clerk flow (**Google** + email/password + verification); OAuth callback **`/onboarding/sso-callback`**  
@@ -85,7 +85,7 @@
 ## Progress and dashboard
 
 - **`user_progress`** in Supabase: `clerk_user_id`, `lesson_id`, `completed`, `completed_at`, `best_result` (`excellent` | `good`) — **no** `section_id` column; sections are derived in app code  
-- **`user_subscriptions`** in Supabase: Stripe subscription snapshot (`status`, `current_period_end`, etc.) — updated via **`/api/webhooks/stripe`**; landing **`#pricing`** + **`/subscribe`** start checkout; dashboard shows **Billing** (**LearnSubscriptionCard**) **only** for **active** / **trialing** users when Stripe env vars are set; **`/lessons`** requires **`active`** or **`trialing`** subscription **in production** when billing is configured (see **`Projectdocs/stripe.md`**; Preview/local may bypass enforcement)  
+- **`user_subscriptions`** in Supabase: Stripe snapshot (`status`, `current_period_end`, etc.) — updated via **`/api/webhooks/stripe`**; supports **`lifetime`**, **`active`**, **`trialing`**; landing **`#pricing`** + **`/subscribe`** call **`POST /api/checkout`** with `{ plan: "lifetime" | "monthly" }`; dashboard **Billing** (**`LearnSubscriptionCard`**) for paid users — **Lifetime member** badge or **Manage billing** for monthly; **`/lessons`** requires paid access **in production** when billing is configured (see **`Projectdocs/stripe.md`**; Preview/local may bypass enforcement)  
 - **Checkout feedback:** `?checkout=success` on dashboard after payment; **`?checkout=canceled`** or **`?checkout=failed`** on **`/`** (banner at top; links to **`#pricing`**)  
 - **Dashboard unit cards:** per-unit **completed / total**, animated **progress ring** %, **In progress** / **✓ Complete** / **Locked** badges; **Challenge words** always reachable when unit unlock rules allow — **`getDashboardUnits`** + **`getLearnDashboardUnitCards`**  
 - **Post-save navigation** (`getPostCompletionPath`): after save, **Next** goes to the **next lesson in section order** (even if already completed, for replay); after the **last** lesson in the section, **`/lessons/sections/[sectionId]`** for that section (not auto-advance to the next section)  

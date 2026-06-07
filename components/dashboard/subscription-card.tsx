@@ -3,7 +3,10 @@
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { isPaidSubscriptionStatus } from "@/lib/subscriptions/status";
+import {
+  isLifetimeStatus,
+  isPaidSubscriptionStatus,
+} from "@/lib/subscriptions/status";
 import type { UserSubscriptionRow } from "@/lib/subscriptions/types";
 
 type Props = {
@@ -27,6 +30,8 @@ export function SubscriptionCard({ stripeConfigured, subscription }: Props) {
   if (!paid) {
     return null;
   }
+
+  const lifetime = isLifetimeStatus(subscription?.status);
 
   async function openPortal() {
     setError(null);
@@ -67,32 +72,46 @@ export function SubscriptionCard({ stripeConfigured, subscription }: Props) {
       >
         Billing
       </h2>
-      <p className="mt-1 text-sm text-muted-foreground">
-        Payment methods and invoices live in the Stripe customer portal.
-      </p>
-
-      <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="text-sm">
-          <span className="font-medium text-foreground capitalize">
-            {subscription?.status.replace(/_/g, " ")}
-          </span>
-          {periodLabel ? (
-            <span className="text-muted-foreground">
-              {" "}
-              · Renews {periodLabel}
+      {lifetime ? (
+        <>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Full access with no recurring charges.
+          </p>
+          <div className="mt-4">
+            <span className="inline-flex rounded-full bg-primary/10 px-3 py-1 text-sm font-semibold text-primary">
+              Lifetime member
             </span>
-          ) : null}
-        </div>
-        <Button
-          type="button"
-          variant="outline"
-          className="min-h-11 shrink-0"
-          disabled={pending}
-          onClick={() => void openPortal()}
-        >
-          {pending ? "Opening…" : "Manage billing"}
-        </Button>
-      </div>
+          </div>
+        </>
+      ) : (
+        <>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Payment methods and invoices live in the Stripe customer portal.
+          </p>
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="text-sm">
+              <span className="font-medium text-foreground capitalize">
+                {subscription?.status.replace(/_/g, " ")}
+              </span>
+              {periodLabel ? (
+                <span className="text-muted-foreground">
+                  {" "}
+                  · Renews {periodLabel}
+                </span>
+              ) : null}
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              className="min-h-11 shrink-0"
+              disabled={pending}
+              onClick={() => void openPortal()}
+            >
+              {pending ? "Opening…" : "Manage billing"}
+            </Button>
+          </div>
+        </>
+      )}
 
       {error ? (
         <p className="mt-3 text-sm text-destructive" role="alert">

@@ -16,6 +16,47 @@ function getCurrentPeriodEndUnix(
 }
 
 /**
+ * Upserts lifetime access from a one-time Checkout Session (payment mode).
+ */
+export async function syncLifetimeFromCheckoutSession(
+  session: Stripe.Checkout.Session,
+): Promise<void> {
+  const clerkUserId =
+    session.metadata?.clerk_user_id ?? session.client_reference_id ?? null;
+  if (!clerkUserId) {
+    console.error("[stripe] Missing clerk_user_id for lifetime checkout");
+    return;
+  }
+
+  const customerId =
+    typeof session.customer === "string"
+      ? session.customer
+      : session.customer?.id;
+
+  if (!customerId) {
+    console.error("[stripe] Missing customer for lifetime checkout");
+    return;
+  }
+
+  const supabase = createSupabaseAdminClient();
+  const { error } = await supabase.from("user_subscriptions").upsert(
+    {
+      clerk_user_id: clerkUserId,
+      stripe_customer_id: customerId,
+      stripe_subscription_id: null,
+      status: "lifetime",
+      current_period_end: null,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "clerk_user_id" },
+  );
+
+  if (error) {
+    console.error("[stripe sync lifetime]", error.message);
+  }
+}
+
+/**
  * Upserts subscription state from a Stripe Subscription object (webhooks / checkout complete).
  */
 export async function syncSubscriptionFromStripe(
@@ -29,6 +70,17 @@ export async function syncSubscriptionFromStripe(
     return;
   }
 
+  const supabase = createSupabaseAdminClient();
+  const { data: existing } = await supabase
+    .from("user_subscriptions")
+    .select("status")
+    .eq("clerk_user_id", clerkUserId)
+    .maybeSingle();
+
+  if (existing?.status === "lifetime") {
+    return;
+  }
+
   const customerId =
     typeof subscription.customer === "string"
       ? subscription.customer
@@ -39,7 +91,6 @@ export async function syncSubscriptionFromStripe(
     ? new Date(periodEndUnix * 1000).toISOString()
     : null;
 
-  const supabase = createSupabaseAdminClient();
   const { error } = await supabase.from("user_subscriptions").upsert(
     {
       clerk_user_id: clerkUserId,

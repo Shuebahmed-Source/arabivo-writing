@@ -37,7 +37,7 @@ Snapshot of **Stripe** subscription state per Clerk user, updated from **webhook
 | `clerk_user_id`           | `text`       | Primary key; Clerk user id |
 | `stripe_customer_id`      | `text`       | Stripe Customer id |
 | `stripe_subscription_id`  | `text`       | Nullable |
-| `status`                  | `text`       | Stripe subscription status (e.g. `active`, `canceled`) |
+| `status`                  | `text`       | e.g. `lifetime`, `active`, `trialing`, `canceled` |
 | `current_period_end`      | `timestamptz`| End of current billing period (when known) |
 | `updated_at`              | `timestamptz`| Default `now()` |
 

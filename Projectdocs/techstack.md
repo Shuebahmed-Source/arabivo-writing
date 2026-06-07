@@ -24,7 +24,7 @@
 - **`user_progress` table** — see `Projectdocs/database.md`  
 - **Server-only Supabase client** with **`SUPABASE_SERVICE_ROLE_KEY`** for reads/writes (RLS enabled; no anon policies; app verifies **Clerk** `userId` before writing). Optional guard treats JWT **`anon`** keys as misconfiguration for the service-role slot.  
 - **Public env:** `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` (anon unused for progress MVP; reserved for future client patterns)  
-- **Stripe** — Checkout via **`/subscribe`** and **`POST /api/checkout`** (shared **`lib/stripe/createCheckoutSession.ts`**), billing portal (**`POST /api/billing-portal`**), webhooks (**`POST /api/webhooks/stripe`**); **`user_subscriptions`** table. See **`Projectdocs/stripe.md`**.  
+- **Stripe** — Lifetime + monthly Checkout via **`POST /api/checkout`** (`{ plan: "lifetime" | "monthly" }`, **`lib/stripe/createCheckoutSession.ts`**), billing portal for monthly (**`POST /api/billing-portal`**), webhooks (**`POST /api/webhooks/stripe`**); **`user_subscriptions`** (`lifetime` / subscription statuses). See **`Projectdocs/stripe.md`**.  
 
 ## Authentication
 
@@ -76,4 +76,4 @@
 
 ## Environment variables (reference)
 
-See **`.env.example`**: Clerk publishable + secret; optional **`NEXT_PUBLIC_CLERK_SIGN_IN_URL`**, **`NEXT_PUBLIC_CLERK_SIGN_UP_URL`**, fallback redirect URLs, **`NEXT_PUBLIC_APP_URL`**, **`NEXT_PUBLIC_CLERK_PROXY_URL`**; Supabase URL, anon key, **service role**; Stripe keys, **`STRIPE_PRICE_ID`**, **`STRIPE_WEBHOOK_SECRET`**, optional **`STRIPE_TRIAL_PERIOD_DAYS`**; optional **`NEXT_PUBLIC_POSTHOG_KEY`** + **`NEXT_PUBLIC_POSTHOG_HOST`** (e.g. `https://eu.i.posthog.com`). Local overrides in **`.env.local`** (gitignored). Summary: **`Projectdocs/launch-checklist.md`**.
+See **`.env.example`**: Clerk publishable + secret; optional Clerk URL vars, **`NEXT_PUBLIC_APP_URL`**, **`NEXT_PUBLIC_CLERK_PROXY_URL`**; Supabase URL, anon key, **service role**; **`STRIPE_SECRET_KEY`**, **`STRIPE_WEBHOOK_SECRET`**, **`STRIPE_LIFETIME_PRICE_ID`**, **`STRIPE_MONTHLY_PRICE_ID`**, optional **`FREE_ACCESS_EMAILS`**; optional PostHog. Local overrides in **`.env.local`** (gitignored). Summary: **`Projectdocs/launch-checklist.md`**.

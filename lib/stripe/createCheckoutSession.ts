@@ -4,13 +4,15 @@ import Stripe from "stripe";
 
 import { hasSubscriptionAccessForCurrentUser } from "@/lib/subscriptions/access";
 
+import type { CheckoutPlan } from "./plans";
 import { resolveSubscriptionPriceId } from "./resolveSubscriptionPriceId";
 import {
   getStripe,
-  getStripePriceId,
-  getStripeTrialPeriodDays,
+  getStripeLifetimePriceId,
+  getStripeMonthlyPriceId,
   isPlausibleStripeSecretKey,
   isStripeConfigured,
+  resolveAppOrigin,
 } from "./server";
 
 export type CreateCheckoutSessionResult =
@@ -22,18 +24,35 @@ export type CreateCheckoutSessionResult =
         | "not_configured"
         | "no_url"
         | "already_subscribed"
-        | "checkout_failed";
+        | "checkout_failed"
+        | "invalid_plan";
     };
 
-function buildSessionParams(opts: {
+function buildLifetimeSessionParams(opts: {
   priceId: string;
   origin: string;
   userId: string;
   email?: string;
-  trialDays: number;
-  includeTrial: boolean;
 }): Stripe.Checkout.SessionCreateParams {
-  const { priceId, origin, userId, email, trialDays, includeTrial } = opts;
+  const { priceId, origin, userId, email } = opts;
+  return {
+    mode: "payment",
+    ...(email ? { customer_email: email } : {}),
+    line_items: [{ price: priceId, quantity: 1 }],
+    success_url: `${origin}/dashboard?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${origin}/?checkout=canceled`,
+    client_reference_id: userId,
+    metadata: { clerk_user_id: userId, plan: "lifetime" },
+  };
+}
+
+function buildMonthlySessionParams(opts: {
+  priceId: string;
+  origin: string;
+  userId: string;
+  email?: string;
+}): Stripe.Checkout.SessionCreateParams {
+  const { priceId, origin, userId, email } = opts;
   return {
     mode: "subscription",
     ...(email ? { customer_email: email } : {}),
@@ -41,17 +60,16 @@ function buildSessionParams(opts: {
     success_url: `${origin}/dashboard?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${origin}/?checkout=canceled`,
     client_reference_id: userId,
-    metadata: { clerk_user_id: userId },
+    metadata: { clerk_user_id: userId, plan: "monthly" },
     subscription_data: {
       metadata: { clerk_user_id: userId },
-      ...(includeTrial && trialDays > 0
-        ? { trial_period_days: trialDays }
-        : {}),
     },
   };
 }
 
-export async function createCheckoutSessionUrlForCurrentUser(): Promise<CreateCheckoutSessionResult> {
+export async function createCheckoutSessionUrlForCurrentUser(
+  plan: CheckoutPlan,
+): Promise<CreateCheckoutSessionResult> {
   if (!isStripeConfigured()) {
     const key = process.env.STRIPE_SECRET_KEY?.trim() ?? "";
     if (key && !isPlausibleStripeSecretKey(key)) {
@@ -78,31 +96,38 @@ export async function createCheckoutSessionUrlForCurrentUser(): Promise<CreateCh
   const h = await headers();
   const host = h.get("x-forwarded-host") ?? h.get("host") ?? "localhost:3000";
   const proto = h.get("x-forwarded-proto") ?? "http";
-  const envOrigin = process.env.NEXT_PUBLIC_APP_URL?.trim();
-  const origin = envOrigin || `${proto}://${host}`;
+  const origin = resolveAppOrigin(host, proto);
 
   const stripe = getStripe();
-  const envPriceOrProduct = getStripePriceId();
-  const resolved = await resolveSubscriptionPriceId(stripe, envPriceOrProduct);
-  if (!resolved.ok) {
-    console.error("[stripe] resolve price:", resolved.message);
-    return { ok: false, error: "checkout_failed" };
+
+  let sessionParams: Stripe.Checkout.SessionCreateParams;
+  if (plan === "lifetime") {
+    sessionParams = buildLifetimeSessionParams({
+      priceId: getStripeLifetimePriceId(),
+      origin,
+      userId,
+      email,
+    });
+  } else if (plan === "monthly") {
+    const envPriceOrProduct = getStripeMonthlyPriceId();
+    const resolved = await resolveSubscriptionPriceId(stripe, envPriceOrProduct);
+    if (!resolved.ok) {
+      console.error("[stripe] resolve monthly price:", resolved.message);
+      return { ok: false, error: "checkout_failed" };
+    }
+    sessionParams = buildMonthlySessionParams({
+      priceId: resolved.priceId,
+      origin,
+      userId,
+      email,
+    });
+  } else {
+    return { ok: false, error: "invalid_plan" };
   }
-  const priceId = resolved.priceId;
-  const trialDays = getStripeTrialPeriodDays();
 
   let session: Stripe.Checkout.Session;
   try {
-    session = await stripe.checkout.sessions.create(
-      buildSessionParams({
-        priceId,
-        origin,
-        userId,
-        email,
-        trialDays,
-        includeTrial: true,
-      }),
-    );
+    session = await stripe.checkout.sessions.create(sessionParams);
   } catch (e) {
     if (e instanceof Stripe.errors.StripeError) {
       console.error(

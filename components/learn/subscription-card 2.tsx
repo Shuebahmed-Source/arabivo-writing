@@ -2,10 +2,7 @@
 
 import { useState } from "react";
 
-import {
-  isLifetimeStatus,
-  isPaidSubscriptionStatus,
-} from "@/lib/subscriptions/status";
+import { isPaidSubscriptionStatus } from "@/lib/subscriptions/status";
 import type { UserSubscriptionRow } from "@/lib/subscriptions/types";
 
 type Props = {
@@ -28,8 +25,6 @@ export function LearnSubscriptionCard({
   if (!paid) {
     return null;
   }
-
-  const lifetime = isLifetimeStatus(subscription?.status);
 
   async function openPortal() {
     setError(null);
@@ -64,43 +59,31 @@ export function LearnSubscriptionCard({
       <h2 id="learn-billing-heading" className="learn-billing-title">
         Billing
       </h2>
-      {lifetime ? (
-        <>
-          <p className="learn-billing-sub">
-            Full access with no recurring charges.
-          </p>
-          <div className="learn-billing-row">
-            <span className="learn-billing-lifetime-badge">Lifetime member</span>
-          </div>
-        </>
-      ) : (
-        <>
-          <p className="learn-billing-sub">
-            Payment methods and invoices live in the Stripe customer portal.
-          </p>
-          <div className="learn-billing-row">
-            <div className="text-sm">
-              <span className="font-medium capitalize">
-                {subscription?.status.replace(/_/g, " ")}
-              </span>
-              {periodLabel ? (
-                <span className="text-[var(--learn-muted)]">
-                  {" "}
-                  · Renews {periodLabel}
-                </span>
-              ) : null}
-            </div>
-            <button
-              type="button"
-              className="learn-billing-btn"
-              disabled={pending}
-              onClick={() => void openPortal()}
-            >
-              {pending ? "Opening…" : "Manage billing"}
-            </button>
-          </div>
-        </>
-      )}
+      <p className="learn-billing-sub">
+        Payment methods and invoices live in the Stripe customer portal.
+      </p>
+
+      <div className="learn-billing-row">
+        <div className="text-sm">
+          <span className="font-medium capitalize">
+            {subscription?.status.replace(/_/g, " ")}
+          </span>
+          {periodLabel ? (
+            <span className="text-[var(--learn-muted)]">
+              {" "}
+              · Renews {periodLabel}
+            </span>
+          ) : null}
+        </div>
+        <button
+          type="button"
+          className="learn-billing-btn"
+          disabled={pending}
+          onClick={() => void openPortal()}
+        >
+          {pending ? "Opening…" : "Manage billing"}
+        </button>
+      </div>
 
       {error ? (
         <p className="learn-billing-error" role="alert">

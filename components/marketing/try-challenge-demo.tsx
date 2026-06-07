@@ -19,7 +19,6 @@ import { cn } from "@/lib/utils";
 
 type Props = {
   demo: HomepageDemoChallenge;
-  trialDays: number;
   initialSignedIn: boolean;
   className?: string;
   /** When true, show a compact heading (for `/try`). */
@@ -28,7 +27,6 @@ type Props = {
 
 export function TryChallengeDemo({
   demo,
-  trialDays,
   initialSignedIn,
   className,
   compactHeading = false,
@@ -201,7 +199,6 @@ export function TryChallengeDemo({
                     </Button>
                   ) : (
                     <TrialFunnelCTAs
-                      trialDays={trialDays}
                       initialSignedIn={initialSignedIn}
                       variant="hero"
                     />

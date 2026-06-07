@@ -4,7 +4,6 @@ import type { Metadata } from "next";
 
 import { MarketingHeader } from "@/components/layout/marketing-header";
 import "@/components/marketing/marketing.css";
-import { getStripeTrialPeriodDays } from "@/lib/stripe/server";
 
 const fredoka = Fredoka({
   subsets: ["latin"],
@@ -60,7 +59,6 @@ export default async function MarketingLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const trialDays = getStripeTrialPeriodDays();
   const { userId } = await auth();
   const initialSignedIn = Boolean(userId);
 
@@ -68,10 +66,7 @@ export default async function MarketingLayout({
     <div
       className={`marketing-root ${fredoka.variable} ${hanken.variable} ${notoNaskh.variable}`}
     >
-      <MarketingHeader
-        trialDays={trialDays}
-        initialSignedIn={initialSignedIn}
-      />
+      <MarketingHeader initialSignedIn={initialSignedIn} />
       {children}
     </div>
   );

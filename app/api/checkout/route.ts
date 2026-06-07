@@ -1,9 +1,24 @@
 import { NextResponse } from "next/server";
 
 import { createCheckoutSessionUrlForCurrentUser } from "@/lib/stripe/createCheckoutSession";
+import { isCheckoutPlan } from "@/lib/stripe/plans";
 
-export async function POST() {
-  const result = await createCheckoutSessionUrlForCurrentUser();
+export async function POST(req: Request) {
+  let plan: unknown = "lifetime";
+  try {
+    const body = (await req.json()) as { plan?: unknown };
+    if (body.plan !== undefined) {
+      plan = body.plan;
+    }
+  } catch {
+    plan = "lifetime";
+  }
+
+  if (!isCheckoutPlan(plan)) {
+    return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
+  }
+
+  const result = await createCheckoutSessionUrlForCurrentUser(plan);
 
   if (!result.ok) {
     if (result.error === "not_configured") {
@@ -20,6 +35,9 @@ export async function POST() {
         { error: "Already subscribed" },
         { status: 409 },
       );
+    }
+    if (result.error === "invalid_plan") {
+      return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
     }
     if (result.error === "checkout_failed") {
       return NextResponse.json(

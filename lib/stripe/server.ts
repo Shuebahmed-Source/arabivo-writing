@@ -18,11 +18,14 @@ export function isPlausibleStripeSecretKey(key: string): boolean {
   return /^sk_(live|test)_/.test(key.trim());
 }
 
-/** Checkout + portal require a valid-format secret key and STRIPE_PRICE_ID (price_ or prod_). */
+/** Checkout + portal require secret key and both price IDs. */
 export function isStripeConfigured(): boolean {
   const key = process.env.STRIPE_SECRET_KEY?.trim() ?? "";
-  const price = process.env.STRIPE_PRICE_ID?.trim() ?? "";
-  return Boolean(key && price && isPlausibleStripeSecretKey(key));
+  const lifetime = process.env.STRIPE_LIFETIME_PRICE_ID?.trim() ?? "";
+  const monthly = process.env.STRIPE_MONTHLY_PRICE_ID?.trim() ?? "";
+  return Boolean(
+    key && lifetime && monthly && isPlausibleStripeSecretKey(key),
+  );
 }
 
 /**
@@ -38,27 +41,44 @@ export function shouldEnforceSubscriptionAccess(): boolean {
   return process.env.NODE_ENV === "production";
 }
 
-export function getStripePriceId(): string {
-  const id = process.env.STRIPE_PRICE_ID?.trim();
+export function getStripeLifetimePriceId(): string {
+  const id = process.env.STRIPE_LIFETIME_PRICE_ID?.trim();
   if (!id) {
-    throw new Error("Missing STRIPE_PRICE_ID");
+    throw new Error("Missing STRIPE_LIFETIME_PRICE_ID");
   }
   return id;
 }
 
+export function getStripeMonthlyPriceId(): string {
+  const id = process.env.STRIPE_MONTHLY_PRICE_ID?.trim();
+  if (!id) {
+    throw new Error("Missing STRIPE_MONTHLY_PRICE_ID");
+  }
+  return id;
+}
+
+/** True when the incoming request is from local/LAN dev (not production host). */
+export function isLocalDevHost(host: string): boolean {
+  const hostname = host.split(":")[0]?.toLowerCase() ?? "";
+  return (
+    hostname === "localhost" ||
+    hostname === "127.0.0.1" ||
+    hostname.endsWith(".local") ||
+    /^192\.168\.\d{1,3}\.\d{1,3}$/.test(hostname) ||
+    /^10\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(hostname) ||
+    /^172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3}$/.test(hostname)
+  );
+}
+
 /**
- * Free trial length for new subscriptions created via Checkout.
- * Set `STRIPE_TRIAL_PERIOD_DAYS=7` on Vercel; omit or `0` for no trial.
- * Avoid duplicating a trial on the Stripe Price unless you intend to stack behavior — prefer one place (here or Dashboard).
+ * Stripe return URLs: use the request origin on localhost/LAN so cancel/success
+ * stay on your dev server even when NEXT_PUBLIC_APP_URL points at production.
  */
-export function getStripeTrialPeriodDays(): number {
-  const raw = process.env.STRIPE_TRIAL_PERIOD_DAYS?.trim();
-  if (!raw) {
-    return 0;
+export function resolveAppOrigin(host: string, proto: string): string {
+  const requestOrigin = `${proto}://${host}`;
+  if (isLocalDevHost(host)) {
+    return requestOrigin;
   }
-  const n = Number.parseInt(raw, 10);
-  if (!Number.isFinite(n) || n < 0 || n > 365) {
-    return 0;
-  }
-  return n;
+  const envOrigin = process.env.NEXT_PUBLIC_APP_URL?.trim();
+  return envOrigin || requestOrigin;
 }

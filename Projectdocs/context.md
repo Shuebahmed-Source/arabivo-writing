@@ -88,7 +88,7 @@ Public visitors can trace **today’s word** **without sign-in**:
 - **Word rotation:** one lesson id per **UTC calendar day** from **`DAILY_CHALLENGE_POOL`** (~39 curated ids) — **`lib/daily-challenge/get-daily-challenge.ts`**; **`lib/marketing/demo-challenge.ts`** re-exports **`getDailyChallenge()`**  
 - **Coverage demo** (handoff algorithm): honest **0–100%** bar; pass at **88%** guide coverage (**`lib/marketing/landing-trace.ts`**); user can **keep tracing** after pass; **no Check button**; **no `user_progress` save**  
 - **Signed-in streak:** pass saves to **`user_daily_challenge`** (separate from lessons); dashboard shows streak + link to **`/daily`**  
-- On success: **signed-out** → **`MarketingTrialCTAs`** (**Start your first lesson** → **`/onboarding`**); **signed-in** → **`/lessons`** via success CTA variant  
+- On success: **signed-out** → **`MarketingAccessCTAs`** (**Start your first lesson** → **`/onboarding`**); **signed-in** → **`/lessons`** via success CTA variant  
 
 Legacy components **`TryChallengeDemo`** / **`TrialFunnelCTAs`** (Check + **ششش**) remain in the repo but are **not** used on **`/`**, **`/try`**, or **`/daily`**.
 
@@ -100,7 +100,7 @@ Signed-out entry from the landing hero **Let's go!** — **not** paywalled; **si
 2. **One trace** — **س** (sīn) via **`OnboardingTraceStep`** (onboarding canvas; separate from lesson **`WritingCanvas`**)  
 3. **Projection** — chart from answers  
 4. **Sign up** — free Clerk account (Google or email); answers saved to **`user_onboarding`**  
-5. **`/subscribe`** — Stripe plan page + Checkout (**no** extra post-signup trace exercises)
+5. **`/subscribe`** — paywall (lifetime + monthly cards) + Stripe Checkout (**no** extra post-signup trace exercises)
 
 Design reference: **`Projectdocs/design_handoff_onboarding/`**. Implementation: **`app/onboarding/`**, **`lib/onboarding/`**, **`components/onboarding/`**.
 
@@ -122,10 +122,10 @@ Repository URL, initial push steps, and **GitHub CLI (`gh`)** troubleshooting (i
 
 The app can run as **free-for-signed-in-users** (Stripe env incomplete) or **paid lessons** (production):
 
-- **Stripe Checkout** (subscription) and **Customer Billing Portal**; state synced to **`user_subscriptions`** via **`/api/webhooks/stripe`**.  
-- **`/lessons`** and progress saves require subscription access when Stripe billing is configured **and** enforcement runs (**Vercel Production** — **`shouldEnforceSubscriptionAccess()`**). Subscriptions start from **onboarding sign-up → `/subscribe`**, the **landing `#pricing`** section, and direct **`/subscribe`** visits; unpaid **`/lessons`** visits redirect to **`/subscribe`**. **Vercel Preview** and **local dev** skip subscription enforcement for testing; see **`features.md`**.  
-- Optional **free trial** via **`STRIPE_TRIAL_PERIOD_DAYS`** (e.g. `7`) — no separate Stripe “trial product” required.  
-- **`/`**, **`/try`**, **`/daily`**, **`/#challenge`**, and **`/onboarding`** stay public (daily trace + demo only; full curriculum is behind the lessons paywall in production).
+- **Stripe Checkout** — **lifetime** (£54 one-time) and **monthly** (£7.99/month, no trial); **Customer Billing Portal** for monthly subscribers; state synced to **`user_subscriptions`** via **`/api/webhooks/stripe`** (includes **`lifetime`** status).  
+- **`/lessons`** and progress saves require paid access when Stripe billing is configured **and** enforcement runs (**Vercel Production** — **`shouldEnforceSubscriptionAccess()`**). Checkout starts from **onboarding → `/subscribe`**, **`#pricing`**, and direct **`/subscribe`** visits. **Vercel Preview** and **local dev** skip enforcement for testing; see **`features.md`**.  
+- **No free trial** on Checkout — onboarding trace is the free taste.  
+- **`/`**, **`/try`**, **`/daily`**, **`/#challenge`**, and **`/onboarding`** stay public.
 
 Operational checklist: **`Projectdocs/launch-checklist.md`**. Technical detail: **`Projectdocs/stripe.md`**.
 

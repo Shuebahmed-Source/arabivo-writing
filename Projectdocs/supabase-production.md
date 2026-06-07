@@ -56,7 +56,7 @@ If you use a **separate** dev Supabase project, keep dev URLs/keys in **`.env.lo
 1. Open your **deployed** app (or localhost with matching env).  
 2. Sign in with Clerk → complete a lesson with **Good** or **Excellent** (requires subscription if Stripe billing env is fully configured on the deployment).  
 3. In Supabase: **Table Editor** → **`user_progress`** — new row with `clerk_user_id` and `lesson_id` (value must match an **`id`** from **`lib/lessons.ts`**; the live curriculum is **79** lessons — **`context.md`**).  
-4. After a successful Stripe Checkout (and webhook), check **`user_subscriptions`** for a row with **`active`** or **`trialing`** status.  
+4. After a successful Stripe Checkout (and webhook), check **`user_subscriptions`** for a row with **`lifetime`**, **`active`**, or **`trialing`** status.  
 5. Complete onboarding sign-up on the live app → check **`user_onboarding`** for a row with `answers` JSON and `demo_completed_at` set.  
 6. Complete **`/daily`** while signed in → check **`user_daily_challenge`** for a row with today’s **`challenge_date`** and **`lesson_id`**.
 

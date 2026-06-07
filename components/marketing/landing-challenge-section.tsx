@@ -21,11 +21,10 @@ import {
   landingChallengeFontSize,
 } from "@/lib/marketing/landing-trace";
 
-import { MarketingTrialCTAs } from "./marketing-trial-ctas";
+import { MarketingAccessCTAs } from "./marketing-access-ctas";
 
 type Props = {
   challenge: DailyChallenge;
-  trialDays: number;
   initialSignedIn: boolean;
   streak?: DailyChallengeStreak | null;
   /** Hide section heading (for `/try` and `/daily`). */
@@ -34,7 +33,6 @@ type Props = {
 
 export function LandingChallengeSection({
   challenge,
-  trialDays,
   initialSignedIn,
   streak = null,
   compactHeading = false,
@@ -424,8 +422,7 @@ export function LandingChallengeSection({
                   {saveError}
                 </p>
               ) : null}
-              <MarketingTrialCTAs
-                trialDays={trialDays}
+              <MarketingAccessCTAs
                 initialSignedIn={initialSignedIn}
                 variant="success"
               />

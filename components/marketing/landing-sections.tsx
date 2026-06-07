@@ -1,13 +1,17 @@
 import Link from "next/link";
 
-import { MarketingTrialCTAs } from "./marketing-trial-ctas";
+import { MarketingAccessCTAs } from "./marketing-access-ctas";
+import { PaywallOptions } from "./paywall-options";
+import {
+  PRICING_SECTION_HEADLINE,
+  PRICING_SECTION_SUB,
+} from "@/lib/marketing/paywall-copy";
 
 type Props = {
-  trialDays: number;
   initialSignedIn: boolean;
 };
 
-export function LandingHero({ trialDays, initialSignedIn }: Props) {
+export function LandingHero({ initialSignedIn }: Props) {
   return (
     <section className="mkt-hero">
       <div className="mkt-hero-copy">
@@ -21,8 +25,7 @@ export function LandingHero({ trialDays, initialSignedIn }: Props) {
           Calm, guided tracing that builds real muscle memory — letter shapes,
           positions, connections — with clear feedback, not guesswork.
         </p>
-        <MarketingTrialCTAs
-          trialDays={trialDays}
+        <MarketingAccessCTAs
           initialSignedIn={initialSignedIn}
           variant="hero"
         />
@@ -152,47 +155,15 @@ export function LandingFeatures() {
   );
 }
 
-export function LandingPricing({
-  trialDays,
-  initialSignedIn,
-}: Props) {
-  const badgeLabel =
-    trialDays === 7
-      ? "7-Day Free Trial"
-      : trialDays === 3
-        ? "3-Day Free Trial"
-        : trialDays > 0
-          ? "Free Trial"
-          : "Full Access";
-
+export function LandingPricing({ initialSignedIn }: Props) {
   return (
     <section className="mkt-pricing-section" id="pricing">
       <div className="mkt-pricing-inner">
         <span className="mkt-eyebrow">Pricing</span>
-        <h2 className="mkt-section-h2">One plan. Everything unlocked.</h2>
-        <p className="mkt-section-sub">Start free. Upgrade when you&apos;re ready.</p>
+        <h2 className="mkt-section-h2">{PRICING_SECTION_HEADLINE}</h2>
+        <p className="mkt-section-sub">{PRICING_SECTION_SUB}</p>
 
-        <div className="mkt-pricing-card">
-          {trialDays > 0 ? (
-            <span className="mkt-pricing-badge">{badgeLabel}</span>
-          ) : null}
-          <div className="mkt-pricing-plan">Full Access</div>
-          <p className="mkt-pricing-desc">
-            One subscription unlocks every unit, section, and handwriting lesson.
-            Billing handled securely by Stripe.
-          </p>
-          <ul className="mkt-pricing-list">
-            <li>Full access to all lessons and saved progress</li>
-            <li>Tracing canvas on phone, tablet, and desktop</li>
-            <li>Personalised plan based on your goal</li>
-            <li>Manage your subscription anytime</li>
-          </ul>
-          <MarketingTrialCTAs
-            trialDays={trialDays}
-            initialSignedIn={initialSignedIn}
-            variant="pricing"
-          />
-        </div>
+        <PaywallOptions variant="landing" initialSignedIn={initialSignedIn} />
       </div>
     </section>
   );
