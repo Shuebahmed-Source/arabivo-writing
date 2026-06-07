@@ -7,20 +7,30 @@
 - Sign up and sign in (`/sign-up`, `/sign-in`)  
 - **Production:** **`/dashboard`**, **`/lessons`**, lesson URLs, and **section URLs** require authentication via **`proxy.ts`** (Clerk **`auth.protect()`** on those paths).  
 - **Vercel Preview + local dev:** the same routes can be opened **without** sign-in when **`isPreviewOrLocalDevBypassFromRequest`** / **`isPreviewOrLocalDevBypassServer()`** is true (**`lib/env/dev-access.ts`**): **`VERCEL_ENV=preview`**, or **`NODE_ENV=development`**, or **localhost** / **127.0.0.1** with no `VERCEL_ENV`. **Production** (`VERCEL_ENV=production` on Vercel) is unchanged.  
-- Marketing home **`/`**, **`/try`**, **`/#challenge`**, and **`/onboarding`** stay public  
+- Marketing home **`/`**, **`/try`**, **`/daily`**, **`/#challenge`**, and **`/onboarding`** stay public  
 - **`ClerkProvider`** sets sign-in/up paths and fallback redirects to **`/dashboard`** (see **`.env.example`** for optional `NEXT_PUBLIC_CLERK_*` URL variables). **`/sign-in`** and **`/sign-up`** accept **`?redirect_url=`** (internal path only) so pricing CTAs can continue to **`/subscribe`** after auth.  
 - **Production + Stripe billing configured:** users without subscription access who open **`/lessons`** are redirected to **`/subscribe`** (unless **`FREE_ACCESS_EMAILS`** matches — see **`stripe.md`**). Preview/local may skip both subscription enforcement and learn-route auth (see below).  
 
-## Marketing landing (`/` and `/try`)
+## Marketing landing (`/`, `/try`, and `/daily`)
 
 - **Handoff reference:** **`Projectdocs/Landing Page.html`** — implemented with **`marketing-root`** layout, **`components/marketing/marketing.css`**, Fredoka / Hanken / Noto Naskh  
 - **Nav (`MarketingHeader`):** wordmark, **Try** (`/#challenge`), **Features** (`/#features`), **Pricing** (`/#pricing`), **Sign in**, primary trial CTA  
 - **Hero:** two-column layout, animated **سلام** trace mockup card, **`MarketingTrialCTAs`** — **Let's go!** → **`/onboarding`**, **Sign in** ghost button  
-- **`#challenge`:** dark section, **`LandingChallengeSection`** — trace **قلم** (`word-qalam`); coverage bar (no **Check**); success → trial / lesson CTAs  
+- **`#challenge`:** dark section, **`LandingChallengeSection`** — **today’s word** (one word per **UTC day** from a curated pool in **`lib/daily-challenge/pool.ts`**); honest **0–100%** coverage bar (pass at **88%**); user can **keep tracing** after pass; success expands **inside the card** (no page jump); **no Check**; **no lesson progress save**  
+- **`/daily`:** shareable page with the same daily challenge (`compactHeading`) + **Home** back link  
 - **Features:** six emoji cards; **Pricing:** centered plan card + checklist; **Footer** with legal placeholders  
-- **`/try`:** same **`LandingChallengeSection`** (`compactHeading`) + **Home** back link  
+- **`/try`:** same **`LandingChallengeSection`** as **`/daily`** (`compactHeading`) + **Home** back link  
 - **`MarketingTrialCTAs`** / **`primaryTrialCtaLabel`** — hero, pricing, and demo-success variants; PostHog **`subscribe_click`** when analytics env is set  
-- Demo pass event: **`demo_trace_passed`** with `lesson_id: word-qalam` when coverage threshold is met  
+- **PostHog events (when env set):** **`daily_challenge_started`**, **`daily_challenge_passed`**, **`demo_trace_passed`**, **`$pageview`**, plus lesson/checkout events — see **`PostHogProvider`** in **`app/layout.tsx`**
+
+## Daily challenge (retention)
+
+- **Word rotation:** **`getDailyChallenge()`** in **`lib/daily-challenge/get-daily-challenge.ts`** — deterministic pick from **`DAILY_CHALLENGE_POOL`** by UTC calendar day (same word globally that day)  
+- **Public:** no sign-in required to trace on **`/#challenge`**, **`/try`**, **`/daily`**  
+- **Streak (signed-in only):** completing today’s trace saves to **`user_daily_challenge`** via **`recordDailyChallengeCompletion`**; streak count from consecutive UTC days (**`lib/daily-challenge/streak.ts`**) — **not** tied to lesson **`user_progress`**  
+- **Dashboard:** **`DashboardDailyChallengeCard`** — today’s Arabic word, streak badge, link to **`/daily`**  
+- **Grace rule:** if today is not done yet, yesterday’s completion still counts toward the displayed streak until UTC midnight  
+- **Anonymous users:** see sign-up CTA to save a streak; no row written without Clerk session
 
 ## Onboarding funnel (`/onboarding`)
 
@@ -45,9 +55,9 @@
 - **Four units**: Arabic letters (**5** sections), letter forms (**1** section), simple words (**7** sections), challenge words (**1** open section) — **79** total lessons in `lib/lessons.ts` (28 letters + 4 forms + 39 words + 8 challenge)  
 - **Simple words section ids** (in curriculum order): `simple-words-i`, `simple-words-ii`, `simple-words-iii`, `simple-words-body-people`, `simple-words-home-objects`, `simple-words-nature`, `simple-words-animals`  
 - **Challenge section id:** `challenge-words-core` — **Can you write this?** (8 challenge lessons; pick any order)  
-- **`/dashboard`** (handoff UI): stats chips (overall %, lessons complete, sections done), **Up Next** continue card → first incomplete lesson, **All sections** grid with **SVG progress rings**, unit cards link to **`/lessons#<unitId>`** — data via **`lib/learn/dashboard-data.ts`**, UI **`DashboardView`**  
+- **`/dashboard`** (handoff UI): stats chips (overall %, lessons complete, sections done), **Daily challenge** card (today’s word + streak → **`/daily`**), **Up Next** continue card → first incomplete lesson, **All sections** grid with **SVG progress rings**, unit cards link to **`/lessons#<unitId>`** — data via **`lib/learn/dashboard-data.ts`**, UI **`DashboardView`**  
 - **`/lessons`** (handoff UI): four **unit blocks** with Arabic header watermarks; **section cards** with progress dots, status badges (**Done** / **In progress** / **Available** / **Locked**), links to first incomplete lesson — **`lib/learn/lessons-data.ts`**, UI **`LessonsView`**  
-- **`/lessons/sections/[sectionId]`** — section hub (shadcn shell): item list, **Continue**, **Next section** when complete  
+- **`/lessons/sections/[sectionId]`** — section hub (learn handoff): Arabic-first **tappable lesson rows**, **Continue**, **Next section** when complete — **`SectionHubView`**, **`learn-main-section`**  
 - **`/lessons/[lessonId]`** — practice page (shadcn shell); breadcrumb back to section hub  
 - Locked lesson URL → **redirect to `/lessons`** (unlock rules skipped in Preview/local when the dev bypass is active — any lesson or section hub URL is reachable for QA)  
 
@@ -63,7 +73,7 @@
 - **Pointer-only** drawing (touch, stylus, mouse)  
 - **Clear** — resets strokes and on-screen feedback (not saved progress)  
 - **Check** — approximate scoring vs a hidden guide mask; **Try again** does not persist  
-- **Dynamic guide font size** — **`guideFontSizeRatio`** shrinks long challenge strings so they fit the canvas  
+- **Dynamic guide font size** — **`fitGuideFontSizePx`** measures Arabic on canvas and shrinks long strings to fit width; **`GUIDE_OVER_INK_SCALE`** keeps guide glyphs slightly wider than ink so the faint outline stays visible when tracing; sidebar/list reference text uses **`referenceArabicFontSize`**
 
 ## Scoring and feedback
 
@@ -83,13 +93,15 @@
 ## Responsive design
 
 - Mobile-first layout, large tap targets, route groups for marketing vs learn chrome  
+- **Section hub** lesson rows are full-width links with 48px+ action buttons; Arabic text wraps on narrow viewports (**`overflow-wrap`**, responsive **`referenceArabicFontSize`**)  
 - Canvas stroke data uses **normalized coordinates** so ink survives resize reasonably well  
 - **Learn nav:** centered Dashboard / Lessons tabs collapse below **720px** width  
 
 ## Not in scope yet
 
 - Lesson rows in Supabase  
-- Per-attempt history, streaks, analytics (PostHog captures demo funnel events only when env is set)  
+- Per-attempt history; **full-site** gamification / lesson streaks / leaderboards (daily challenge streak only — see **Daily challenge** above)  
 - `users` sync table in DB (progress keyed by Clerk `userId` only)  
 - Numbers unit and extended connection curriculum (optional future)  
-- Handoff styling for **section hub** and **lesson detail** pages (still shadcn / Inter)  
+- Handoff styling for **lesson detail** page (still shadcn / Inter); section hub is done  
+- PostHog reverse proxy (optional — reduces ad-blocker loss); onboarding funnel step events

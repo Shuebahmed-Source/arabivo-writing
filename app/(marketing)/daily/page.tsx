@@ -7,13 +7,15 @@ import { getDailyChallengeStreakForCurrentUser } from "@/lib/daily-challenge/que
 import { getDailyChallenge } from "@/lib/marketing/demo-challenge";
 import { getStripeTrialPeriodDays } from "@/lib/stripe/server";
 
-export const metadata: Metadata = {
-  title: "Try a challenge word",
-  description:
-    "Trace today’s Arabic word of the day. Free handwriting demo — no account needed.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const challenge = getDailyChallenge();
+  return {
+    title: `Today's word: ${challenge.transliteration}`,
+    description: `Can you write ${challenge.transliteration}? Daily Arabic handwriting challenge on ArabivoWrite.`,
+  };
+}
 
-export default async function TryPage() {
+export default async function DailyChallengePage() {
   const challenge = getDailyChallenge();
   const trialDays = getStripeTrialPeriodDays();
   const { userId } = await auth();

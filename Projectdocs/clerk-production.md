@@ -2,7 +2,7 @@
 
 If **`/sign-in`** or **`/sign-up`** looks **blank** (header only, no form), Clerk’s browser bundle (`clerk-js`) is usually **not finishing initialization** or **redirects are blocked** for your domain. Fix the dashboard + env first.
 
-**This is not caused by Stripe or a subscription paywall.** Subscription code does not protect `/sign-in`, `/sign-up`, or **`/onboarding`** (only `/dashboard` and **`/lessons`** use **`auth.protect()`** in **`proxy.ts`** on **production** — Preview/local may bypass **`protect`** for learn routes; see **`features.md`**). **`/`**, **`/try`**, **`/#challenge`**, and **`/onboarding`** are also public.
+**This is not caused by Stripe or a subscription paywall.** Subscription code does not protect `/sign-in`, `/sign-up`, or **`/onboarding`** (only `/dashboard` and **`/lessons`** use **`auth.protect()`** in **`proxy.ts`** on **production** — Preview/local may bypass **`protect`** for learn routes; see **`features.md`**). **`/`**, **`/try`**, **`/daily`**, **`/#challenge`**, and **`/onboarding`** are also public.
 
 **Production host:** **`write.arabivo.net`** (typical) should use **live** Clerk keys in **Vercel Production** and match **Domains** allowlists in Clerk. **`main`** branch deploys are what learners hit.  
 
@@ -60,9 +60,9 @@ If the console shows something like:
 
 the browser is applying **Content-Security-Policy** and blocking Clerk’s **Frontend API** host (the `clerk.` subdomain). This is **not** a bad API key; it’s CSP.
 
-This repo enables Clerk’s automatic CSP in **`proxy.ts`** via `contentSecurityPolicy: {}` on **`clerkMiddleware`** so `script-src` / `connect-src` include your FAPI host. See Clerk’s docs: **`https://clerk.com/docs/security/clerk-csp`**.
+This repo enables Clerk’s automatic CSP in **`proxy.ts`** via **`contentSecurityPolicy`** on **`clerkMiddleware`** so `script-src` / `connect-src` include your FAPI host. **PostHog** is allowed via merged directive **`connect-src: https://*.posthog.com`** (requires **`NEXT_PUBLIC_POSTHOG_KEY`** on the client). See Clerk’s docs: **`https://clerk.com/docs/security/clerk-csp`**.
 
-After deploying that change, hard-refresh `/sign-in` and confirm the Clerk script loads in the **Network** tab.
+If PostHog requests are blocked in the console (`violates Content-Security-Policy` for `eu.i.posthog.com`), redeploy after confirming **`proxy.ts`** includes the PostHog **`connect-src`** merge.
 
 ## 7. Network: “CORS Failed” for `clerk.write.arabivo.net` / `clerk.browser.js`
 

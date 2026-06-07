@@ -4,7 +4,7 @@
 
 ### `user_progress`
 
-Stores **per-user, per-lesson completion** for the MVP. Tied to **Clerk** via `clerk_user_id` (Clerk `userId` string). **`lesson_id`** matches ids in **`lib/lessons.ts`** — stable slugs such as `alif-isolated`, `word-qalam`, `word-salam`, `challenge-shin-triple`, etc. (**79** lessons in the current file; see **`context.md`**). The public homepage demo references **`word-qalam`** but does **not** write to this table until the user completes a lesson in the app with **Check**.
+Stores **per-user, per-lesson completion** for the MVP. Tied to **Clerk** via `clerk_user_id` (Clerk `userId` string). **`lesson_id`** matches ids in **`lib/lessons.ts`** — stable slugs such as `alif-isolated`, `word-qalam`, `word-salam`, `challenge-shin-triple`, etc. (**79** lessons in the current file; see **`context.md`**). The **daily challenge** may reference the same lesson ids but writes to **`user_daily_challenge`**, not this table, until the user completes a lesson in the app with **Check**.
 
 **Sections and units are not stored here** — grouping (`sectionId`, unit) lives only in **`lib/lessons.ts`**. The app derives section progress by counting completed `lesson_id`s that belong to each section.
 
@@ -62,6 +62,22 @@ Stores **onboarding questionnaire answers** and funnel completion per Clerk user
 
 - **RLS** enabled; **no** JWT policies — server writes via **`SUPABASE_SERVICE_ROLE_KEY`**.  
 - **Migration file:** `supabase/migrations/20260530120000_user_onboarding.sql`
+
+### `user_daily_challenge`
+
+Stores **daily trace challenge** completions per Clerk user — **one row per UTC calendar day**. Used for **daily streak** on the dashboard and **`/daily`**; **not** lesson unlock or **`user_progress`**.
+
+| Column | Type | Notes |
+|--------|------|--------|
+| `clerk_user_id` | `text` | Clerk user id (part of primary key) |
+| `challenge_date` | `date` | UTC day (`YYYY-MM-DD`) |
+| `lesson_id` | `text` | Word from **`getDailyChallenge()`** for that date |
+| `completed_at` | `timestamptz` | When the user passed today’s trace |
+
+- **Primary key** on `(clerk_user_id, challenge_date)`.  
+- **Index** on `clerk_user_id`.  
+- **RLS** enabled; **no** JWT policies — server writes via **`SUPABASE_SERVICE_ROLE_KEY`** in **`recordDailyChallengeCompletion`** after Clerk session check.  
+- **Migration file:** `supabase/migrations/20260606120000_user_daily_challenge.sql`
 
 ---
 

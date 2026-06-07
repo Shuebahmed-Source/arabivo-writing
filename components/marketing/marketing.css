@@ -437,6 +437,7 @@
   background: var(--mkt-ink);
   padding: clamp(60px, 9vw, 100px) clamp(24px, 6vw, 80px);
   scroll-margin-top: 64px;
+  overflow-anchor: none;
 }
 
 .mkt-challenge-inner {
@@ -638,26 +639,25 @@
   color: rgba(255, 255, 255, 0.5);
 }
 
-.mkt-ch-success {
-  display: none;
-  margin-top: 24px;
+.mkt-ch-success-collapse {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.35s ease;
+}
+
+.mkt-ch-success-collapse.show {
+  grid-template-rows: 1fr;
+}
+
+.mkt-ch-success-inner {
+  overflow: hidden;
+  min-height: 0;
   text-align: center;
+  padding-top: 8px;
+}
+
+.mkt-ch-success-collapse.show .mkt-ch-success-inner {
   animation: mktPopUp 0.45s cubic-bezier(0.3, 1.5, 0.5, 1) both;
-}
-
-.mkt-ch-success.show {
-  display: block;
-}
-
-@keyframes mktPopUp {
-  from {
-    opacity: 0;
-    transform: translateY(10px) scale(0.9);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
 }
 
 .mkt-ch-success-msg {
@@ -678,6 +678,50 @@
   color: rgba(255, 255, 255, 0.45);
   max-width: 420px;
   margin: 0 auto 20px;
+}
+
+@keyframes mktPopUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.mkt-daily-streak-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 auto 20px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: rgba(90, 212, 160, 0.12);
+  border: 1px solid rgba(90, 212, 160, 0.28);
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.mkt-daily-streak-msg {
+  font-size: 16px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.82);
+  margin: 0 auto 16px;
+}
+
+.mkt-daily-streak-msg a {
+  color: var(--mkt-accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.mkt-daily-streak-error {
+  font-size: 14px;
+  color: #ffb4b4;
+  margin: 0 auto 12px;
 }
 
 /* ============================================================

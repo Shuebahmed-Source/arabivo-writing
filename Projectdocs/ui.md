@@ -1,6 +1,6 @@
 # UI Design
 
-**Shipped:** Marketing landing, onboarding, **dashboard**, and **`/lessons`** match the design handoffs on **`main`**. Lesson detail and section hubs still use the **shadcn / Inter** practice shell. Further experiments can land on **`dev`** first — **`github.md`**.
+**Shipped:** Marketing landing, onboarding, **dashboard**, **`/lessons`**, and **section hubs** (`/lessons/sections/*`) match the learn handoff on **`main`**. **Lesson detail** (`/lessons/[lessonId]`) still uses the **shadcn / Inter** practice shell. Further experiments can land on **`dev`** first — **`github.md`**.
 
 ## Design direction
 
@@ -10,10 +10,11 @@ Three visual **shells** share the same emerald tokens but different scoped CSS:
 
 | Shell | Routes | CSS | Display fonts |
 |-------|--------|-----|----------------|
-| **Marketing** | `/`, `/try`, `/subscribe` | `components/marketing/marketing.css` | Fredoka, Hanken Grotesk, Noto Naskh Arabic |
+| **Marketing** | `/`, `/try`, `/daily`, `/subscribe` | `components/marketing/marketing.css` | Fredoka, Hanken Grotesk, Noto Naskh Arabic |
 | **Onboarding** | `/onboarding/*` | `components/onboarding/onboarding.css` | Same trio |
 | **Learn overview** | `/dashboard`, `/lessons` | `components/learn/learn.css` | Same trio |
-| **Practice (legacy shadcn)** | `/lessons/[id]`, `/lessons/sections/*`, auth | `app/globals.css` + shadcn | Inter, Noto Sans Arabic |
+| **Learn section hub** | `/lessons/sections/*` | `components/learn/learn.css` | Same trio |
+| **Practice (legacy shadcn)** | `/lessons/[id]`, auth | `app/globals.css` + shadcn | Inter, Noto Sans Arabic |
 
 ## Theme
 
@@ -29,15 +30,17 @@ Three visual **shells** share the same emerald tokens but different scoped CSS:
 - **Lesson practice + auth:** **Inter** (`next/font`), **Noto Sans Arabic** on canvas via `font-arabic`  
 - Lesson feedback uses a clear **title + supporting sentence** hierarchy  
 - Complete screen: small-caps **“Lesson complete”**, large **short lesson title** (from `getLessonShortTitle`)  
-- Long challenge strings use a **smaller canvas guide** (computed by **`guideFontSizeRatio`**) so glyphs stay on-screen  
+- Long challenge strings use a **width-aware canvas guide** (**`fitGuideFontSizePx`**, starting from **`guideFontSizeRatio`**) so glyphs stay on-screen; guide renders **slightly larger than ink** so a faint grey rim remains visible when tracing (**`GUIDE_OVER_INK_SCALE`**, **`CANVAS_INK_LINE_WIDTH_PX`**)  
+- Section hub and sidebar reference Arabic scale with **`referenceArabicFontSize`** (letter-count based)  
 
 ## Layout patterns
 
 - **Mobile-first** spacing and tap targets  
-- **Marketing** (`/`, `/try`, `/subscribe`): **`MarketingHeader`** — wordmark, **Try** (`/#challenge`), **Features**, **Pricing**, **Sign in**, trial CTA; sticky 64px bar with backdrop blur  
+- **Marketing** (`/`, `/try`, `/daily`, `/subscribe`): **`MarketingHeader`** — wordmark, **Try** (`/#challenge`), **Features**, **Pricing**, **Sign in**, trial CTA; sticky 64px bar with backdrop blur  
 - **Onboarding** (`/onboarding`): **`onboarding-root`** — max-width **560px** column; fixed bottom **CTA dock** on question/trace/sign-up steps  
 - **Learn overview** (`/dashboard`, `/lessons`): **`LearnHeader`** — wordmark → `/dashboard`, centered **Dashboard / Lessons** tab pills, **UserButton**; 60px sticky bar  
-- **Learn practice** (section hub, lesson detail): **`learn-main-default`** padding wrapper; shadcn **Card** / **Button** components  
+- **Learn section hub** (`/lessons/sections/*`): **`learn-main-section`** max-width column; **`SectionHubView`** — back link, **Continue** / **Next section**, Arabic-first **tappable lesson rows** (**Tap to start** badge, whole card links to **`/lessons/[lessonId]`**)  
+- **Learn practice** (lesson detail): **`learn-main-default`** padding wrapper; shadcn **Card** / **Button** components  
 - **Auth** (`/sign-in`, `/sign-up`): slim header, centered Clerk card  
 
 ## Key surfaces
@@ -45,11 +48,18 @@ Three visual **shells** share the same emerald tokens but different scoped CSS:
 ### Landing (`/`)
 
 - **Hero:** two-column grid — copy + **`MarketingTrialCTAs`** (**Let's go!** → `/onboarding`, **Sign in**); right column animated **سلام** trace mockup card  
-- **`#challenge`:** dark band, **`LandingChallengeSection`** — **قلم**, coverage trace, success CTA  
+- **`#challenge`:** dark band, **`LandingChallengeSection`** — **Today’s word** (UTC daily rotation), honest **0–100%** coverage bar, pass at **88%**; success panel expands **inside card**; streak pill when signed in  
 - **`#features`:** six emoji feature cards  
 - **`#pricing`:** centered plan card + **`MarketingTrialCTAs`** (`variant="pricing"`)  
 - **Footer:** copyright + legal link placeholders  
 - Green **primary buttons** use **white text** (link color override in `marketing.css`)
+
+### `/daily` and `/try`
+
+- Same **`LandingChallengeSection`** as **`#challenge`**, **Today’s word** heading, compact layout  
+- **`/daily`:** shareable URL for social / “today’s word” content  
+- **`/try`:** **← Home** back link (bio links)  
+- After pass: streak message (signed in), sign-up CTA (signed out), **`MarketingTrialCTAs`** success variant
 
 ### Onboarding
 
@@ -57,12 +67,9 @@ Three visual **shells** share the same emerald tokens but different scoped CSS:
 - **Trace:** **FIRST TRACE** tag, **س** canvas (**`OnboardingTraceStep`**), coverage bar, pinned **Continue**  
 - **Sign-up:** Google + email → **`/subscribe`**
 
-### `/try`
-
-- Same **`LandingChallengeSection`** as **`#challenge`**, compact heading, **← Home** link
-
 ### Dashboard (`/dashboard`)
 
+- **Daily challenge card:** today’s Arabic word, transliteration, streak badge (**🔥 n-day**), **Completed today** / **Trace today’s word →** — links to **`/daily`**  
 - **Stats row:** three chips — overall %, lessons complete, sections done  
 - **Up Next card:** emerald tint, Arabic watermark, mini progress bar, **Continue →** (hidden CTA label on mobile; whole card tappable)  
 - **All sections grid:** 2-column unit cards, **SVG progress rings** (staggered mount animation), **In progress** / **✓ Complete** / **Locked** badges  
@@ -74,10 +81,16 @@ Three visual **shells** share the same emerald tokens but different scoped CSS:
 - Per **unit block:** header with Arabic watermark, unit badge (**✓ Complete** or **n / total**), grid of **section cards**  
 - **Section card:** title, status badge, description, **progress dots**, count label; links to next lesson  
 
-### Section hub & lesson detail (shadcn — not yet handoff-styled)
+### Section hub (`/lessons/sections/[sectionId]`)
 
-- **Section hub:** Back link, **Continue**, lesson list cards  
-- **Lesson detail:** breadcrumb, **`lg+` two-column grid** — canvas + **`LessonPracticeSidebar`**  
+- **Back link** → **`/lessons`**  
+- **Header:** unit eyebrow, section title, description  
+- **Actions:** **Continue →** (first incomplete unlocked lesson), **Next section →** when all items done  
+- **Lesson list:** each row shows **large Arabic** (responsive size), lesson title, English note, status badge (**✓ Done** / **Tap to start** / **Locked**); unlocked rows are full-width tap targets (mobile-friendly)  
+
+### Lesson detail (shadcn — not yet full handoff)
+
+- Breadcrumb back to section hub; **`lg+` two-column grid** — canvas + **`LessonPracticeSidebar`**  
 - **Writing section:** **Clear** / **Check**, **`WritingFeedbackPanel`**, **`LessonCompleteOverlay`**
 
 ## Motion
@@ -100,8 +113,10 @@ Three visual **shells** share the same emerald tokens but different scoped CSS:
 
 **Onboarding:** `OnboardingFlow`, `OnboardingTraceStep`, `OnboardingSparkles`  
 
-**Learn overview:** `LearnHeader`, `DashboardView`, `LessonsView`, `LearnProgressRing`, `LearnSubscriptionCard`  
+**Daily challenge / data:** `lib/daily-challenge/`, `lib/marketing/demo-challenge.ts`, `lib/marketing/landing-trace.ts`, `app/actions/daily-challenge.ts`  
 
-**Practice (lessons):** `WritingCanvas`, `LessonWritingSection`, `WritingFeedbackPanel`, `LessonCompleteOverlay`  
+**Learn overview:** `LearnHeader`, `DashboardView`, `DashboardDailyChallengeCard`, `LessonsView`, `SectionHubView`, `LearnProgressRing`, `LearnSubscriptionCard`  
 
-**Data helpers:** `lib/marketing/demo-challenge.ts`, `lib/marketing/landing-trace.ts`, `lib/learn/dashboard-data.ts`, `lib/learn/lessons-data.ts`, `lib/learn/arabic-deco.ts`, `lib/onboarding/trace-display.ts`, `lib/writing/lesson-complete-visual.ts`
+**Practice (lessons):** `WritingCanvas`, `LessonWritingSection`, `LessonPracticeSidebar`, `WritingFeedbackPanel`, `LessonCompleteOverlay`  
+
+**Data helpers:** `lib/daily-challenge/`, `lib/marketing/demo-challenge.ts`, `lib/marketing/landing-trace.ts`, `lib/learn/dashboard-data.ts`, `lib/learn/lessons-data.ts`, `lib/learn/arabic-deco.ts`, `lib/onboarding/trace-display.ts`, `lib/writing/lesson-display.ts` (`fitGuideFontSizePx`, `referenceArabicFontSize`), `lib/writing/lesson-complete-visual.ts`

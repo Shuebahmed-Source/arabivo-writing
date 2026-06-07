@@ -12,13 +12,14 @@ The app stores lesson completion in **`public.user_progress`**. The server uses 
 
 Use **one project** for production (Vercel). You can use the **same** project from local `.env.local` if you want local dev to hit production data, or create a **separate** dev project and keep test keys in `.env.local` only — your choice.
 
-## 2. Run migrations (`user_progress` + `user_subscriptions` + `user_onboarding`)
+## 2. Run migrations (`user_progress` + `user_subscriptions` + `user_onboarding` + `user_daily_challenge`)
 
 In the project: **SQL Editor** → **New query** for each file, **Run**, confirm no errors.
 
 1. **`supabase/migrations/20260403120000_user_progress.sql`** — lesson completion.  
 2. **`supabase/migrations/20260405120000_user_subscriptions.sql`** — Stripe subscription snapshot for dashboard + paywall.  
-3. **`supabase/migrations/20260530120000_user_onboarding.sql`** — onboarding answers + funnel completion (`user_onboarding`).
+3. **`supabase/migrations/20260530120000_user_onboarding.sql`** — onboarding answers + funnel completion (`user_onboarding`).  
+4. **`supabase/migrations/20260606120000_user_daily_challenge.sql`** — daily trace pass + streak (`user_daily_challenge`).
 
 `CREATE TABLE IF NOT EXISTS` is safe to run again if you are unsure whether a migration was already applied.
 
@@ -54,9 +55,10 @@ If you use a **separate** dev Supabase project, keep dev URLs/keys in **`.env.lo
 
 1. Open your **deployed** app (or localhost with matching env).  
 2. Sign in with Clerk → complete a lesson with **Good** or **Excellent** (requires subscription if Stripe billing env is fully configured on the deployment).  
-3. In Supabase: **Table Editor** → **`user_progress`** — new row with `clerk_user_id` and `lesson_id` (value must match an **`id`** from **`lib/lessons.ts`**; the live curriculum is **~71** lessons — **`context.md`**).  
+3. In Supabase: **Table Editor** → **`user_progress`** — new row with `clerk_user_id` and `lesson_id` (value must match an **`id`** from **`lib/lessons.ts`**; the live curriculum is **79** lessons — **`context.md`**).  
 4. After a successful Stripe Checkout (and webhook), check **`user_subscriptions`** for a row with **`active`** or **`trialing`** status.  
-5. Complete onboarding sign-up on the live app → check **`user_onboarding`** for a row with `answers` JSON and `demo_completed_at` set.
+5. Complete onboarding sign-up on the live app → check **`user_onboarding`** for a row with `answers` JSON and `demo_completed_at` set.  
+6. Complete **`/daily`** while signed in → check **`user_daily_challenge`** for a row with today’s **`challenge_date`** and **`lesson_id`**.
 
 If saving fails, check Vercel logs and the in-app error string (the app surfaces common misconfigurations).
 

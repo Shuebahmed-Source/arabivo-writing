@@ -16,7 +16,7 @@ This document records how the **ArabivoWrite** codebase was connected to GitHub 
 1. Implement and test on **`dev`** (local + optional Preview).  
 2. Open a **PR** `dev` → `main` or merge locally, then **`git push origin main`**.  
 3. Confirm **Vercel Production** finishes deploying **`main`**.  
-4. Smoke **`https://write.arabivo.net`** (sign-in, paywall, lesson save, **Next** in a completed section; **`/dashboard`** stats + unit rings; **`/lessons`** unit blocks; **`/try`** **قلم** demo without sign-in; **`/onboarding`** → sign-up → **`/subscribe`** — see **`launch-checklist.md`**).  
+4. Smoke **`https://write.arabivo.net`** (sign-in, paywall, lesson save, **Next** in a completed section; **`/dashboard`** daily challenge card + stats + unit rings; **`/lessons`** unit blocks; **`/daily`** today’s word + streak when signed in; **`/lessons/sections/letters-i`** Arabic lesson rows; **`/lessons/challenge-mustashfayat`** long-word canvas guide; **`/onboarding`** → sign-up → **`/subscribe`** — see **`launch-checklist.md`**).  
 5. Sync **`dev`** with **`main`** so the next feature branch does not diverge unexpectedly.
 
 ## What was done (initial setup)

@@ -5,8 +5,10 @@ import type {
   LearnDashboardUnitCard,
   LearnUpNext,
 } from "@/lib/learn/dashboard-data";
+import type { DailyChallenge, DailyChallengeStreak } from "@/lib/daily-challenge/types";
 import type { UserSubscriptionRow } from "@/lib/subscriptions/types";
 
+import { DashboardDailyChallengeCard } from "./dashboard-daily-challenge-card";
 import { LearnProgressRing } from "./progress-ring";
 import { LearnSubscriptionCard } from "./subscription-card";
 
@@ -14,6 +16,8 @@ type Props = {
   stats: LearnDashboardStats;
   upNext: LearnUpNext | null;
   units: LearnDashboardUnitCard[];
+  dailyChallenge: DailyChallenge;
+  dailyStreak: DailyChallengeStreak | null;
   checkoutSuccess?: boolean;
   stripeConfigured: boolean;
   subscription: UserSubscriptionRow | null;
@@ -91,6 +95,8 @@ export function DashboardView({
   stats,
   upNext,
   units,
+  dailyChallenge,
+  dailyStreak,
   checkoutSuccess = false,
   stripeConfigured,
   subscription,
@@ -116,6 +122,11 @@ export function DashboardView({
           stored per signed-in account.
         </p>
       </header>
+
+      <DashboardDailyChallengeCard
+        challenge={dailyChallenge}
+        streak={dailyStreak}
+      />
 
       <div className="learn-stats-row">
         <div className="learn-stat-chip">

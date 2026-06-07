@@ -1,5 +1,7 @@
 "use client";
 
+import { useAuth } from "@clerk/nextjs";
+import Link from "next/link";
 import {
   useCallback,
   useEffect,
@@ -8,8 +10,9 @@ import {
   type PointerEvent as ReactPointerEvent,
 } from "react";
 
+import { recordDailyChallengeCompletion } from "@/app/actions/daily-challenge";
 import { captureEvent } from "@/components/analytics/posthog-provider";
-import type { HomepageDemoChallenge } from "@/lib/marketing/demo-challenge";
+import type { DailyChallenge, DailyChallengeStreak } from "@/lib/daily-challenge/types";
 import {
   LANDING_CHALLENGE_BRUSH,
   LANDING_CHALLENGE_CELL,
@@ -21,19 +24,24 @@ import {
 import { MarketingTrialCTAs } from "./marketing-trial-ctas";
 
 type Props = {
-  demo: HomepageDemoChallenge;
+  challenge: DailyChallenge;
   trialDays: number;
   initialSignedIn: boolean;
-  /** Hide section heading (for `/try`). */
+  streak?: DailyChallengeStreak | null;
+  /** Hide section heading (for `/try` and `/daily`). */
   compactHeading?: boolean;
 };
 
 export function LandingChallengeSection({
-  demo,
+  challenge,
   trialDays,
   initialSignedIn,
+  streak = null,
   compactHeading = false,
 }: Props) {
+  const { isSignedIn, isLoaded } = useAuth();
+  const signedIn = isLoaded ? Boolean(isSignedIn) : initialSignedIn;
+
   const wrapRef = useRef<HTMLDivElement>(null);
   const fontProbeRef = useRef<HTMLSpanElement>(null);
   const guideRef = useRef<HTMLCanvasElement>(null);
@@ -47,12 +55,16 @@ export function LandingChallengeSection({
   } | null>(null);
   const drawRef = useRef({ on: false, lastX: 0, lastY: 0 });
   const passedRef = useRef(false);
+  const startedEventRef = useRef(false);
 
   const [pct, setPct] = useState(0);
   const [started, setStarted] = useState(false);
   const [done, setDone] = useState(false);
+  const [savedStreak, setSavedStreak] = useState<number | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
-  const glyph = demo.arabicText;
+  const glyph = challenge.arabicText;
 
   const clearInk = useCallback(() => {
     const c = inkRef.current;
@@ -150,7 +162,10 @@ export function LandingChallengeSection({
       setPct(0);
       setDone(false);
       setStarted(false);
+      setSavedStreak(null);
+      setSaveError(null);
       passedRef.current = false;
+      startedEventRef.current = false;
     };
     window.addEventListener("resize", onResize);
 
@@ -159,6 +174,28 @@ export function LandingChallengeSection({
       window.removeEventListener("resize", onResize);
     };
   }, [setupCanvases, clearInk]);
+
+  const persistStreak = useCallback(async () => {
+    if (!signedIn || saving) return;
+    setSaving(true);
+    setSaveError(null);
+
+    const result = await recordDailyChallengeCompletion(
+      challenge.challengeDate,
+      challenge.lessonId,
+    );
+
+    setSaving(false);
+
+    if (result.ok) {
+      setSavedStreak(result.currentStreak);
+      return;
+    }
+
+    if (result.message !== "Sign in to save your daily streak.") {
+      setSaveError(result.message);
+    }
+  }, [signedIn, saving, challenge.challengeDate, challenge.lessonId]);
 
   const stamp = (x: number, y: number) => {
     const m = maskRef.current;
@@ -186,10 +223,15 @@ export function LandingChallengeSection({
     if (cov >= LANDING_CHALLENGE_THRESHOLD && !passedRef.current) {
       passedRef.current = true;
       setDone(true);
+      captureEvent("daily_challenge_passed", {
+        lesson_id: challenge.lessonId,
+        challenge_date: challenge.challengeDate,
+      });
       captureEvent("demo_trace_passed", {
-        lesson_id: demo.lessonId,
+        lesson_id: challenge.lessonId,
         result: "coverage",
       });
+      void persistStreak();
     }
   };
 
@@ -199,9 +241,17 @@ export function LandingChallengeSection({
   };
 
   const onPointerDown = (e: ReactPointerEvent<HTMLCanvasElement>) => {
-    if (done) return;
     e.preventDefault();
     setStarted(true);
+
+    if (!startedEventRef.current) {
+      startedEventRef.current = true;
+      captureEvent("daily_challenge_started", {
+        lesson_id: challenge.lessonId,
+        challenge_date: challenge.challengeDate,
+      });
+    }
+
     const { x, y } = pos(e);
     drawRef.current = { on: true, lastX: x, lastY: y };
     inkRef.current?.setPointerCapture(e.pointerId);
@@ -210,7 +260,7 @@ export function LandingChallengeSection({
   };
 
   const onPointerMove = (e: ReactPointerEvent<HTMLCanvasElement>) => {
-    if (!drawRef.current.on || done) return;
+    if (!drawRef.current.on) return;
     e.preventDefault();
     const { x, y } = pos(e);
     const ctx = inkRef.current?.getContext("2d");
@@ -251,8 +301,32 @@ export function LandingChallengeSection({
     setPct(0);
     setDone(false);
     setStarted(false);
+    setSavedStreak(null);
+    setSaveError(null);
     passedRef.current = false;
   };
+
+  const streakMessage = (() => {
+    if (savedStreak !== null) {
+      return savedStreak === 1
+        ? "🔥 Day 1 — streak started!"
+        : `🔥 ${savedStreak}-day streak!`;
+    }
+    if (signedIn && streak?.completedToday && streak.currentStreak > 0) {
+      return streak.currentStreak === 1
+        ? "🔥 You already completed today’s word."
+        : `🔥 ${streak.currentStreak}-day streak — today’s word done.`;
+    }
+    if (!signedIn) {
+      return (
+        <>
+          <Link href="/sign-up?redirect_url=/daily">Sign up</Link> to save a daily
+          streak.
+        </>
+      );
+    }
+    return null;
+  })();
 
   return (
     <section className="mkt-challenge-section" id="challenge">
@@ -260,30 +334,41 @@ export function LandingChallengeSection({
         {!compactHeading ? (
           <>
             <span className="mkt-eyebrow mkt-challenge-eyebrow">
-              Try it now — no account
+              Daily challenge · try free
             </span>
-            <h2 className="mkt-challenge-h2">Can you write this?</h2>
-            <p className="mkt-challenge-sub">{demo.hookLine} Trace the outline — finger, stylus, or mouse.</p>
+            <h2 className="mkt-challenge-h2">Today&apos;s word</h2>
+            <p className="mkt-challenge-sub">
+              {challenge.hookLine} Trace the outline — finger, stylus, or mouse.
+            </p>
           </>
         ) : (
           <>
             <span className="mkt-eyebrow mkt-challenge-eyebrow">
-              Try it now — no account
+              Daily challenge · try free
             </span>
-            <h1 className="mkt-challenge-h2">Can you write this?</h1>
-            <p className="mkt-challenge-sub">{demo.hookLine} Trace the outline — finger, stylus, or mouse.</p>
+            <h1 className="mkt-challenge-h2">Today&apos;s word</h1>
+            <p className="mkt-challenge-sub">
+              {challenge.hookLine} Trace the outline — finger, stylus, or mouse.
+            </p>
           </>
         )}
+
+        {signedIn && streak && streak.currentStreak > 0 && !done ? (
+          <p className="mkt-daily-streak-pill" role="status">
+            🔥 {streak.currentStreak}-day streak
+            {streak.completedToday ? " · today done" : " · trace to keep it"}
+          </p>
+        ) : null}
 
         <div className="mkt-challenge-card">
           <div className="mkt-ch-header">
             <div>
-              <div className="mkt-ch-label">Challenge · Trace</div>
+              <div className="mkt-ch-label">Daily · Trace</div>
               <div className="mkt-ch-word" dir="rtl" lang="ar">
-                {demo.arabicText}
+                {challenge.arabicText}
               </div>
             </div>
-            <div className="mkt-ch-translit">{demo.transliteration}</div>
+            <div className="mkt-ch-translit">{challenge.transliteration}</div>
           </div>
 
           <div className="mkt-canvas-wrap" ref={wrapRef}>
@@ -299,7 +384,7 @@ export function LandingChallengeSection({
               onPointerUp={endStroke}
               onPointerCancel={endStroke}
               onPointerLeave={endStroke}
-              aria-label={`Trace the Arabic word ${demo.transliteration}`}
+              aria-label={`Trace the Arabic word ${challenge.transliteration}`}
             />
             <div className={`mkt-canvas-hint${started ? " hidden" : ""}`}>
               <div className="mkt-pulse-dot" aria-hidden />
@@ -317,20 +402,35 @@ export function LandingChallengeSection({
             <span className="mkt-ch-pct">{pct}%</span>
           </div>
           <p className="mkt-ch-note">
-            Trace the faint guide until the bar fills. No sign-up required for this demo.
+            {done
+              ? "Nice work — keep going to 100%, or tap Clear to try again."
+              : "One new word each day. Trace the full outline until the bar fills."}
           </p>
-        </div>
 
-        <div className={`mkt-ch-success${done ? " show" : ""}`}>
-          <p className="mkt-ch-success-msg">
-            ✦ Great stroke! <span>You&apos;re a natural.</span>
-          </p>
-          <p className="mkt-ch-success-detail">{demo.revealLine}</p>
-          <MarketingTrialCTAs
-            trialDays={trialDays}
-            initialSignedIn={initialSignedIn}
-            variant="success"
-          />
+          <div
+            className={`mkt-ch-success-collapse${done ? " show" : ""}`}
+            aria-live="polite"
+          >
+            <div className="mkt-ch-success-inner">
+              <p className="mkt-ch-success-msg">
+                ✦ Great stroke! <span>You&apos;re a natural.</span>
+              </p>
+              <p className="mkt-ch-success-detail">{challenge.revealLine}</p>
+              {streakMessage ? (
+                <p className="mkt-daily-streak-msg">{streakMessage}</p>
+              ) : null}
+              {saveError ? (
+                <p className="mkt-daily-streak-error" role="alert">
+                  {saveError}
+                </p>
+              ) : null}
+              <MarketingTrialCTAs
+                trialDays={trialDays}
+                initialSignedIn={initialSignedIn}
+                variant="success"
+              />
+            </div>
+          </div>
         </div>
       </div>
     </section>

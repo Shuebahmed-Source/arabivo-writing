@@ -3,6 +3,8 @@ import { Suspense } from "react";
 
 import { CheckoutSuccessAnalytics } from "@/components/analytics/checkout-success";
 import { DashboardView } from "@/components/learn/dashboard-view";
+import { getDailyChallengeStreakForCurrentUser } from "@/lib/daily-challenge/queries";
+import { getDailyChallenge } from "@/lib/marketing/demo-challenge";
 import {
   getLearnDashboardStats,
   getLearnDashboardUnitCards,
@@ -35,6 +37,8 @@ export default async function DashboardPage({ searchParams }: PageProps) {
 
   const subscription = await fetchUserSubscriptionForCurrentUser();
   const stripeConfigured = isStripeConfigured();
+  const dailyChallenge = getDailyChallenge();
+  const dailyStreak = await getDailyChallengeStreakForCurrentUser();
 
   return (
     <>
@@ -46,6 +50,8 @@ export default async function DashboardPage({ searchParams }: PageProps) {
         stats={stats}
         upNext={upNext}
         units={units}
+        dailyChallenge={dailyChallenge}
+        dailyStreak={dailyStreak}
         checkoutSuccess={checkout === "success"}
         stripeConfigured={stripeConfigured}
         subscription={subscription}

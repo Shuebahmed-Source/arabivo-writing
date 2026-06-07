@@ -11,10 +11,10 @@ The app focuses on **Arabic letter formation and writing**, not general Arabic l
 | Reference | Live implementation |
 |-----------|---------------------|
 | **`Projectdocs/design_handoff_onboarding/`** | **`/onboarding`** — `app/onboarding/`, `components/onboarding/`, `lib/onboarding/` |
-| **`Projectdocs/Landing Page.html`** | **`/`** and **`/try`** — `app/(marketing)/`, `components/marketing/marketing.css`, `components/marketing/landing-*.tsx` |
-| **`Projectdocs/design_handoff_dashboard_lessons/`** | **`/dashboard`** and **`/lessons`** — `components/learn/learn.css`, `components/learn/*-view.tsx`, `lib/learn/` |
+| **`Projectdocs/Landing Page.html`** | **`/`**, **`/try`**, and **`/daily`** — `app/(marketing)/`, `components/marketing/marketing.css`, `components/marketing/landing-*.tsx` |
+| **`Projectdocs/design_handoff_dashboard_lessons/`** | **`/dashboard`**, **`/lessons`**, and **`/lessons/sections/[sectionId]`** — `components/learn/learn.css`, `components/learn/*-view.tsx`, `lib/learn/` |
 
-Section hubs (`/lessons/sections/*`) and lesson detail (`/lessons/[lessonId]`) still use the **shadcn / Inter** practice shell; they share **`LearnHeader`** padding via **`learn-main-default`** but are not yet restyled to the dashboard/lessons handoff.
+Lesson detail (`/lessons/[lessonId]`) still uses the **shadcn / Inter** practice shell; it shares **`LearnHeader`** and **`learn-main-default`** padding but is not yet restyled to the full learn handoff.
 
 ## Curriculum scope (MVP)
 
@@ -71,24 +71,26 @@ Unlocking is **section-aware**, not a single flat global queue:
 Each lesson includes:
 
 - Arabic script, transliteration, and a short meaning or note  
-- A **writing canvas** with a **faint guide** matching the Arabic to trace (font size scales down for long challenge strings via **`guideFontSizeRatio`** in **`lib/writing/lesson-display.ts`**)  
+- A **writing canvas** with a **faint guide** matching the Arabic to trace — long strings are sized with **`fitGuideFontSizePx`** in **`lib/writing/lesson-display.ts`** (measures Arabic width/height on canvas, then nudges up so guide dots/strokes stay slightly wider than ink via **`GUIDE_OVER_INK_SCALE`**)  
 - **Clear** (reset strokes) and **Check** (pixel-overlap scoring vs the guide mask)  
 - Feedback labels: **Excellent**, **Good**, or **Try again**  
 - Lesson types: **`isolated_letter`**, **`letter_form`**, **`word`**, **`challenge`** (challenge items show **CHALLENGE · TRACE** on the practice screen)
 
 After a successful save on **Good** / **Excellent**, a full-screen **lesson complete** celebration (Framer Motion) appears: section progress, per-lesson badge icon, result line, **Practice again** (close overlay, keep progress) and **Next** (next lesson in section, then section hub after the final item — see **`userflow.md`**).
 
-## Marketing demo (no account)
+## Marketing demo and daily challenge (no account)
 
-Public visitors can trace a featured word **without sign-in**:
+Public visitors can trace **today’s word** **without sign-in**:
 
-- **`/#challenge`** on the landing page — dark **Can you write this?** section after the hero  
-- **`/try`** — same challenge UI with compact heading and **Home** back link (for social / bio links)  
-- Featured word: **`word-qalam`** (**قلم** — “pen”) — config in **`lib/marketing/demo-challenge.ts`**, UI in **`LandingChallengeSection`**  
-- **Coverage-based demo** (handoff algorithm): trace the guide until the bar fills (~48% threshold); **no Check button**; **no progress save**  
-- On success: **signed-out** → **`MarketingTrialCTAs`** (**Start your first lesson** → **`/onboarding`**); **signed-in** → **`/lessons`**
+- **`/#challenge`** on the landing page — dark **Today’s word** section after the hero  
+- **`/daily`** — shareable daily challenge page (same UI, compact heading, **Home** back link)  
+- **`/try`** — same daily challenge UI (bio / ads links)  
+- **Word rotation:** one lesson id per **UTC calendar day** from **`DAILY_CHALLENGE_POOL`** (~39 curated ids) — **`lib/daily-challenge/get-daily-challenge.ts`**; **`lib/marketing/demo-challenge.ts`** re-exports **`getDailyChallenge()`**  
+- **Coverage demo** (handoff algorithm): honest **0–100%** bar; pass at **88%** guide coverage (**`lib/marketing/landing-trace.ts`**); user can **keep tracing** after pass; **no Check button**; **no `user_progress` save**  
+- **Signed-in streak:** pass saves to **`user_daily_challenge`** (separate from lessons); dashboard shows streak + link to **`/daily`**  
+- On success: **signed-out** → **`MarketingTrialCTAs`** (**Start your first lesson** → **`/onboarding`**); **signed-in** → **`/lessons`** via success CTA variant  
 
-Legacy components **`TryChallengeDemo`** / **`TrialFunnelCTAs`** (Check + **ششش**) remain in the repo but are **not** used on **`/`** or **`/try`**.
+Legacy components **`TryChallengeDemo`** / **`TrialFunnelCTAs`** (Check + **ششش**) remain in the repo but are **not** used on **`/`**, **`/try`**, or **`/daily`**.
 
 ## Onboarding funnel (`/onboarding`)
 
@@ -110,7 +112,7 @@ The product targets **phones, tablets, iPads, and desktop** with a **mobile-firs
 
 ## Visual direction
 
-Clean, calm, **premium** feel with an **emerald-forward** theme. **Marketing**, **onboarding**, **dashboard**, and **`/lessons`** share **Fredoka / Hanken Grotesk / Noto Naskh Arabic** and scoped CSS (`marketing.css`, `onboarding.css`, `learn.css`). **Lesson practice** pages still use **Inter + Noto Sans Arabic** via shadcn globals until a future handoff. See **`Projectdocs/ui.md`**.
+Clean, calm, **premium** feel with an **emerald-forward** theme. **Marketing**, **onboarding**, **dashboard**, **`/lessons`**, and **section hubs** share **Fredoka / Hanken Grotesk / Noto Naskh Arabic** and scoped CSS (`marketing.css`, `onboarding.css`, `learn.css`). **Lesson practice** (`/lessons/[lessonId]`) still uses **Inter + Noto Sans Arabic** via shadcn globals until a future handoff. See **`Projectdocs/ui.md`**.
 
 ## Source control (GitHub)
 
@@ -123,7 +125,7 @@ The app can run as **free-for-signed-in-users** (Stripe env incomplete) or **pai
 - **Stripe Checkout** (subscription) and **Customer Billing Portal**; state synced to **`user_subscriptions`** via **`/api/webhooks/stripe`**.  
 - **`/lessons`** and progress saves require subscription access when Stripe billing is configured **and** enforcement runs (**Vercel Production** — **`shouldEnforceSubscriptionAccess()`**). Subscriptions start from **onboarding sign-up → `/subscribe`**, the **landing `#pricing`** section, and direct **`/subscribe`** visits; unpaid **`/lessons`** visits redirect to **`/subscribe`**. **Vercel Preview** and **local dev** skip subscription enforcement for testing; see **`features.md`**.  
 - Optional **free trial** via **`STRIPE_TRIAL_PERIOD_DAYS`** (e.g. `7`) — no separate Stripe “trial product” required.  
-- **`/`**, **`/try`**, **`/#challenge`**, and **`/onboarding`** stay public (demo tracing only; full curriculum is behind the lessons paywall in production).
+- **`/`**, **`/try`**, **`/daily`**, **`/#challenge`**, and **`/onboarding`** stay public (daily trace + demo only; full curriculum is behind the lessons paywall in production).
 
 Operational checklist: **`Projectdocs/launch-checklist.md`**. Technical detail: **`Projectdocs/stripe.md`**.
 

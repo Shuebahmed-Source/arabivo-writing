@@ -8,7 +8,8 @@ import {
   LandingHero,
   LandingPricing,
 } from "@/components/marketing/landing-sections";
-import { getHomepageDemoChallenge } from "@/lib/marketing/demo-challenge";
+import { getDailyChallengeStreakForCurrentUser } from "@/lib/daily-challenge/queries";
+import { getDailyChallenge } from "@/lib/marketing/demo-challenge";
 import { getStripeTrialPeriodDays } from "@/lib/stripe/server";
 
 type PageProps = {
@@ -21,9 +22,12 @@ export default async function LandingPage({ searchParams }: PageProps) {
   const checkoutFailed =
     params.checkout === "failed" || params.subscription_error === "1";
   const trialDays = getStripeTrialPeriodDays();
-  const demo = getHomepageDemoChallenge();
+  const challenge = getDailyChallenge();
   const { userId } = await auth();
   const initialSignedIn = Boolean(userId);
+  const streak = initialSignedIn
+    ? await getDailyChallengeStreakForCurrentUser()
+    : null;
 
   return (
     <>
@@ -43,9 +47,10 @@ export default async function LandingPage({ searchParams }: PageProps) {
       <LandingHero trialDays={trialDays} initialSignedIn={initialSignedIn} />
 
       <LandingChallengeSection
-        demo={demo}
+        challenge={challenge}
         trialDays={trialDays}
         initialSignedIn={initialSignedIn}
+        streak={streak}
       />
 
       <LandingFeatures />

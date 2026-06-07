@@ -18,10 +18,12 @@ The production app implements these pages with real progress data:
 | Lesson cards on `/lessons` | **Section cards** within each unit block (Letters I–V, etc.) linking to first incomplete **`/lessons/[lessonId]`** |
 | Nav avatar placeholder | Clerk **`UserButton`** in **`LearnHeader`** |
 | Billing | **`LearnSubscriptionCard`** on dashboard when subscribed (Stripe portal) |
+| Daily challenge | **`DashboardDailyChallengeCard`** — today’s word + streak → **`/daily`** (above stats row) |
+| Section hub | **`SectionHubView`** at **`/lessons/sections/[sectionId]`** — Arabic-first tappable lesson rows, **`learn-main-section`** layout |
 
-**Not yet restyled:** **`/lessons/sections/[sectionId]`** and **`/lessons/[lessonId]`** still use the shadcn practice shell (Inter); they share **`LearnHeader`** and **`learn-main-default`** padding only.
+**Not yet restyled:** **`/lessons/[lessonId]`** still uses the shadcn practice shell (Inter); it shares **`LearnHeader`** and **`learn-main-default`** padding only.
 
-Implementation: **`app/(learn)/`**, **`components/learn/`**, **`components/layout/learn-header.tsx`**, **`lib/learn/`**. Shared fonts/CSS with marketing and onboarding (Fredoka, Hanken Grotesk, Noto Naskh Arabic).
+Implementation: **`app/(learn)/`**, **`components/learn/`** (including **`section-hub-view.tsx`**), **`components/layout/learn-header.tsx`**, **`lib/learn/`**. Shared fonts/CSS with marketing and onboarding (Fredoka, Hanken Grotesk, Noto Naskh Arabic).
 
 ---
 
