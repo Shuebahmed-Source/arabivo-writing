@@ -175,13 +175,13 @@ export function LandingFooter() {
       <span className="mkt-footer-copy">© 2026 ArabivoWrite</span>
       <ul className="mkt-footer-links">
         <li>
-          <a href="#">Privacy</a>
+          <a href="/privacy">Privacy</a>
         </li>
         <li>
-          <a href="#">Terms</a>
+          <a href="/privacy">Terms</a>
         </li>
         <li>
-          <a href="#">Contact</a>
+          <a href="mailto:shueb3685@gmail.com">Contact</a>
         </li>
       </ul>
     </footer>
