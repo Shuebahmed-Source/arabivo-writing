@@ -4,7 +4,6 @@ import { Check, ChevronRight } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
 
 import { Badge } from "@/components/ui/badge";
-import { LetterBreakdown } from "@/components/writing/letter-breakdown";
 import { LessonPracticeSidebar } from "@/components/writing/lesson-practice-sidebar";
 import { LessonWritingSection } from "@/components/writing/lesson-writing-section";
 import {
@@ -144,8 +143,6 @@ export default async function LessonDetailPage({ params }: Props) {
               ) : null}
             </div>
           </div>
-
-          <LetterBreakdown arabicText={lesson.arabicText} type={lesson.type} />
 
           <LessonWritingSection
             guideText={lesson.arabicText}
