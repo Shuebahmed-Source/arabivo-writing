@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import { ArrowDown, Eye, EyeOff } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { recordLessonCompletion } from "@/app/actions/progress";
@@ -55,7 +55,6 @@ export function BreakdownWritingSection({
   const [isolatedTick, setIsolatedTick] = useState(0);
   const [connectedTick, setConnectedTick] = useState(0);
 
-  // null = not yet checked and passed; level = passed at this level
   const [isolatedScore, setIsolatedScore] = useState<ScoreLevel | null>(null);
   const [connectedScore, setConnectedScore] = useState<ScoreLevel | null>(null);
 
@@ -68,16 +67,11 @@ export function BreakdownWritingSection({
   }, [lessonId]);
 
   const isolatedText = toIsolatedDisplay(arabicText);
-  const bothDone = isolatedScore !== null && connectedScore !== null;
   const controlsDisabled = pending || complete !== null;
 
-  // When both canvases pass, save and show completion overlay
-  useEffect(() => {
-    if (!bothDone || complete || pending) return;
+  function saveCompletion(iso: ScoreLevel, conn: ScoreLevel) {
     const level: ScoreLevel =
-      isolatedScore === "excellent" && connectedScore === "excellent"
-        ? "excellent"
-        : "good";
+      iso === "excellent" && conn === "excellent" ? "excellent" : "good";
     startTransition(async () => {
       const out = await recordLessonCompletion(lessonId, level);
       if (!out.ok) {
@@ -87,8 +81,7 @@ export function BreakdownWritingSection({
       captureEvent("lesson_completed", { lesson_id: lessonId, result: level });
       setComplete({ level, nextPath: out.nextPath });
     });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bothDone]);
+  }
 
   const handleCheckIsolated = () => {
     const result = isolatedRef.current?.check();
@@ -100,7 +93,9 @@ export function BreakdownWritingSection({
       setIsolatedFeedback(result);
       return;
     }
-    setIsolatedScore(result.level);
+    const score = result.level as ScoreLevel;
+    setIsolatedScore(score);
+    if (connectedScore) saveCompletion(score, connectedScore);
   };
 
   const handleCheckConnected = () => {
@@ -113,7 +108,9 @@ export function BreakdownWritingSection({
       setConnectedFeedback(result);
       return;
     }
-    setConnectedScore(result.level);
+    const score = result.level as ScoreLevel;
+    setConnectedScore(score);
+    if (isolatedScore) saveCompletion(isolatedScore, score);
   };
 
   const handleClearIsolated = () => {
@@ -151,16 +148,20 @@ export function BreakdownWritingSection({
 
   return (
     <>
-      <div className="flex flex-col gap-6">
-        {/* ── Canvas 1: isolated letters ─────────────────────────────── */}
-        <section className="flex flex-col gap-3" aria-labelledby="isolated-heading">
+      <section
+        className="flex flex-col gap-3"
+        aria-labelledby="breakdown-heading"
+      >
+        <h2 id="breakdown-heading" className="sr-only">
+          Breakdown practice
+        </h2>
+
+        {/* ── Canvas 1: isolated letters ─────────────────────── */}
+        <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between">
-            <h2
-              id="isolated-heading"
-              className="text-[0.65rem] font-semibold uppercase tracking-wider text-muted-foreground"
-            >
+            <span className="text-[0.65rem] font-semibold uppercase tracking-wider text-muted-foreground">
               Isolated letters
-            </h2>
+            </span>
             {isolatedScore !== null && (
               <span className="text-xs font-medium text-primary">✓ Done</span>
             )}
@@ -171,27 +172,32 @@ export function BreakdownWritingSection({
               ref={isolatedRef}
               guideText={isolatedText}
               showGuide={showIsolatedGuide}
+              className="min-h-[180px] sm:min-h-[210px] md:min-h-[230px] lg:min-h-[240px]"
             />
-            <div className="pointer-events-none absolute inset-x-0 bottom-3 flex justify-center px-3 sm:bottom-4">
+            <div className="pointer-events-none absolute inset-x-0 bottom-2 flex justify-center px-3 sm:bottom-3">
               <div className="pointer-events-auto flex flex-wrap items-center justify-center gap-1 rounded-full border border-border/80 bg-background/95 p-1 shadow-lg shadow-primary/5 backdrop-blur-sm sm:gap-1.5 sm:p-1.5">
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="size-10 shrink-0 touch-manipulation sm:size-9"
+                  className="size-9 shrink-0 touch-manipulation"
                   onClick={() => setShowIsolatedGuide((v) => !v)}
                   disabled={controlsDisabled}
                   aria-label={showIsolatedGuide ? "Hide guide" : "Show guide"}
                   aria-pressed={showIsolatedGuide}
                 >
-                  {showIsolatedGuide ? <Eye className="size-4" aria-hidden /> : <EyeOff className="size-4" aria-hidden />}
+                  {showIsolatedGuide ? (
+                    <Eye className="size-4" aria-hidden />
+                  ) : (
+                    <EyeOff className="size-4" aria-hidden />
+                  )}
                 </Button>
                 <span className="mx-0.5 hidden h-6 w-px bg-border/80 sm:block" aria-hidden />
                 <Button
                   type="button"
                   variant="ghost"
                   size="sm"
-                  className="min-h-10 touch-manipulation px-3 sm:min-h-9"
+                  className="min-h-9 touch-manipulation px-3"
                   onClick={handleClearIsolated}
                   disabled={controlsDisabled}
                 >
@@ -200,7 +206,7 @@ export function BreakdownWritingSection({
                 <Button
                   type="button"
                   size="sm"
-                  className="min-h-10 touch-manipulation px-4 sm:min-h-9"
+                  className="min-h-9 touch-manipulation px-4"
                   onClick={handleCheckIsolated}
                   disabled={controlsDisabled || isolatedScore !== null}
                 >
@@ -213,17 +219,19 @@ export function BreakdownWritingSection({
           {isolatedFeedback ? (
             <WritingFeedbackPanel key={isolatedTick} level={isolatedFeedback.level} />
           ) : null}
-        </section>
+        </div>
 
-        {/* ── Canvas 2: connected word ────────────────────────────────── */}
-        <section className="flex flex-col gap-3" aria-labelledby="connected-heading">
+        {/* ── Arrow divider ───────────────────────────────────── */}
+        <div className="flex items-center justify-center py-0.5">
+          <ArrowDown className="size-5 text-primary" aria-hidden />
+        </div>
+
+        {/* ── Canvas 2: connected word ───────────────────────── */}
+        <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between">
-            <h2
-              id="connected-heading"
-              className="text-[0.65rem] font-semibold uppercase tracking-wider text-muted-foreground"
-            >
+            <span className="text-[0.65rem] font-semibold uppercase tracking-wider text-muted-foreground">
               Connected word
-            </h2>
+            </span>
             {connectedScore !== null && (
               <span className="text-xs font-medium text-primary">✓ Done</span>
             )}
@@ -234,27 +242,32 @@ export function BreakdownWritingSection({
               ref={connectedRef}
               guideText={arabicText}
               showGuide={showConnectedGuide}
+              className="min-h-[180px] sm:min-h-[210px] md:min-h-[230px] lg:min-h-[240px]"
             />
-            <div className="pointer-events-none absolute inset-x-0 bottom-3 flex justify-center px-3 sm:bottom-4">
+            <div className="pointer-events-none absolute inset-x-0 bottom-2 flex justify-center px-3 sm:bottom-3">
               <div className="pointer-events-auto flex flex-wrap items-center justify-center gap-1 rounded-full border border-border/80 bg-background/95 p-1 shadow-lg shadow-primary/5 backdrop-blur-sm sm:gap-1.5 sm:p-1.5">
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="size-10 shrink-0 touch-manipulation sm:size-9"
+                  className="size-9 shrink-0 touch-manipulation"
                   onClick={() => setShowConnectedGuide((v) => !v)}
                   disabled={controlsDisabled}
                   aria-label={showConnectedGuide ? "Hide guide" : "Show guide"}
                   aria-pressed={showConnectedGuide}
                 >
-                  {showConnectedGuide ? <Eye className="size-4" aria-hidden /> : <EyeOff className="size-4" aria-hidden />}
+                  {showConnectedGuide ? (
+                    <Eye className="size-4" aria-hidden />
+                  ) : (
+                    <EyeOff className="size-4" aria-hidden />
+                  )}
                 </Button>
                 <span className="mx-0.5 hidden h-6 w-px bg-border/80 sm:block" aria-hidden />
                 <Button
                   type="button"
                   variant="ghost"
                   size="sm"
-                  className="min-h-10 touch-manipulation px-3 sm:min-h-9"
+                  className="min-h-9 touch-manipulation px-3"
                   onClick={handleClearConnected}
                   disabled={controlsDisabled}
                 >
@@ -263,7 +276,7 @@ export function BreakdownWritingSection({
                 <Button
                   type="button"
                   size="sm"
-                  className="min-h-10 touch-manipulation px-4 sm:min-h-9"
+                  className="min-h-9 touch-manipulation px-4"
                   onClick={handleCheckConnected}
                   disabled={controlsDisabled || connectedScore !== null}
                 >
@@ -276,17 +289,19 @@ export function BreakdownWritingSection({
           {connectedFeedback ? (
             <WritingFeedbackPanel key={connectedTick} level={connectedFeedback.level} />
           ) : null}
-        </section>
+        </div>
 
         {saveError ? (
-          <p className="text-sm text-destructive" role="alert">{saveError}</p>
+          <p className="text-sm text-destructive" role="alert">
+            {saveError}
+          </p>
         ) : null}
 
         <p className="text-xs leading-relaxed text-muted-foreground sm:text-sm">
-          Trace both canvases and hit <span className="font-medium text-foreground">Check</span> on each.
-          Complete both to finish the lesson.
+          Trace isolated letters above, then the connected word below.{" "}
+          <span className="font-medium text-foreground">Check</span> each to finish.
         </p>
-      </div>
+      </section>
 
       {complete ? (
         <LessonCompleteOverlay
