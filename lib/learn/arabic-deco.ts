@@ -6,4 +6,5 @@ export const UNIT_ARABIC_DECO: Record<UnitId, string> = {
   "letter-forms": "جـ ـجـ ـج",
   "simple-words": "سلام",
   "challenge-words": "صعب",
+  "word-breakdown": "صبر",
 };
