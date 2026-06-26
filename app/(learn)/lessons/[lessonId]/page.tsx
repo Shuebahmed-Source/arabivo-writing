@@ -4,6 +4,7 @@ import { Check, ChevronRight } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
 
 import { Badge } from "@/components/ui/badge";
+import { BreakdownWritingSection } from "@/components/writing/breakdown-writing-section";
 import { LessonPracticeSidebar } from "@/components/writing/lesson-practice-sidebar";
 import { LessonWritingSection } from "@/components/writing/lesson-writing-section";
 import {
@@ -144,15 +145,27 @@ export default async function LessonDetailPage({ params }: Props) {
             </div>
           </div>
 
-          <LessonWritingSection
-            guideText={lesson.arabicText}
-            lessonId={lesson.id}
-            sectionTitle={sectionTitle}
-            sectionHref={sectionHref}
-            sectionPosition={sectionPosition}
-            sectionTotal={sectionTotal}
-            lessonShortTitle={lessonShortTitle}
-          />
+          {lesson.type === "word_breakdown" ? (
+            <BreakdownWritingSection
+              arabicText={lesson.arabicText}
+              lessonId={lesson.id}
+              sectionTitle={sectionTitle}
+              sectionHref={sectionHref}
+              sectionPosition={sectionPosition}
+              sectionTotal={sectionTotal}
+              lessonShortTitle={lessonShortTitle}
+            />
+          ) : (
+            <LessonWritingSection
+              guideText={lesson.arabicText}
+              lessonId={lesson.id}
+              sectionTitle={sectionTitle}
+              sectionHref={sectionHref}
+              sectionPosition={sectionPosition}
+              sectionTotal={sectionTotal}
+              lessonShortTitle={lessonShortTitle}
+            />
+          )}
         </div>
 
         <LessonPracticeSidebar

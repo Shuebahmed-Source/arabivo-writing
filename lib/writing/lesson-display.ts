@@ -5,7 +5,16 @@ export function practiceKindLabel(type: LessonType): string {
   if (type === "challenge") return "CHALLENGE · TRACE";
   if (type === "word") return "WORD · TRACE";
   if (type === "letter_form") return "FORM · TRACE";
+  if (type === "word_breakdown") return "WORD BREAKDOWN · TRACE";
   return "LETTER · TRACE";
+}
+
+/** Strip diacritics and tatweel from Arabic text, return letters separated by em-spaces for isolated tracing. */
+export function toIsolatedDisplay(arabicText: string): string {
+  const letters = Array.from(arabicText).filter(
+    (ch) => !/[ً-ٰٟـ]/.test(ch) && ch.trim() !== "",
+  );
+  return letters.join(" "); // em space — wide enough to look clearly separated
 }
 
 /** Count Arabic letters in lesson text (spaces and common diacritics excluded). */

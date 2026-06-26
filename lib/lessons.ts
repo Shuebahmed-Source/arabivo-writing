@@ -8,6 +8,7 @@ export const UNIT_IDS = [
   "letter-forms",
   "simple-words",
   "challenge-words",
+  "word-breakdown",
 ] as const;
 export type UnitId = (typeof UNIT_IDS)[number];
 
@@ -15,7 +16,8 @@ export type LessonType =
   | "isolated_letter"
   | "letter_form"
   | "word"
-  | "challenge";
+  | "challenge"
+  | "word_breakdown";
 
 export type SectionUnlockPolicy = "sequential" | "open";
 
@@ -89,6 +91,13 @@ export const UNITS: UnitDefinition[] = [
       "Visually wild Arabic—repeating shapes, dot walls, and famous one-word puzzles. Pick any item; no strict order.",
     order: 4,
     alwaysAvailable: true,
+  },
+  {
+    id: "word-breakdown",
+    title: "Word breakdown",
+    description:
+      "Trace each letter isolated, then trace the full joined word—see exactly how letters transform when they connect.",
+    order: 5,
   },
 ];
 
@@ -191,6 +200,20 @@ const SECTION_META: SectionMeta[] = [
     title: "Animals",
     description: "Creatures big and small; smooth joins and familiar shapes.",
     orderInUnit: 7,
+  },
+  {
+    id: "word-breakdown-i",
+    unitId: "word-breakdown",
+    title: "Breakdown I",
+    description: "Common 3-letter words—trace isolated letters then the joined form.",
+    orderInUnit: 1,
+  },
+  {
+    id: "word-breakdown-ii",
+    unitId: "word-breakdown",
+    title: "Breakdown II",
+    description: "Longer words—see how more letters chain together.",
+    orderInUnit: 2,
   },
   {
     id: "challenge-words-core",
@@ -1211,16 +1234,114 @@ export const lessons: Lesson[] = [
     locked: false,
   },
   {
-    id: "challenge-afastasqina-kumuha",
-    title: "Challenge: afastasqīnākumūhā",
-    arabicText: "أفاستسقيناكموها",
-    transliteration: "afastasqīnākumūhā",
+    id: “challenge-afastasqina-kumuha”,
+    title: “Challenge: afastasqīnākumūhā”,
+    arabicText: “أفاستسقيناكموها”,
+    transliteration: “afastasqīnākumūhā”,
     englishMeaning:
-      "A real classical Arabic form meaning roughly “did we then ask you all for water to drink from it?” Famous as one of the longest Arabic words—caption bait: this is ONE word.",
-    unit: "challenge-words",
+      “A real classical Arabic form meaning roughly “did we then ask you all for water to drink from it?” Famous as one of the longest Arabic words—caption bait: this is ONE word.”,
+    unit: “challenge-words”,
     order: 8,
-    type: "challenge",
-    sectionId: "challenge-words-core",
+    type: “challenge”,
+    sectionId: “challenge-words-core”,
+    locked: false,
+  },
+
+  // ── Word breakdown lessons ────────────────────────────────────────────────
+  {
+    id: “breakdown-sabr”,
+    title: “Breakdown: ṣabr”,
+    arabicText: “صبر”,
+    transliteration: “ṣabr”,
+    englishMeaning: “”Patience”—ṣād, bāʾ, and rāʾ isolated then joined.”,
+    unit: “word-breakdown”,
+    order: 1,
+    type: “word_breakdown”,
+    sectionId: “word-breakdown-i”,
+    locked: false,
+  },
+  {
+    id: “breakdown-qalb”,
+    title: “Breakdown: qalb”,
+    arabicText: “قلب”,
+    transliteration: “qalb”,
+    englishMeaning: “”Heart”—qāf with its two dots, lām, and bāʾ.”,
+    unit: “word-breakdown”,
+    order: 2,
+    type: “word_breakdown”,
+    sectionId: “word-breakdown-i”,
+    locked: false,
+  },
+  {
+    id: “breakdown-nahr”,
+    title: “Breakdown: nahr”,
+    arabicText: “نهر”,
+    transliteration: “nahr”,
+    englishMeaning: “”River”—nūn, hāʾ, and rāʾ; watch the nūn dot and the open hāʾ.”,
+    unit: “word-breakdown”,
+    order: 3,
+    type: “word_breakdown”,
+    sectionId: “word-breakdown-i”,
+    locked: false,
+  },
+  {
+    id: “breakdown-hulm”,
+    title: “Breakdown: ḥulm”,
+    arabicText: “حلم”,
+    transliteration: “ḥulm”,
+    englishMeaning: “”Dream”—ḥāʾ, lām, and mīm; the ḥāʾ transforms its open bowl when it joins.”,
+    unit: “word-breakdown”,
+    order: 4,
+    type: “word_breakdown”,
+    sectionId: “word-breakdown-i”,
+    locked: false,
+  },
+  {
+    id: “breakdown-shams”,
+    title: “Breakdown: shams”,
+    arabicText: “شمس”,
+    transliteration: “shams”,
+    englishMeaning: “”Sun”—shīn with three dots, mīm, and sīn; the shīn loses its teeth mid-word.”,
+    unit: “word-breakdown”,
+    order: 5,
+    type: “word_breakdown”,
+    sectionId: “word-breakdown-ii”,
+    locked: false,
+  },
+  {
+    id: “breakdown-qamar”,
+    title: “Breakdown: qamar”,
+    arabicText: “قمر”,
+    transliteration: “qamar”,
+    englishMeaning: “”Moon”—qāf, mīm, and rāʾ; qāf's two dots sit clearly in isolation.”,
+    unit: “word-breakdown”,
+    order: 6,
+    type: “word_breakdown”,
+    sectionId: “word-breakdown-ii”,
+    locked: false,
+  },
+  {
+    id: “breakdown-bahr”,
+    title: “Breakdown: baḥr”,
+    arabicText: “بحر”,
+    transliteration: “baḥr”,
+    englishMeaning: “”Sea”—bāʾ, ḥāʾ, and rāʾ; the bāʾ dot disappears below as it leads the word.”,
+    unit: “word-breakdown”,
+    order: 7,
+    type: “word_breakdown”,
+    sectionId: “word-breakdown-ii”,
+    locked: false,
+  },
+  {
+    id: “breakdown-kitab”,
+    title: “Breakdown: kitāb”,
+    arabicText: “كتاب”,
+    transliteration: “kitāb”,
+    englishMeaning: “”Book”—kāf, tāʾ, alif, and bāʾ; four letters that flow into a single stroke.”,
+    unit: “word-breakdown”,
+    order: 8,
+    type: “word_breakdown”,
+    sectionId: “word-breakdown-ii”,
     locked: false,
   },
 ];
