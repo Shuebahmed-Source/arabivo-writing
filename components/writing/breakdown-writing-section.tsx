@@ -150,52 +150,51 @@ export function BreakdownWritingSection({
             )}
           </div>
 
-          <div className="relative">
-            <WritingCanvas
-              ref={connectedRef}
-              guideText={arabicText}
-              showGuide={showConnectedGuide}
-              className="min-h-[180px] sm:min-h-[210px] md:min-h-[230px] lg:min-h-[240px]"
-            />
-            <div className="pointer-events-none absolute inset-x-0 bottom-2 flex justify-center px-3 sm:bottom-3">
-              <div className="pointer-events-auto flex flex-wrap items-center justify-center gap-1 rounded-full border border-border/80 bg-background/95 p-1 shadow-lg shadow-primary/5 backdrop-blur-sm sm:gap-1.5 sm:p-1.5">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="size-9 shrink-0 touch-manipulation"
-                  onClick={() => setShowConnectedGuide((v) => !v)}
-                  disabled={controlsDisabled}
-                  aria-label={showConnectedGuide ? "Hide guide" : "Show guide"}
-                  aria-pressed={showConnectedGuide}
-                >
-                  {showConnectedGuide ? (
-                    <Eye className="size-4" aria-hidden />
-                  ) : (
-                    <EyeOff className="size-4" aria-hidden />
-                  )}
-                </Button>
-                <span className="mx-0.5 hidden h-6 w-px bg-border/80 sm:block" aria-hidden />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="min-h-9 touch-manipulation px-3"
-                  onClick={handleClearConnected}
-                  disabled={controlsDisabled}
-                >
-                  Clear
-                </Button>
-                <Button
-                  type="button"
-                  size="sm"
-                  className="min-h-9 touch-manipulation px-4"
-                  onClick={handleCheckConnected}
-                  disabled={controlsDisabled || connectedPassed}
-                >
-                  {connectedPassed ? "Passed" : "Check"}
-                </Button>
-              </div>
+          <WritingCanvas
+            ref={connectedRef}
+            guideText={arabicText}
+            showGuide={showConnectedGuide}
+            className="min-h-[180px] sm:min-h-[210px] md:min-h-[230px] lg:min-h-[240px]"
+          />
+
+          <div className="flex justify-center">
+            <div className="flex items-center gap-1 rounded-full border border-border/80 bg-background/95 p-1 shadow-lg shadow-primary/5 sm:gap-1.5 sm:p-1.5">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="size-9 shrink-0 touch-manipulation"
+                onClick={() => setShowConnectedGuide((v) => !v)}
+                disabled={controlsDisabled}
+                aria-label={showConnectedGuide ? "Hide guide" : "Show guide"}
+                aria-pressed={showConnectedGuide}
+              >
+                {showConnectedGuide ? (
+                  <Eye className="size-4" aria-hidden />
+                ) : (
+                  <EyeOff className="size-4" aria-hidden />
+                )}
+              </Button>
+              <span className="mx-0.5 hidden h-6 w-px bg-border/80 sm:block" aria-hidden />
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="min-h-9 touch-manipulation px-3"
+                onClick={handleClearConnected}
+                disabled={controlsDisabled}
+              >
+                Clear
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                className="min-h-9 touch-manipulation px-4"
+                onClick={handleCheckConnected}
+                disabled={controlsDisabled || connectedPassed}
+              >
+                {connectedPassed ? "Passed" : "Check"}
+              </Button>
             </div>
           </div>
 
