@@ -6,7 +6,6 @@ import Link from "next/link";
 import { captureEvent } from "@/components/analytics/posthog-provider";
 import { MARKETING_ACCESS_CTA } from "@/lib/marketing/paywall-copy";
 
-const SIGN_UP_RETURN = "/sign-up?redirect_url=%2Fsubscribe";
 const SIGN_IN_RETURN = "/sign-in?redirect_url=%2Fsubscribe";
 
 type Props = {
