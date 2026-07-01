@@ -17,7 +17,7 @@ export function MarketingHeader({ initialSignedIn }: Props) {
   const { isSignedIn, isLoaded } = useAuth();
   const signedIn = isLoaded ? Boolean(isSignedIn) : initialSignedIn;
 
-  const primaryHref = signedIn ? "/subscribe" : SIGN_UP_RETURN;
+  const primaryHref = signedIn ? "/subscribe" : "/onboarding";
 
   return (
     <nav className="mkt-nav">
@@ -44,7 +44,7 @@ export function MarketingHeader({ initialSignedIn }: Props) {
         onClick={() =>
           captureEvent("subscribe_click", {
             source: "marketing_header",
-            target: signedIn ? "subscribe" : "sign_up",
+            target: signedIn ? "subscribe" : "onboarding",
           })
         }
       >
