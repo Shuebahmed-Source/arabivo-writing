@@ -15,10 +15,10 @@ export const MONTHLY_PRICE_LABEL = "£7.99";
 
 export const MONTHLY_INTERVAL_LABEL = "month";
 
-export const MONTHLY_CTA = "Subscribe monthly";
+export const MONTHLY_CTA = "Start 7-day free trial";
 
 export const MONTHLY_LINK_LABEL =
-  "Prefer monthly? £7.99/month — cancel anytime";
+  "Prefer monthly? 7-day free trial, then £7.99/month — cancel anytime";
 
 const MONTHLY_PRICE_GBP = 7.99;
 const LIFETIME_PRICE_GBP = 54;
@@ -50,17 +50,17 @@ export const LIFETIME_FEATURES = [
 ] as const;
 
 export const MONTHLY_FEATURES = [
+  "7-day free trial — no charge until day 8",
   "Full access to every handwriting lesson and unit",
   "Guided tracing canvas with clear feedback",
   "Progress saved to your account",
   "Daily challenge + streak",
-  "Every lesson we add in the future",
   "Cancel anytime from billing settings",
 ] as const;
 
 export const PRICING_SECTION_HEADLINE = "Choose how you want to learn";
 
 export const PRICING_SECTION_SUB =
-  "Unlock the full course after your free trace.";
+  "Unlock the full course after your free trace. Monthly includes a 7-day free trial.";
 
 export const MARKETING_ACCESS_CTA = "Get full access";

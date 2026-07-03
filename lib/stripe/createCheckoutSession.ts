@@ -63,6 +63,7 @@ function buildMonthlySessionParams(opts: {
     metadata: { clerk_user_id: userId, plan: "monthly" },
     subscription_data: {
       metadata: { clerk_user_id: userId },
+      trial_period_days: 7,
     },
   };
 }
