@@ -976,11 +976,11 @@
 }
 
 @media (max-width: 767px) {
-  .mkt-paywall-card-lifetime {
+  .mkt-paywall-card-monthly {
     order: 1;
   }
 
-  .mkt-paywall-card-monthly {
+  .mkt-paywall-card-lifetime {
     order: 2;
   }
 }
