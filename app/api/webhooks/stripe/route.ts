@@ -2,6 +2,7 @@ import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 
+import { sendMetaPurchaseEvent } from "@/lib/meta/conversions-api";
 import { getStripe } from "@/lib/stripe/server";
 import {
   syncLifetimeFromCheckoutSession,
@@ -42,6 +43,12 @@ export async function POST(req: Request) {
         const session = event.data.object as Stripe.Checkout.Session;
         if (session.mode === "payment") {
           await syncLifetimeFromCheckoutSession(session);
+          await sendMetaPurchaseEvent({
+            eventId: event.id,
+            value: (session.amount_total ?? 5400) / 100,
+            currency: (session.currency ?? "gbp").toUpperCase(),
+            email: session.customer_details?.email ?? session.customer_email,
+          });
           break;
         }
         if (session.mode !== "subscription") {
@@ -64,6 +71,37 @@ export async function POST(req: Request) {
       case "customer.subscription.deleted": {
         const subscription = event.data.object as Stripe.Subscription;
         await syncSubscriptionFromStripe(subscription);
+        break;
+      }
+      case "invoice.payment_succeeded": {
+        const invoice = event.data.object as Stripe.Invoice;
+        const subId =
+          typeof invoice.subscription === "string"
+            ? invoice.subscription
+            : invoice.subscription?.id;
+        if (!subId || invoice.amount_paid <= 0) {
+          break;
+        }
+        // Only the first paid invoice on a subscription counts as the trial→paid
+        // conversion "Purchase" — later renewals must not re-fire it.
+        try {
+          const stripe = getStripe();
+          const paidInvoices = await stripe.invoices.list({
+            subscription: subId,
+            status: "paid",
+            limit: 2,
+          });
+          if (paidInvoices.data.length === 1) {
+            await sendMetaPurchaseEvent({
+              eventId: event.id,
+              value: invoice.amount_paid / 100,
+              currency: invoice.currency.toUpperCase(),
+              email: invoice.customer_email,
+            });
+          }
+        } catch (e) {
+          console.error("[stripe webhook] meta capi invoice check failed", e);
+        }
         break;
       }
       default:

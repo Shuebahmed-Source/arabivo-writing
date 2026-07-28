@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Inter, Noto_Sans_Arabic } from "next/font/google";
 
+import { MetaPixel } from "@/components/analytics/meta-pixel";
 import { PostHogProvider } from "@/components/analytics/posthog-provider";
 
 import "./globals.css";
@@ -50,6 +51,7 @@ export default function RootLayout({
         className={`${inter.variable} ${notoSansArabic.variable} h-full antialiased`}
       >
         <body className="min-h-full flex flex-col font-sans">
+          <MetaPixel />
           <PostHogProvider>{children}</PostHogProvider>
         </body>
       </html>

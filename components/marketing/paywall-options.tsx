@@ -4,6 +4,7 @@ import { useAuth } from "@clerk/nextjs";
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
 
+import { trackMetaPixelEvent } from "@/components/analytics/meta-pixel";
 import { captureEvent } from "@/components/analytics/posthog-provider";
 import {
   LIFETIME_BADGE,
@@ -79,6 +80,9 @@ export function PaywallOptions({ variant, initialSignedIn }: Props) {
   }
 
   function handlePlanClick(plan: CheckoutPlan) {
+    if (plan === "monthly") {
+      trackMetaPixelEvent("StartTrial");
+    }
     if (!signedIn) {
       trackPlanClick(plan, "sign_up");
       return;
