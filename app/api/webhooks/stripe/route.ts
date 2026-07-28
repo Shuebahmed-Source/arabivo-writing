@@ -75,10 +75,12 @@ export async function POST(req: Request) {
       }
       case "invoice.payment_succeeded": {
         const invoice = event.data.object as Stripe.Invoice;
+        const subscriptionRef =
+          invoice.parent?.subscription_details?.subscription;
         const subId =
-          typeof invoice.subscription === "string"
-            ? invoice.subscription
-            : invoice.subscription?.id;
+          typeof subscriptionRef === "string"
+            ? subscriptionRef
+            : subscriptionRef?.id;
         if (!subId || invoice.amount_paid <= 0) {
           break;
         }
