@@ -33,7 +33,8 @@ export default clerkMiddleware(
   {
     contentSecurityPolicy: {
       directives: {
-        "connect-src": ["https://*.posthog.com"],
+        "connect-src": ["https://*.posthog.com", "https://www.facebook.com"],
+        "img-src": ["https://www.facebook.com"],
       },
     },
     ...(useFrontendApiProxy
