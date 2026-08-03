@@ -31,11 +31,12 @@ export async function syncLifetimeFromCheckoutSession(
   const customerId =
     typeof session.customer === "string"
       ? session.customer
-      : session.customer?.id;
+      : (session.customer?.id ?? null);
 
   if (!customerId) {
-    console.error("[stripe] Missing customer for lifetime checkout");
-    return;
+    console.warn(
+      "[stripe] Lifetime checkout has no Stripe customer; proceeding with clerk_user_id only",
+    );
   }
 
   const supabase = createSupabaseAdminClient();

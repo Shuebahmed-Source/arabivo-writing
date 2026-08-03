@@ -37,6 +37,7 @@ function buildLifetimeSessionParams(opts: {
   const { priceId, origin, userId, email } = opts;
   return {
     mode: "payment",
+    customer_creation: "always",
     ...(email ? { customer_email: email } : {}),
     line_items: [{ price: priceId, quantity: 1 }],
     success_url: `${origin}/dashboard?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
