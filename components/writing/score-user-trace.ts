@@ -1,3 +1,5 @@
+import { MIN_STROKE_SCALE } from "@/lib/writing/lesson-display";
+
 /**
  * Pixel-based trace scoring: compares a binary user-ink mask to a binary guide mask.
  * Both ImageData buffers must be the same width/height (typically the canvas backing store).
@@ -75,10 +77,43 @@ const GOOD_ALT_MAX_OFF_GUIDE = 0.48;
 /** If more than this fraction of ink is off-guide, cap at try-again. */
 const HARD_FAIL_OFF_GUIDE = 0.82;
 
+/**
+ * `strokeScale` is the same 0–1 factor `WritingCanvas` uses to shrink the pen/mask
+ * stroke width for long words (see `strokeScaleForFontSize`). A smaller scale means
+ * a smaller guide glyph and a proportionally thinner mask stroke, so both the
+ * anti-aliasing "on" cutoffs and the coverage/precision/off-guide bars are relaxed
+ * by the same factor — otherwise a long word's inherently smaller overlap footprint
+ * would fail thresholds tuned for a full-size glyph.
+ */
 export function scoreUserTrace(
   guideMask: ImageData,
   userMask: ImageData,
+  strokeScale: number = 1,
 ): TraceScoreResult {
+  const scale = Math.min(1, Math.max(MIN_STROKE_SCALE, strokeScale));
+
+  const guideOnThreshold = GUIDE_PIXEL_ON_THRESHOLD * scale;
+  const userOnThreshold = USER_PIXEL_ON_THRESHOLD * scale;
+
+  const excellentMinCoverage = EXCELLENT_MIN_COVERAGE * scale;
+  const excellentMinPrecision = EXCELLENT_MIN_PRECISION * scale;
+  const excellentMaxOffGuide = Math.min(1, EXCELLENT_MAX_OFF_GUIDE / scale);
+
+  const excellentAltMinPrecision = EXCELLENT_ALT_MIN_PRECISION * scale;
+  const excellentAltMinOverlap = EXCELLENT_ALT_MIN_OVERLAP * scale;
+  const excellentAltMaxOffGuide = Math.min(1, EXCELLENT_ALT_MAX_OFF_GUIDE / scale);
+  const excellentAltMinCoverage = EXCELLENT_ALT_MIN_COVERAGE * scale;
+
+  const goodMinCoverage = GOOD_MIN_COVERAGE * scale;
+  const goodMinPrecision = GOOD_MIN_PRECISION * scale;
+  const goodMaxOffGuide = Math.min(1, GOOD_MAX_OFF_GUIDE / scale);
+
+  const goodAltMinPrecision = GOOD_ALT_MIN_PRECISION * scale;
+  const goodAltMinOverlap = GOOD_ALT_MIN_OVERLAP * scale;
+  const goodAltMaxOffGuide = Math.min(1, GOOD_ALT_MAX_OFF_GUIDE / scale);
+
+  const hardFailOffGuide = Math.min(1, HARD_FAIL_OFF_GUIDE / scale);
+
   const width = guideMask.width;
   const height = guideMask.height;
 
@@ -97,8 +132,8 @@ export function scoreUserTrace(
       const i = (y * width + x) * 4;
       const g = guideMask.data[i] ?? 0;
       const u = userMask.data[i] ?? 0;
-      const onGuide = g >= GUIDE_PIXEL_ON_THRESHOLD;
-      const onUser = u >= USER_PIXEL_ON_THRESHOLD;
+      const onGuide = g >= guideOnThreshold;
+      const onUser = u >= userOnThreshold;
 
       if (onGuide) guideCount++;
       if (onUser) userCount++;
@@ -137,20 +172,20 @@ export function scoreUserTrace(
     return tryAgain();
   }
 
-  if (offGuideRatio >= HARD_FAIL_OFF_GUIDE) {
+  if (offGuideRatio >= hardFailOffGuide) {
     return tryAgain();
   }
 
   const excellentStandard =
-    coverage >= EXCELLENT_MIN_COVERAGE &&
-    precision >= EXCELLENT_MIN_PRECISION &&
-    offGuideRatio <= EXCELLENT_MAX_OFF_GUIDE;
+    coverage >= excellentMinCoverage &&
+    precision >= excellentMinPrecision &&
+    offGuideRatio <= excellentMaxOffGuide;
 
   const excellentThinGlyph =
-    precision >= EXCELLENT_ALT_MIN_PRECISION &&
-    overlapCount >= EXCELLENT_ALT_MIN_OVERLAP &&
-    offGuideRatio <= EXCELLENT_ALT_MAX_OFF_GUIDE &&
-    coverage >= EXCELLENT_ALT_MIN_COVERAGE;
+    precision >= excellentAltMinPrecision &&
+    overlapCount >= excellentAltMinOverlap &&
+    offGuideRatio <= excellentAltMaxOffGuide &&
+    coverage >= excellentAltMinCoverage;
 
   if (excellentStandard || excellentThinGlyph) {
     return {
@@ -165,14 +200,14 @@ export function scoreUserTrace(
   }
 
   const goodByCoverage =
-    coverage >= GOOD_MIN_COVERAGE &&
-    precision >= GOOD_MIN_PRECISION &&
-    offGuideRatio <= GOOD_MAX_OFF_GUIDE;
+    coverage >= goodMinCoverage &&
+    precision >= goodMinPrecision &&
+    offGuideRatio <= goodMaxOffGuide;
 
   const goodByThinGlyph =
-    precision >= GOOD_ALT_MIN_PRECISION &&
-    overlapCount >= GOOD_ALT_MIN_OVERLAP &&
-    offGuideRatio <= GOOD_ALT_MAX_OFF_GUIDE;
+    precision >= goodAltMinPrecision &&
+    overlapCount >= goodAltMinOverlap &&
+    offGuideRatio <= goodAltMaxOffGuide;
 
   if (goodByCoverage || goodByThinGlyph) {
     return {

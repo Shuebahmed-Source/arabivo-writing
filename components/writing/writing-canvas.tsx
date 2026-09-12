@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import {
   CANVAS_INK_LINE_WIDTH_PX,
   fitGuideFontSizePx,
+  strokeScaleForFontSize,
   type GuideFontMetrics,
 } from "@/lib/writing/lesson-display";
 
@@ -46,13 +47,15 @@ type InkCommand =
   | { kind: "quad"; from: NormPoint; ctrl: NormPoint; to: NormPoint }
   | { kind: "dot"; p: NormPoint };
 
-/** Logical CSS px under the dpr transform — slightly narrower than guide dots so grey rim stays visible. */
-const INK_LINE_WIDTH_PX = 10;
-/** Wider than visible ink so pixel scoring tolerates small drift from the guide. */
-const MASK_LINE_WIDTH_PX = 22;
-/** Match round line caps so dots read like pen blobs, not pinpoints. */
-const INK_DOT_RADIUS_PX = INK_LINE_WIDTH_PX / 2;
-const MASK_DOT_RADIUS_PX = MASK_LINE_WIDTH_PX / 2;
+/**
+ * Logical CSS px under the dpr transform, at the baseline glyph size — slightly
+ * narrower than guide dots so grey rim stays visible. Actual rendered width is
+ * this times `strokeScaleRef.current` (see `strokeScaleForFontSize`), so long
+ * words with a shrunk guide glyph get a proportionally thinner pen.
+ */
+const BASE_INK_LINE_WIDTH_PX = 10;
+/** Wider than visible ink so pixel scoring tolerates small drift from the guide, at the baseline glyph size. */
+const BASE_MASK_LINE_WIDTH_PX = 22;
 
 function toNorm(p: Point, w: number, h: number): NormPoint {
   if (w < 1 || h < 1) return { nx: 0, ny: 0 };
@@ -113,7 +116,7 @@ function resolveGuideFontSize(
     cssH,
     text,
     (fontSize) => measureGuideText(ctx, text, fontSize, fontFamily),
-    INK_LINE_WIDTH_PX,
+    CANVAS_INK_LINE_WIDTH_PX,
   );
 }
 
@@ -172,6 +175,8 @@ export const WritingCanvas = forwardRef<WritingCanvasHandle, WritingCanvasProps>
     const dprRef = useRef(1);
     const cssSizeRef = useRef({ w: 0, h: 0 });
     const inkCommandsRef = useRef<InkCommand[]>([]);
+    /** 1 for short lessons; shrinks toward MIN_STROKE_SCALE as the guide glyph shrinks for long words. */
+    const strokeScaleRef = useRef(1);
 
     const getFontFamily = useCallback(() => {
       const probe = fontProbeRef.current;
@@ -180,6 +185,20 @@ export const WritingCanvas = forwardRef<WritingCanvasHandle, WritingCanvasProps>
         "Noto Sans Arabic, sans-serif"
       );
     }, []);
+
+    const updateStrokeScale = useCallback(() => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+
+      const { w, h } = cssSizeRef.current;
+      if (w < 8 || h < 8) return;
+
+      const fontFamily = getFontFamily();
+      const fontSize = resolveGuideFontSize(ctx, w, h, guideText, fontFamily);
+      strokeScaleRef.current = strokeScaleForFontSize(fontSize, w, h);
+    }, [guideText, getFontFamily]);
 
     const drawBaseline = useCallback(() => {
       const canvas = canvasRef.current;
@@ -254,9 +273,11 @@ export const WritingCanvas = forwardRef<WritingCanvasHandle, WritingCanvasProps>
       const ctx = canvas.getContext("2d");
       if (!ctx) return;
 
+      const scale = strokeScaleRef.current;
+
       ctx.save();
       ctx.strokeStyle = "oklch(0.32 0.09 163)";
-      ctx.lineWidth = INK_LINE_WIDTH_PX;
+      ctx.lineWidth = BASE_INK_LINE_WIDTH_PX * scale;
       ctx.lineCap = "round";
       ctx.lineJoin = "round";
       ctx.globalAlpha = 1;
@@ -272,7 +293,7 @@ export const WritingCanvas = forwardRef<WritingCanvasHandle, WritingCanvasProps>
       if (!uctx) return;
       uctx.save();
       uctx.strokeStyle = "#ffffff";
-      uctx.lineWidth = MASK_LINE_WIDTH_PX;
+      uctx.lineWidth = BASE_MASK_LINE_WIDTH_PX * scale;
       uctx.lineCap = "round";
       uctx.lineJoin = "round";
       uctx.beginPath();
@@ -288,9 +309,11 @@ export const WritingCanvas = forwardRef<WritingCanvasHandle, WritingCanvasProps>
       const ctx = canvas.getContext("2d");
       if (!ctx) return;
 
+      const scale = strokeScaleRef.current;
+
       ctx.save();
       ctx.strokeStyle = "oklch(0.32 0.09 163)";
-      ctx.lineWidth = INK_LINE_WIDTH_PX;
+      ctx.lineWidth = BASE_INK_LINE_WIDTH_PX * scale;
       ctx.lineCap = "round";
       ctx.lineJoin = "round";
       ctx.globalAlpha = 1;
@@ -306,7 +329,7 @@ export const WritingCanvas = forwardRef<WritingCanvasHandle, WritingCanvasProps>
       if (!uctx) return;
       uctx.save();
       uctx.strokeStyle = "#ffffff";
-      uctx.lineWidth = MASK_LINE_WIDTH_PX;
+      uctx.lineWidth = BASE_MASK_LINE_WIDTH_PX * scale;
       uctx.lineCap = "round";
       uctx.lineJoin = "round";
       uctx.beginPath();
@@ -321,10 +344,13 @@ export const WritingCanvas = forwardRef<WritingCanvasHandle, WritingCanvasProps>
       if (!canvas) return;
       const ctx = canvas.getContext("2d");
       if (!ctx) return;
+
+      const scale = strokeScaleRef.current;
+
       ctx.save();
       ctx.fillStyle = "oklch(0.32 0.09 163)";
       ctx.beginPath();
-      ctx.arc(p.x, p.y, INK_DOT_RADIUS_PX, 0, Math.PI * 2);
+      ctx.arc(p.x, p.y, (BASE_INK_LINE_WIDTH_PX * scale) / 2, 0, Math.PI * 2);
       ctx.fill();
       ctx.restore();
 
@@ -335,7 +361,7 @@ export const WritingCanvas = forwardRef<WritingCanvasHandle, WritingCanvasProps>
       uctx.save();
       uctx.fillStyle = "#ffffff";
       uctx.beginPath();
-      uctx.arc(p.x, p.y, MASK_DOT_RADIUS_PX, 0, Math.PI * 2);
+      uctx.arc(p.x, p.y, (BASE_MASK_LINE_WIDTH_PX * scale) / 2, 0, Math.PI * 2);
       uctx.fill();
       uctx.restore();
     }, []);
@@ -411,10 +437,11 @@ export const WritingCanvas = forwardRef<WritingCanvasHandle, WritingCanvasProps>
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       }
 
+      updateStrokeScale();
       redrawVisibleBase();
       syncMaskCanvases();
       replayInk();
-    }, [redrawVisibleBase, syncMaskCanvases, replayInk]);
+    }, [redrawVisibleBase, syncMaskCanvases, replayInk, updateStrokeScale]);
 
     const tryAgainResult = useCallback((): TraceScoreResult => {
       return {
@@ -458,7 +485,7 @@ export const WritingCanvas = forwardRef<WritingCanvasHandle, WritingCanvasProps>
 
           const gData = gctx.getImageData(0, 0, gmc.width, gmc.height);
           const uData = uctx.getImageData(0, 0, gmc.width, gmc.height);
-          return scoreUserTrace(gData, uData);
+          return scoreUserTrace(gData, uData, strokeScaleRef.current);
         },
       }),
       [redrawVisibleBase, clearUserInkOnly, tryAgainResult],
@@ -491,9 +518,10 @@ export const WritingCanvas = forwardRef<WritingCanvasHandle, WritingCanvasProps>
 
     useEffect(() => {
       inkCommandsRef.current = [];
+      updateStrokeScale();
       redrawVisibleBase();
       syncMaskCanvases();
-    }, [guideText, redrawVisibleBase, syncMaskCanvases]);
+    }, [guideText, redrawVisibleBase, syncMaskCanvases, updateStrokeScale]);
 
     useEffect(() => {
       redrawVisibleBase();

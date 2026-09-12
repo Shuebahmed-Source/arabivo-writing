@@ -42,8 +42,38 @@ export type GuideFontMetrics = {
   height: number;
 };
 
-/** Default visible ink stroke width on the practice canvas (CSS px). */
+/** Default visible ink stroke width on the practice canvas (CSS px), at the baseline glyph size. */
 export const CANVAS_INK_LINE_WIDTH_PX = 10;
+
+/**
+ * `guideFontSizeRatio` for a short (≤3-letter) lesson — the size long words are
+ * implicitly compared against. Pen/mask stroke width and scoring tolerance are
+ * scaled relative to this so a shrunk glyph doesn't get a disproportionately
+ * thick fixed-pixel stroke.
+ */
+const BASELINE_GUIDE_FONT_RATIO = 0.42;
+
+/** Floor so pen/mask strokes (and scoring tolerance) never shrink to an unusable sliver on very long words. */
+export const MIN_STROKE_SCALE = 0.45;
+
+/**
+ * How much thinner the pen/mask stroke (and scoring tolerance) should render for
+ * this glyph, relative to a short baseline lesson at the same canvas size. Long
+ * words get a smaller guide font — see `guideFontSizeRatio` — so a fixed-pixel
+ * stroke width would look, and register in pixel-overlap scoring, as
+ * disproportionately thick against their glyph strokes. Never scales up past 1:
+ * short lessons keep today's exact stroke width.
+ */
+export function strokeScaleForFontSize(
+  resolvedFontSizePx: number,
+  cssW: number,
+  cssH: number,
+): number {
+  const baselineFontSizePx = Math.min(cssW, cssH) * BASELINE_GUIDE_FONT_RATIO;
+  if (baselineFontSizePx <= 0) return 1;
+  const scale = resolvedFontSizePx / baselineFontSizePx;
+  return Math.min(1, Math.max(MIN_STROKE_SCALE, scale));
+}
 
 /**
  * Guide glyphs target this much larger than a tight canvas fit so ink blobs
